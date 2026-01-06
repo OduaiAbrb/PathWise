@@ -1,12 +1,11 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Text, Integer, Float, DateTime, ForeignKey, JSON, Enum
-from sqlalchemy.orm import relationship
-from sqlalchemy import TypeDecorator, CHAR
+from sqlalchemy import Column, String, Integer, DateTime, Boolean, Float, Text, ForeignKey, JSON, CHAR
+from sqlalchemy.types import TypeDecorator
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy.orm import relationship
 
 from app.db.database import Base
-
 
 # Cross-database compatible UUID type
 class UUID(TypeDecorator):
@@ -155,3 +154,14 @@ class Payment(Base):
 
     # Relationships
     user = relationship("User", back_populates="payments")
+
+
+# Import extended models for new features
+from app.db.models_extended import (  # noqa: E402
+    UserStats, Achievement, DailyCheckIn,
+    Resume, JobApplication, Interview,
+    SkillTest, TestAttempt,
+    Mentor, MentorSession, MentorReview,
+    StudyGroup, StudyGroupMember, GroupMessage,
+    IncomeEntry, GeneratedProject, Notification
+)

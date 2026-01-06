@@ -31,7 +31,7 @@ interface AppState {
   setHasCompletedOnboarding: (completed: boolean) => void;
 }
 
-export const useAppStore = create<AppState>()(
+export const useStore = create<AppState>()(
   persist(
     (set) => ({
       // User state
@@ -80,3 +80,6 @@ export const useAppStore = create<AppState>()(
     }
   )
 );
+
+// Alias for compatibility
+export const useAppStore = useStore;

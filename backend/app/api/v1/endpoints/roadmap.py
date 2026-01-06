@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
 from datetime import datetime
+import uuid
 
 from app.db.database import get_db
 from app.db.models import Roadmap, Progress, User
@@ -28,8 +29,14 @@ async def create_roadmap(
 ):
     """Generate a new learning roadmap from a job description."""
     
+    # Convert user_id string to UUID
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user ID format")
+    
     # Check user tier for rate limiting
-    result = await db.execute(select(User).where(User.id == user_id))
+    result = await db.execute(select(User).where(User.id == user_uuid))
     user = result.scalar_one_or_none()
     
     if not user:
@@ -113,9 +120,15 @@ async def list_roadmaps(
     db: AsyncSession = Depends(get_db)
 ):
     """List all roadmaps for the current user."""
+    # Convert user_id string to UUID
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user ID format")
+    
     result = await db.execute(
         select(Roadmap)
-        .where(Roadmap.user_id == user_id)
+        .where(Roadmap.user_id == user_uuid)
         .order_by(Roadmap.generated_at.desc())
     )
     roadmaps = result.scalars().all()
@@ -145,9 +158,15 @@ async def get_roadmap(
     db: AsyncSession = Depends(get_db)
 ):
     """Get a specific roadmap with full details."""
+    # Convert IDs to UUID
+    try:
+        user_uuid = uuid.UUID(user_id)
+        roadmap_uuid = uuid.UUID(roadmap_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid ID format")
     result = await db.execute(
         select(Roadmap)
-        .where(Roadmap.id == roadmap_id, Roadmap.user_id == user_id)
+        .where(Roadmap.id == roadmap_uuid, Roadmap.user_id == user_uuid)
     )
     roadmap = result.scalar_one_or_none()
     
@@ -156,7 +175,7 @@ async def get_roadmap(
     
     # Get progress for this roadmap
     progress_result = await db.execute(
-        select(Progress).where(Progress.roadmap_id == roadmap_id)
+        select(Progress).where(Progress.roadmap_id == roadmap_uuid)
     )
     progress_items = progress_result.scalars().all()
     

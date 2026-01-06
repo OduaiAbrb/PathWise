@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Sparkles, User, Loader2, Trash2 } from "lucide-react";
 import { Button, Card, CardContent } from "@/components/ui";
@@ -14,11 +15,15 @@ interface Message {
 }
 
 export default function ChatPage() {
+  const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Get access token from session
+  const accessToken = (session as { accessToken?: string })?.accessToken;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -31,8 +36,13 @@ export default function ChatPage() {
   useEffect(() => {
     // Load chat history
     const loadHistory = async () => {
+      if (!accessToken) return;
       try {
-        const response = await fetch("/api/v1/chat/history?limit=50");
+        const response = await fetch("/api/v1/chat/history?limit=50", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
         if (response.ok) {
           const data = await response.json();
           const history = data.data.flatMap((h: { id: string; question: string; answer: string; created_at: string }) => [
@@ -56,7 +66,7 @@ export default function ChatPage() {
       }
     };
     loadHistory();
-  }, []);
+  }, [accessToken]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +86,10 @@ export default function ChatPage() {
     try {
       const response = await fetch("/api/v1/chat/message", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+        },
         body: JSON.stringify({
           message: userMessage.content,
           conversation_history: messages.slice(-10).map((m) => ({

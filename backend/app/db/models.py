@@ -1,16 +1,45 @@
 import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, Text, Integer, Float, DateTime, ForeignKey, JSON, Enum
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
+from sqlalchemy import TypeDecorator, CHAR
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 from app.db.database import Base
+
+
+# Cross-database compatible UUID type
+class UUID(TypeDecorator):
+    """Platform-independent UUID type. Uses PostgreSQL's UUID type or CHAR(36) for other databases."""
+    impl = CHAR
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            return dialect.type_descriptor(PG_UUID())
+        else:
+            return dialect.type_descriptor(CHAR(36))
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        elif dialect.name == 'postgresql':
+            return value
+        else:
+            return str(value)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        elif not isinstance(value, uuid.UUID):
+            return uuid.UUID(value)
+        return value
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=True)  # Nullable for OAuth users
     name = Column(String(255), nullable=False)
@@ -29,8 +58,8 @@ class User(Base):
 class Roadmap(Base):
     __tablename__ = "roadmaps"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(), ForeignKey("users.id"), nullable=False)
     job_title = Column(String(255), nullable=False)
     job_description = Column(Text, nullable=False)
     industry = Column(String(100), nullable=True)
@@ -53,8 +82,8 @@ class Roadmap(Base):
 class Progress(Base):
     __tablename__ = "progress"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    roadmap_id = Column(UUID(as_uuid=True), ForeignKey("roadmaps.id"), nullable=False)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
+    roadmap_id = Column(UUID(), ForeignKey("roadmaps.id"), nullable=False)
     skill_id = Column(String(100), nullable=False)
     skill_name = Column(String(255), nullable=False)
     status = Column(String(50), default="not_started")  # not_started, in_progress, completed
@@ -69,11 +98,11 @@ class Progress(Base):
 class Resource(Base):
     __tablename__ = "resources"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
     title = Column(String(500), nullable=False)
     url = Column(String(1000), nullable=False)
     type = Column(String(50), nullable=False)  # video, article, course, documentation, book
-    skill_tags = Column(ARRAY(String), nullable=True)
+    skill_tags = Column(JSON, nullable=True)  # List of strings
     quality_score = Column(Float, default=0.0)
     difficulty = Column(String(50), nullable=True)  # beginner, intermediate, advanced
     duration_minutes = Column(Integer, nullable=True)
@@ -83,9 +112,9 @@ class Resource(Base):
 class QAHistory(Base):
     __tablename__ = "qa_history"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    roadmap_id = Column(UUID(as_uuid=True), ForeignKey("roadmaps.id"), nullable=True)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(), ForeignKey("users.id"), nullable=False)
+    roadmap_id = Column(UUID(), ForeignKey("roadmaps.id"), nullable=True)
     question = Column(Text, nullable=False)
     answer = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -98,14 +127,14 @@ class QAHistory(Base):
 class JobMatch(Base):
     __tablename__ = "job_matches"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    roadmap_id = Column(UUID(as_uuid=True), ForeignKey("roadmaps.id"), nullable=False)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(), ForeignKey("users.id"), nullable=False)
+    roadmap_id = Column(UUID(), ForeignKey("roadmaps.id"), nullable=False)
     job_title = Column(String(255), nullable=False)
     company = Column(String(255), nullable=True)
     job_url = Column(String(1000), nullable=False)
     match_percentage = Column(Integer, default=0)
-    missing_skills = Column(ARRAY(String), nullable=True)
+    missing_skills = Column(JSON, nullable=True)  # List of strings
     scraped_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -115,8 +144,8 @@ class JobMatch(Base):
 class Payment(Base):
     __tablename__ = "payments"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(), ForeignKey("users.id"), nullable=False)
     lemon_squeezy_order_id = Column(String(255), unique=True, nullable=False)
     amount = Column(Integer, nullable=False)  # in cents
     currency = Column(String(10), default="usd")

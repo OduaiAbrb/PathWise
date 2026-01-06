@@ -16,19 +16,31 @@ import {
 import { Button, Card, CardContent, Badge } from "@/components/ui";
 import { useStore } from "@/lib/store";
 import { formatDate, calculateProgress } from "@/lib/utils";
+import type { Roadmap } from "@/lib/types";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
-  const { roadmaps, setRoadmaps } = useStore();
+  const { roadmaps = [], setRoadmaps } = useStore();
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Get access token from session
+  const accessToken = (session as { accessToken?: string })?.accessToken;
 
   useEffect(() => {
     const fetchRoadmaps = async () => {
+      if (!accessToken) {
+        setIsLoading(false);
+        return;
+      }
       try {
-        const response = await fetch("/api/v1/roadmap/list");
+        const response = await fetch("/api/v1/roadmap/list", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
         if (response.ok) {
           const data = await response.json();
-          setRoadmaps(data.data);
+          setRoadmaps(data.data || []);
         }
       } catch (error) {
         console.error("Failed to fetch roadmaps:", error);
@@ -38,7 +50,17 @@ export default function DashboardPage() {
     };
 
     fetchRoadmaps();
-  }, [setRoadmaps]);
+  }, [setRoadmaps, accessToken]);
+
+  // Helper to get completion percentage (handles both snake_case and camelCase)
+  const getCompletion = (r: Roadmap & { completion_percentage?: number }) => 
+    r.completion_percentage ?? r.completionPercentage ?? 0;
+  const getJobTitle = (r: Roadmap & { job_title?: string }) => 
+    r.job_title ?? r.jobTitle ?? "Untitled";
+  const getSkillLevel = (r: Roadmap & { skill_level?: string }) => 
+    r.skill_level ?? r.skillLevel ?? "beginner";
+  const getGeneratedAt = (r: Roadmap & { generated_at?: string }) => 
+    r.generated_at ?? r.generatedAt ?? new Date().toISOString();
 
   const stats = [
     {
@@ -54,7 +76,7 @@ export default function DashboardPage() {
           (s, p) => s + (p.skills?.length || 0),
           0
         ) || 0;
-        return acc + Math.floor((totalSkills * r.completion_percentage) / 100);
+        return acc + Math.floor((totalSkills * getCompletion(r)) / 100);
       }, 0),
       icon: BookOpen,
       color: "text-accent-400",
@@ -194,11 +216,11 @@ export default function DashboardPage() {
                       <div className="flex items-start justify-between mb-4">
                         <div>
                           <h3 className="text-lg font-semibold text-white group-hover:text-primary-400 transition-colors">
-                            {roadmap.job_title}
+                            {getJobTitle(roadmap)}
                           </h3>
                           <p className="text-dark-400 text-sm">
                             {roadmap.industry || "General"} •{" "}
-                            {roadmap.skill_level}
+                            {getSkillLevel(roadmap)}
                           </p>
                         </div>
                         <Badge
@@ -206,7 +228,7 @@ export default function DashboardPage() {
                             roadmap.status === "active" ? "primary" : "default"
                           }
                         >
-                          {roadmap.status}
+                          {roadmap.status || "active"}
                         </Badge>
                       </div>
 
@@ -214,14 +236,14 @@ export default function DashboardPage() {
                         <div className="flex justify-between text-sm mb-1">
                           <span className="text-dark-400">Progress</span>
                           <span className="text-white font-medium">
-                            {roadmap.completion_percentage}%
+                            {getCompletion(roadmap)}%
                           </span>
                         </div>
                         <div className="h-2 bg-dark-800 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full transition-all duration-500"
                             style={{
-                              width: `${roadmap.completion_percentage}%`,
+                              width: `${getCompletion(roadmap)}%`,
                             }}
                           />
                         </div>
@@ -229,7 +251,7 @@ export default function DashboardPage() {
 
                       <div className="flex items-center justify-between">
                         <span className="text-dark-500 text-sm">
-                          Created {formatDate(roadmap.generated_at)}
+                          Created {formatDate(getGeneratedAt(roadmap))}
                         </span>
                         <ChevronRight className="w-5 h-5 text-dark-500 group-hover:text-primary-400 transition-colors" />
                       </div>

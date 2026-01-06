@@ -7,6 +7,10 @@ interface AppState {
   user: User | null;
   setUser: (user: User | null) => void;
 
+  // Roadmaps list
+  roadmaps: Roadmap[];
+  setRoadmaps: (roadmaps: Roadmap[]) => void;
+
   // Current roadmap
   currentRoadmap: Roadmap | null;
   setCurrentRoadmap: (roadmap: Roadmap | null) => void;
@@ -37,6 +41,10 @@ export const useStore = create<AppState>()(
       // User state
       user: null,
       setUser: (user) => set({ user }),
+
+      // Roadmaps list
+      roadmaps: [],
+      setRoadmaps: (roadmaps) => set({ roadmaps: roadmaps || [] }),
 
       // Current roadmap
       currentRoadmap: null,

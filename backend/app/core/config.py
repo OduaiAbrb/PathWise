@@ -8,10 +8,10 @@ class Settings(BaseSettings):
     APP_NAME: str = "PathWise AI"
     DEBUG: bool = False
     
-    # Database
+    # Database (SQLite for dev, PostgreSQL for production)
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL",
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/pathwise"
+        "sqlite+aiosqlite:///./pathwise.db"
     )
     
     # Redis
@@ -32,6 +32,7 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "https://pathwise.ai",
+        "https://frontend-production-752a.up.railway.app",
     ]
     
     # LemonSqueezy

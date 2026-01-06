@@ -67,17 +67,18 @@ export const authOptions: NextAuthOptions = {
       }
       
       // Handle Google OAuth - sync with backend
-      if (account?.provider === "google") {
+      if (account?.provider === "google" && token.email) {
         try {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/google`,
+            `${apiUrl}/api/v1/auth/google`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 email: token.email,
-                name: token.name,
-                image: token.picture,
+                name: token.name || "User",
+                image: token.picture || null,
                 googleId: account.providerAccountId,
               }),
             }
@@ -85,12 +86,16 @@ export const authOptions: NextAuthOptions = {
           
           if (response.ok) {
             const data = await response.json();
-            token.id = data.data.user.id;
-            token.tier = data.data.user.tier;
-            token.accessToken = data.data.token;
+            if (data.data?.user) {
+              token.id = data.data.user.id;
+              token.tier = data.data.user.tier;
+              token.accessToken = data.data.token;
+            }
+          } else {
+            console.error("Backend auth failed:", await response.text());
           }
-        } catch {
-          console.error("Failed to sync Google user with backend");
+        } catch (error) {
+          console.error("Failed to sync Google user with backend:", error);
         }
       }
       

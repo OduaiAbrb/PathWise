@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
   Sparkles,
@@ -33,11 +34,15 @@ const skillLevels = [
 
 export default function NewRoadmapPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [jobDescription, setJobDescription] = useState("");
   const [skillLevel, setSkillLevel] = useState("beginner");
   const [industry, setIndustry] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState("");
+  
+  // Get access token from session
+  const accessToken = (session as { accessToken?: string })?.accessToken;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +63,10 @@ export default function NewRoadmapPage() {
     try {
       const response = await fetch("/api/v1/roadmap/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+        },
         body: JSON.stringify({
           job_description: jobDescription,
           skill_level: skillLevel,

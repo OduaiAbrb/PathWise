@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDown,
@@ -79,17 +80,26 @@ interface Roadmap {
 
 export default function RoadmapDetailPage() {
   const params = useParams();
+  const { data: session } = useSession();
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
   const [expandedSkills, setExpandedSkills] = useState<Set<string>>(new Set());
   const [activeTimer, setActiveTimer] = useState<string | null>(null);
   const [timerSeconds, setTimerSeconds] = useState(0);
+  
+  // Get access token from session
+  const accessToken = (session as { accessToken?: string })?.accessToken;
 
   useEffect(() => {
     const fetchRoadmap = async () => {
+      if (!accessToken) return;
       try {
-        const response = await fetch(`/api/v1/roadmap/${params.id}`);
+        const response = await fetch(`/api/v1/roadmap/${params.id}`, {
+          headers: {
+            ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+          },
+        });
         if (response.ok) {
           const data = await response.json();
           setRoadmap(data.data);
@@ -109,7 +119,7 @@ export default function RoadmapDetailPage() {
     if (params.id) {
       fetchRoadmap();
     }
-  }, [params.id]);
+  }, [params.id, accessToken]);
 
   // Timer effect
   useEffect(() => {

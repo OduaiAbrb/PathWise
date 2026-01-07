@@ -48,7 +48,9 @@ export default function ProjectsPage() {
   const accessToken = (session as { accessToken?: string })?.accessToken;
 
   useEffect(() => {
-    fetchProjects();
+    if (accessToken) {
+      fetchProjects();
+    }
   }, [accessToken]);
 
   const fetchProjects = async () => {

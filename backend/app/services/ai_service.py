@@ -66,13 +66,30 @@ Output your response as valid JSON with this structure:
   ]
 }
 
+CRITICAL RESOURCE URL GUIDELINES:
+- For video resources, ONLY use verified YouTube channels and playlists
+- Valid YouTube formats: https://www.youtube.com/watch?v=VIDEO_ID or https://www.youtube.com/playlist?list=PLAYLIST_ID
+- For courses, use: Udemy, Coursera, edX, freeCodeCamp, The Odin Project
+- For documentation, use official docs: MDN, Python.org, React.dev, etc.
+- For articles, use: Medium, Dev.to, official blogs
+- NEVER use placeholder URLs or broken links
+- Prefer well-known, high-quality free resources
+
+Recommended Resources by Category:
+- Web Development: freeCodeCamp, MDN Web Docs, The Odin Project
+- Python: Python.org docs, Real Python, Corey Schafer YouTube
+- JavaScript: javascript.info, MDN, Traversy Media YouTube
+- React: React.dev, Net Ninja YouTube, Scrimba
+- Backend: FastAPI docs, Django docs, Node.js docs
+- DevOps: TechWorld with Nana YouTube, Docker docs, Kubernetes docs
+- Data Science: Kaggle, DataCamp, StatQuest YouTube
+
 Guidelines:
 - Create 3-5 phases, progressing from foundational to advanced
 - Include 3-6 skills per phase
 - Suggest 2-4 quality resources per skill (prefer free resources)
 - Recommend 2-4 portfolio projects of increasing complexity
 - Adjust difficulty based on the user's stated skill level
-- Use real, working URLs for resources when possible
 - Generate unique UUIDs for all id fields"""
 
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DollarSign,
   TrendingUp,
@@ -11,6 +12,7 @@ import {
   Target,
   ArrowUpRight,
   ArrowDownRight,
+  X,
 } from "lucide-react";
 
 interface IncomeEntry {
@@ -22,12 +24,53 @@ interface IncomeEntry {
 }
 
 export default function IncomePage() {
-  const [entries] = useState<IncomeEntry[]>([
-    { id: "1", source: "Freelance Project - API Development", amount: 2500, date: "2024-01-15", type: "freelance" },
-    { id: "2", source: "Monthly Salary", amount: 5000, date: "2024-01-01", type: "salary" },
-    { id: "3", source: "Code Review Consultation", amount: 300, date: "2024-01-10", type: "freelance" },
-    { id: "4", source: "Year-end Bonus", amount: 3000, date: "2024-01-05", type: "bonus" },
-  ]);
+  const { data: session } = useSession();
+  const [entries, setEntries] = useState<IncomeEntry[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newEntry, setNewEntry] = useState({
+    source: "",
+    amount: "",
+    date: new Date().toISOString().split('T')[0],
+    type: "freelance" as IncomeEntry["type"],
+  });
+
+  useEffect(() => {
+    const saved = localStorage.getItem('income_entries');
+    if (saved) {
+      setEntries(JSON.parse(saved));
+    } else {
+      setEntries([
+        { id: "1", source: "Freelance Project - API Development", amount: 2500, date: "2024-01-15", type: "freelance" },
+        { id: "2", source: "Monthly Salary", amount: 5000, date: "2024-01-01", type: "salary" },
+        { id: "3", source: "Code Review Consultation", amount: 300, date: "2024-01-10", type: "freelance" },
+        { id: "4", source: "Year-end Bonus", amount: 3000, date: "2024-01-05", type: "bonus" },
+      ]);
+    }
+  }, []);
+
+  const addEntry = () => {
+    if (!newEntry.source || !newEntry.amount) return;
+    
+    const entry: IncomeEntry = {
+      id: Date.now().toString(),
+      source: newEntry.source,
+      amount: parseFloat(newEntry.amount),
+      date: newEntry.date,
+      type: newEntry.type,
+    };
+    
+    const updated = [entry, ...entries];
+    setEntries(updated);
+    localStorage.setItem('income_entries', JSON.stringify(updated));
+    
+    setNewEntry({
+      source: "",
+      amount: "",
+      date: new Date().toISOString().split('T')[0],
+      type: "freelance",
+    });
+    setShowAddModal(false);
+  };
 
   const totalIncome = entries.reduce((acc, e) => acc + e.amount, 0);
   const freelanceIncome = entries.filter(e => e.type === "freelance").reduce((acc, e) => acc + e.amount, 0);
@@ -54,7 +97,7 @@ export default function IncomePage() {
             <h1 className="heading-2 mb-2">Income Tracker</h1>
             <p className="body-large">Track your earnings as you grow your skills</p>
           </div>
-          <button className="btn-primary">
+          <button onClick={() => setShowAddModal(true)} className="btn-primary">
             <Plus className="w-5 h-5" />
             Add Income
           </button>
@@ -225,6 +268,109 @@ export default function IncomePage() {
           </div>
         </motion.div>
       </div>
+
+      {/* Add Income Modal */}
+      <AnimatePresence>
+        {showAddModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowAddModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-6 max-w-md w-full"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-neutral-900">Add Income Entry</h2>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Source
+                  </label>
+                  <input
+                    type="text"
+                    value={newEntry.source}
+                    onChange={(e) => setNewEntry({ ...newEntry, source: e.target.value })}
+                    placeholder="e.g., Freelance Project, Monthly Salary"
+                    className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Amount ($)
+                  </label>
+                  <input
+                    type="number"
+                    value={newEntry.amount}
+                    onChange={(e) => setNewEntry({ ...newEntry, amount: e.target.value })}
+                    placeholder="0.00"
+                    className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={newEntry.date}
+                    onChange={(e) => setNewEntry({ ...newEntry, date: e.target.value })}
+                    className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Type
+                  </label>
+                  <select
+                    value={newEntry.type}
+                    onChange={(e) => setNewEntry({ ...newEntry, type: e.target.value as IncomeEntry["type"] })}
+                    className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                  >
+                    <option value="freelance">Freelance</option>
+                    <option value="salary">Salary</option>
+                    <option value="bonus">Bonus</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 px-4 py-3 border border-neutral-200 rounded-xl font-medium text-neutral-700 hover:bg-neutral-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={addEntry}
+                  disabled={!newEntry.source || !newEntry.amount}
+                  className="flex-1 btn-primary"
+                >
+                  Add Entry
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

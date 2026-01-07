@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
     FROM_EMAIL: str = "PathWise AI <noreply@pathwise.ai>"
     
+    # NextAuth (for frontend compatibility)
+    NEXTAUTH_SECRET: str = os.getenv("NEXTAUTH_SECRET", "")
+    
     class Config:
         env_file = ".env"
         case_sensitive = True

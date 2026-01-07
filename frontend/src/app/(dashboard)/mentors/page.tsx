@@ -221,12 +221,15 @@ export default function MentorsPage() {
                   setShowBookingModal(true);
                 }}
                 disabled={!mentor.available}
-                className="btn-primary flex-1 justify-center text-sm py-2"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-300 text-white text-sm font-medium rounded-lg transition-colors"
               >
                 <Calendar className="w-4 h-4" />
                 Book Session
               </button>
-              <button className="btn-secondary text-sm py-2">
+              <button 
+                onClick={() => alert("Chat feature coming soon!")}
+                className="inline-flex items-center justify-center p-2 border border-neutral-300 hover:bg-neutral-50 text-neutral-600 rounded-lg transition-colors"
+              >
                 <MessageSquare className="w-4 h-4" />
               </button>
             </div>

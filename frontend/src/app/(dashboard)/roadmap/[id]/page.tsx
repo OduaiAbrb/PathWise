@@ -109,26 +109,67 @@ export default function RoadmapDetailPage() {
   };
 
   const updateSkillStatus = async (skillName: string, status: "not_started" | "in_progress" | "completed") => {
+    // Find the skill ID from the roadmap data
+    let skillId = null;
+    if (roadmap?.phases) {
+      for (const phase of roadmap.phases) {
+        for (const skill of phase.skills || []) {
+          if (skill.name === skillName) {
+            skillId = skill.id;
+            break;
+          }
+        }
+        if (skillId) break;
+      }
+    }
+
+    if (!skillId) {
+      console.error("Skill ID not found for:", skillName);
+      return;
+    }
+
+    // Optimistically update the UI
     setProgress((prev) => ({
       ...prev,
       [skillName]: { ...prev[skillName], status },
     }));
 
-    // Update on server
+    // Update on server with correct endpoint and data format
     try {
-      await fetch(getApiUrl(`/api/v1/roadmap/${params.id}/progress`), {
+      const response = await fetch(getApiUrl("/api/v1/roadmap/progress"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          skill_name: skillName,
+          roadmap_id: params.id,
+          skill_id: skillId,
           status,
         }),
       });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Update the roadmap completion percentage if returned
+        if (data.data?.roadmap_completion !== undefined) {
+          setRoadmap(prev => prev ? { ...prev, completion_percentage: data.data.roadmap_completion } : prev);
+        }
+      } else {
+        console.error("Failed to update progress on server:", response.status);
+        // Revert optimistic update on failure
+        setProgress((prev) => ({
+          ...prev,
+          [skillName]: { ...prev[skillName], status: prev[skillName]?.status || "not_started" },
+        }));
+      }
     } catch (error) {
       console.error("Failed to update progress:", error);
+      // Revert optimistic update on failure
+      setProgress((prev) => ({
+        ...prev,
+        [skillName]: { ...prev[skillName], status: prev[skillName]?.status || "not_started" },
+      }));
     }
   };
 

@@ -149,10 +149,29 @@ export const chatApi = {
 
 // Resume API
 export const resumeApi = {
-  analyze: async (file: File, roadmapId?: string) => {
+  upload: async (file: File, isPrimary: boolean = false) => {
     const formData = new FormData();
-    formData.append("resume", file);
-    if (roadmapId) formData.append("roadmap_id", roadmapId);
+    formData.append("file", file);
+    formData.append("is_primary", String(isPrimary));
+
+    const response = await fetch(`${API_BASE}/api/v1/resume/upload`, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || error.message || "Failed to upload resume");
+    }
+
+    return response.json() as Promise<ApiResponse<{ id: string; filename: string; parsed_text_preview: string; is_primary: boolean }>>;
+  },
+
+  analyze: async (resumeId: string, targetRole?: string) => {
+    const formData = new FormData();
+    formData.append("resume_id", resumeId);
+    if (targetRole) formData.append("target_role", targetRole);
 
     const response = await fetch(`${API_BASE}/api/v1/resume/analyze`, {
       method: "POST",
@@ -162,10 +181,19 @@ export const resumeApi = {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      throw new Error(error.message || "Failed to analyze resume");
+      throw new Error(error.detail || error.message || "Failed to analyze resume");
     }
 
     return response.json() as Promise<ApiResponse<ResumeAnalysis>>;
+  },
+
+  analyzeFile: async (file: File, targetRole?: string, isPrimary: boolean = false) => {
+    const uploadRes = await resumeApi.upload(file, isPrimary);
+    const resumeId = (uploadRes as any)?.data?.id || (uploadRes as any)?.id;
+    if (!resumeId) {
+      throw new Error("Upload succeeded but no resume ID returned");
+    }
+    return resumeApi.analyze(resumeId, targetRole);
   },
 };
 

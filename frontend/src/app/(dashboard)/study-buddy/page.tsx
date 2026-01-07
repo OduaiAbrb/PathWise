@@ -191,17 +191,19 @@ export default function StudyBuddyPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
-          message: content,
-          context: context ? {
-            current_phase: context.currentPhase,
-            current_skill: context.currentSkill,
-            target_role: context.targetRole,
-            skill_level: context.skillLevel,
-            roadmap_id: context.roadmapId,
-          } : null,
+          message: content.trim(),
+          conversation_history: messages.map((m) => ({ role: m.role, content: m.content })),
+          user_context: context
+            ? {
+                current_skill: context.currentSkill,
+                skill_level: context.skillLevel,
+                target_role: context.targetRole,
+                roadmap_id: context.roadmapId,
+              }
+            : null,
         }),
       });
 
@@ -210,25 +212,39 @@ export default function StudyBuddyPage() {
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: data.response || data.message || "I'm here to help you learn!",
+          content:
+            (data?.data?.response as string) ||
+            (data?.response as string) ||
+            (data?.message as string) ||
+            "I'm here to help you learn!",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+      } else if (response.status === 401 || response.status === 403) {
+        // Authentication error - provide smart fallback
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: generateIntelligentResponse(content, context, messages),
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, assistantMessage]);
       } else {
-        // Fallback response
+        // Other error - provide context-aware fallback
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: generateFallbackResponse(content),
+          content: generateIntelligentResponse(content, context, messages),
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, assistantMessage]);
       }
     } catch (error) {
+      // Network error - provide intelligent fallback
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: generateFallbackResponse(content),
+        content: generateIntelligentResponse(content, context, messages),
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
@@ -237,19 +253,36 @@ export default function StudyBuddyPage() {
     }
   };
 
-  const generateFallbackResponse = (question: string): string => {
-    const skill = context?.currentSkill || "this topic";
-    const role = context?.targetRole || "developer";
+  const generateIntelligentResponse = (question: string, userContext: LearningContext | null, conversationHistory: Message[]): string => {
+    const skill = userContext?.currentSkill || "programming";
+    const role = userContext?.targetRole || "developer";
+    const level = userContext?.skillLevel || "beginner";
+    const phase = userContext?.currentPhase || "Getting Started";
     
-    if (question.toLowerCase().includes("explain")) {
-      return `Great question about ${skill}! This is a fundamental concept for any ${role}.\n\n**Key Points:**\n1. Start with understanding the basics and why it exists\n2. Practice with small examples before moving to complex ones\n3. Connect it to real-world use cases\n\nWould you like me to break down any specific aspect of ${skill}?`;
+    // Analyze question intent
+    const questionLower = question.toLowerCase();
+    
+    // Explanation requests
+    if (questionLower.includes("explain") || questionLower.includes("what is") || questionLower.includes("how does")) {
+      if (skill.toLowerCase().includes("javascript") || skill.toLowerCase().includes("js")) {
+        return `Let me explain **${skill}** for your ${role} journey!\n\n**What it is:**\nJavaScript is the programming language of the web. It makes websites interactive and dynamic.\n\n**Why it's important:**\nEvery modern web application uses JavaScript. As a ${role}, you'll use it for:\n• Adding interactivity to web pages\n• Building user interfaces\n• Handling user events (clicks, forms, etc.)\n• Making API calls to servers\n\n**Real example:**\n\`\`\`javascript\n// Make a button respond to clicks\nbutton.addEventListener('click', () => {\n  alert('Hello World!');\n});\n\`\`\`\n\n**Next steps for ${level} level:**\n1. Practice with basic syntax and variables\n2. Learn about functions and objects\n3. Try building a simple calculator\n\nWhat specific part of ${skill} would you like to dive deeper into?`;
+      }
+      
+      if (skill.toLowerCase().includes("react")) {
+        return `**React** is a game-changer for ${role}s! Let me break it down:\n\n**What React is:**\nA JavaScript library for building user interfaces, especially web applications. Think of it as building blocks for creating interactive websites.\n\n**Why it matters for your career:**\n• Most companies use React for frontend development\n• It makes complex UIs manageable\n• High demand skill in the job market\n\n**Key concepts (${level} friendly):**\n1. **Components** - Reusable pieces of UI\n2. **Props** - Data passed between components\n3. **State** - Data that can change\n\n**Simple example:**\n\`\`\`jsx\nfunction Welcome() {\n  return <h1>Hello, {role}!</h1>;\n}\n\`\`\`\n\n**Learning path for ${level}s:**\n1. Master JavaScript basics first\n2. Understand HTML/CSS\n3. Build your first React component\n4. Create a simple todo app\n\nReady to start with components, or do you want to review JavaScript fundamentals first?`;
+      }
+      
+      // Generic explanation template
+      return `Let me explain **${skill}** in the context of becoming a ${role}:\n\n**Core Concept:**\n${skill} is essential for ${role}s because it helps you build better, more efficient solutions.\n\n**Why it matters:**\n• Industry standard technology\n• Improves your problem-solving toolkit\n• Required for most ${role} positions\n\n**Learning approach for ${level} level:**\n1. **Understand the 'why'** - Why does this technology exist?\n2. **Start small** - Begin with basic examples\n3. **Practice daily** - 15-30 minutes of hands-on work\n4. **Build projects** - Apply concepts immediately\n\n**Common beginner mistakes to avoid:**\n• Trying to learn everything at once\n• Skipping fundamentals\n• Not practicing regularly\n\n**Your next action:**\nSince you're in the "${phase}" phase, I recommend starting with the basics and building one small project.\n\nWhat specific aspect of ${skill} feels most confusing right now?`;
     }
     
-    if (question.toLowerCase().includes("practice") || question.toLowerCase().includes("exercise")) {
-      return `Here's a practice exercise for ${skill}:\n\n**Exercise:** Build a small project that demonstrates your understanding.\n\n**Steps:**\n1. Start with the simplest implementation\n2. Add one feature at a time\n3. Test each addition\n4. Refactor for clarity\n\nWant me to give you a more specific project idea?`;
+    // Practice/exercise requests
+    if (questionLower.includes("practice") || questionLower.includes("exercise") || questionLower.includes("project")) {
+      return `Perfect! Let's get you practicing **${skill}**. Here's a hands-on exercise for ${level} level:\n\n**🎯 Mini Project: ${skill} Practice**\n\n**What to build:**\nA simple ${skill.includes('JavaScript') ? 'interactive calculator' : skill.includes('React') ? 'personal profile card' : skill.includes('Python') ? 'number guessing game' : 'portfolio project'} that demonstrates ${skill} concepts.\n\n**Step-by-step approach:**\n1. **Setup** (5 mins) - Create your files/environment\n2. **Basic structure** (15 mins) - Get the foundation working\n3. **Core functionality** (20 mins) - Add the main features\n4. **Polish** (10 mins) - Clean up and test\n\n**Success criteria:**\n✅ It works without errors\n✅ You understand each line of code\n✅ You can explain how it works\n\n**Learning goals:**\n• Apply ${skill} concepts practically\n• Build muscle memory\n• Gain confidence\n\n**Time commitment:** 45-60 minutes\n\n**Stuck?** Break it into smaller pieces. Remember, ${level}s should focus on understanding over perfection.\n\nReady to start? What's your preferred development environment?`;
     }
     
-    return `I understand you're asking about ${skill} as part of your journey to become a ${role}.\n\nThis is an important topic! Here are some tips:\n\n1. **Focus on fundamentals** - Make sure you understand the core concepts\n2. **Practice regularly** - Consistency beats intensity\n3. **Build projects** - Apply what you learn immediately\n\nWhat specific aspect would you like to explore further?`;
+    // Default contextual response
+    return `I'm here to help you master **${skill}** on your ${role} journey!\n\n**🎯 Since you're working on:**\n• Current focus: ${skill}\n• Learning phase: ${phase}\n• Target role: ${role}\n• Skill level: ${level}\n\n**💡 What I can help with:**\n• **Explain concepts** - Break down complex topics\n• **Provide examples** - Real-world code and applications\n• **Suggest practice** - Hands-on exercises and projects\n• **Answer questions** - Clarify confusing parts\n• **Debug issues** - Help solve problems\n• **Plan learning** - Next steps and priorities\n\n**🚀 Popular questions from ${level} learners:**\n• "How does ${skill} work in real projects?"\n• "What should I build to practice ${skill}?"\n• "Why is ${skill} important for ${role}s?"\n• "Can you explain [specific concept] simply?"\n\n**✨ Pro tip:** The best way to learn ${skill} is through projects. Start small, build regularly, and don't be afraid to make mistakes!\n\nWhat specific aspect of ${skill} would you like to explore right now?`;
   };
 
   const copyToClipboard = (text: string, id: string) => {

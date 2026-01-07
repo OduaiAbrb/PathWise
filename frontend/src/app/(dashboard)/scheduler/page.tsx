@@ -229,7 +229,13 @@ export default function SchedulerPage() {
               <h3 className="font-semibold text-neutral-900">
                 {selectedDate.toLocaleDateString("default", { weekday: "long", month: "long", day: "numeric" })}
               </h3>
-              <button onClick={() => setShowAddModal(true)} className="btn-primary text-sm py-2">
+              <button 
+                onClick={() => {
+                  console.log("Add Task button clicked");
+                  setShowAddModal(true);
+                }} 
+                className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-sm font-medium rounded-lg transition-colors"
+              >
                 <Plus className="w-4 h-4" />
                 Add Task
               </button>
@@ -336,7 +342,10 @@ export default function SchedulerPage() {
               ].map((item) => (
                 <button
                   key={item.label}
-                  onClick={() => quickAddTask(item.label, item.duration, item.type)}
+                  onClick={() => {
+                    console.log("Quick add clicked:", item.label);
+                    quickAddTask(item.label, item.duration, item.type);
+                  }}
                   className="w-full flex items-center gap-3 p-3 bg-neutral-50 hover:bg-neutral-100 rounded-xl text-left transition-colors"
                 >
                   <item.icon className="w-4 h-4 text-neutral-500" />
@@ -445,9 +454,12 @@ export default function SchedulerPage() {
                   Cancel
                 </button>
                 <button
-                  onClick={addTask}
+                  onClick={() => {
+                    console.log("Modal Add Task button clicked");
+                    addTask();
+                  }}
                   disabled={!newTask.title.trim()}
-                  className="flex-1 btn-primary"
+                  className="flex-1 px-4 py-3 bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-300 text-white font-medium rounded-xl transition-colors"
                 >
                   Add Task
                 </button>

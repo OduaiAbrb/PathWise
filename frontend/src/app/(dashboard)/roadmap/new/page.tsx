@@ -89,17 +89,30 @@ export default function NewRoadmapPage() {
       return;
     }
 
+    if (!accessToken) {
+      setError("Please sign in to generate a roadmap");
+      return;
+    }
+
     setError("");
     setIsGenerating(true);
     setGenerationStep(0);
 
-    // Progress through steps
+    // Progress through steps with timeout protection
     const stepInterval = setInterval(() => {
       setGenerationStep((prev) => {
         if (prev < generationSteps.length - 1) return prev + 1;
         return prev;
       });
     }, 1500);
+
+    // Add timeout protection (30 seconds max)
+    const timeoutId = setTimeout(() => {
+      clearInterval(stepInterval);
+      setIsGenerating(false);
+      setGenerationStep(0);
+      setError("Roadmap generation timed out. Please try again with a shorter job description.");
+    }, 30000);
 
     try {
       const response = await fetch(getApiUrl("/api/v1/roadmap/generate"), {
@@ -115,15 +128,28 @@ export default function NewRoadmapPage() {
         }),
       });
 
+      clearTimeout(timeoutId); // Clear timeout on response
+
       if (response.ok) {
         const data = await response.json();
         router.push(`/roadmap/${data.data?.id || data.id}`);
+      } else if (response.status === 401 || response.status === 403) {
+        setError("Please sign in to generate roadmaps. If you're already signed in, try refreshing the page.");
+      } else if (response.status === 429) {
+        setError("Free accounts are limited to 3 roadmaps. Upgrade to create more.");
       } else {
-        const errorData = await response.json();
-        setError(errorData.detail || "Failed to generate roadmap");
+        const errorData = await response.json().catch(() => ({}));
+        setError(errorData.detail || errorData.message || `Server error (${response.status}). Please try again.`);
       }
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      clearTimeout(timeoutId);
+      console.error("Roadmap generation error:", err);
+      
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError("Network error. Please check your connection and try again.");
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
     } finally {
       clearInterval(stepInterval);
       setIsGenerating(false);

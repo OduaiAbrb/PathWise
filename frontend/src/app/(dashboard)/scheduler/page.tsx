@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
   Clock,
@@ -11,6 +11,8 @@ import {
   Check,
   Target,
   BookOpen,
+  X,
+  Trash2,
 } from "lucide-react";
 
 interface ScheduledTask {
@@ -27,11 +29,75 @@ const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 export default function SchedulerPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [tasks, setTasks] = useState<ScheduledTask[]>([
-    { id: "1", title: "Learn REST API fundamentals", time: "09:00", duration: 60, type: "learning", completed: false },
-    { id: "2", title: "Practice coding exercises", time: "14:00", duration: 45, type: "project", completed: true },
-    { id: "3", title: "Review yesterday's notes", time: "18:00", duration: 30, type: "review", completed: false },
-  ]);
+  const [tasks, setTasks] = useState<ScheduledTask[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newTask, setNewTask] = useState({
+    title: "",
+    time: "09:00",
+    duration: 30,
+    type: "learning" as ScheduledTask["type"],
+  });
+
+  useEffect(() => {
+    const saved = localStorage.getItem('scheduler_tasks');
+    if (saved) {
+      setTasks(JSON.parse(saved));
+    } else {
+      setTasks([
+        { id: "1", title: "Learn REST API fundamentals", time: "09:00", duration: 60, type: "learning", completed: false },
+        { id: "2", title: "Practice coding exercises", time: "14:00", duration: 45, type: "project", completed: true },
+        { id: "3", title: "Review yesterday's notes", time: "18:00", duration: 30, type: "review", completed: false },
+      ]);
+    }
+  }, []);
+
+  const saveTasksToStorage = (updatedTasks: ScheduledTask[]) => {
+    localStorage.setItem('scheduler_tasks', JSON.stringify(updatedTasks));
+  };
+
+  const addTask = () => {
+    if (!newTask.title.trim()) return;
+    
+    const task: ScheduledTask = {
+      id: Date.now().toString(),
+      title: newTask.title,
+      time: newTask.time,
+      duration: newTask.duration,
+      type: newTask.type,
+      completed: false,
+    };
+    
+    const updated = [...tasks, task].sort((a, b) => a.time.localeCompare(b.time));
+    setTasks(updated);
+    saveTasksToStorage(updated);
+    
+    setNewTask({ title: "", time: "09:00", duration: 30, type: "learning" });
+    setShowAddModal(false);
+  };
+
+  const deleteTask = (taskId: string) => {
+    const updated = tasks.filter(t => t.id !== taskId);
+    setTasks(updated);
+    saveTasksToStorage(updated);
+  };
+
+  const quickAddTask = (title: string, duration: number, type: ScheduledTask["type"]) => {
+    const now = new Date();
+    const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    const task: ScheduledTask = {
+      id: Date.now().toString(),
+      title,
+      time,
+      duration,
+      type,
+      completed: false,
+    };
+    
+    const updated = [...tasks, task].sort((a, b) => a.time.localeCompare(b.time));
+    setTasks(updated);
+    saveTasksToStorage(updated);
+  };
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -67,9 +133,9 @@ export default function SchedulerPage() {
   };
 
   const toggleTask = (taskId: string) => {
-    setTasks(prev =>
-      prev.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t)
-    );
+    const updated = tasks.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t);
+    setTasks(updated);
+    saveTasksToStorage(updated);
   };
 
   const getTypeColor = (type: string) => {
@@ -163,7 +229,7 @@ export default function SchedulerPage() {
               <h3 className="font-semibold text-neutral-900">
                 {selectedDate.toLocaleDateString("default", { weekday: "long", month: "long", day: "numeric" })}
               </h3>
-              <button className="btn-primary text-sm py-2">
+              <button onClick={() => setShowAddModal(true)} className="btn-primary text-sm py-2">
                 <Plus className="w-4 h-4" />
                 Add Task
               </button>
@@ -202,6 +268,12 @@ export default function SchedulerPage() {
                       </span>
                     </div>
                   </div>
+                  <button
+                    onClick={() => deleteTask(task.id)}
+                    className="p-2 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -258,12 +330,13 @@ export default function SchedulerPage() {
             <h3 className="font-semibold text-neutral-900 mb-4">Quick Add</h3>
             <div className="space-y-2">
               {[
-                { label: "30 min learning", icon: BookOpen },
-                { label: "1 hour project", icon: Target },
-                { label: "15 min review", icon: Calendar },
+                { label: "30 min learning", icon: BookOpen, duration: 30, type: "learning" as const },
+                { label: "1 hour project", icon: Target, duration: 60, type: "project" as const },
+                { label: "15 min review", icon: Calendar, duration: 15, type: "review" as const },
               ].map((item) => (
                 <button
                   key={item.label}
+                  onClick={() => quickAddTask(item.label, item.duration, item.type)}
                   className="w-full flex items-center gap-3 p-3 bg-neutral-50 hover:bg-neutral-100 rounded-xl text-left transition-colors"
                 >
                   <item.icon className="w-4 h-4 text-neutral-500" />
@@ -274,6 +347,115 @@ export default function SchedulerPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* Add Task Modal */}
+      <AnimatePresence>
+        {showAddModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowAddModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-6 max-w-md w-full"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-neutral-900">Add Task</h2>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Task Title
+                  </label>
+                  <input
+                    type="text"
+                    value={newTask.title}
+                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                    placeholder="e.g., Learn React hooks"
+                    className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">
+                      Time
+                    </label>
+                    <input
+                      type="time"
+                      value={newTask.time}
+                      onChange={(e) => setNewTask({ ...newTask, time: e.target.value })}
+                      className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">
+                      Duration (min)
+                    </label>
+                    <select
+                      value={newTask.duration}
+                      onChange={(e) => setNewTask({ ...newTask, duration: parseInt(e.target.value) })}
+                      className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                    >
+                      <option value={15}>15 min</option>
+                      <option value={30}>30 min</option>
+                      <option value={45}>45 min</option>
+                      <option value={60}>1 hour</option>
+                      <option value={90}>1.5 hours</option>
+                      <option value={120}>2 hours</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Type
+                  </label>
+                  <select
+                    value={newTask.type}
+                    onChange={(e) => setNewTask({ ...newTask, type: e.target.value as ScheduledTask["type"] })}
+                    className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                  >
+                    <option value="learning">Learning</option>
+                    <option value="project">Project</option>
+                    <option value="review">Review</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 px-4 py-3 border border-neutral-200 rounded-xl font-medium text-neutral-700 hover:bg-neutral-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={addTask}
+                  disabled={!newTask.title.trim()}
+                  className="flex-1 btn-primary"
+                >
+                  Add Task
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

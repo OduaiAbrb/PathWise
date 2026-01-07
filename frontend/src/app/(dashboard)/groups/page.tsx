@@ -313,7 +313,7 @@ export default function GroupsPage() {
     <div className="max-w-6xl mx-auto">
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Groups List */}
-        <div className={`lg:col-span-${selectedGroup ? "1" : "3"}`}>
+        <div className={selectedGroup ? "lg:col-span-1" : "lg:col-span-3"}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

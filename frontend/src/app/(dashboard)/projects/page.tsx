@@ -437,7 +437,7 @@ Automated deployment pipeline with multiple environments.
 
               {/* Tech Stack */}
               <div className="flex flex-wrap gap-2 mb-4">
-                {project.techStack.map((tech) => (
+                {(project.techStack || []).map((tech) => (
                   <span key={tech} className="badge-neutral text-xs">
                     {tech}
                   </span>
@@ -478,7 +478,7 @@ Automated deployment pipeline with multiple environments.
                   <div className="p-4 bg-neutral-50 rounded-xl">
                     <h4 className="font-medium text-neutral-900 mb-2">What You'll Learn</h4>
                     <ul className="space-y-1">
-                      {project.learningOutcomes.map((outcome, i) => (
+                      {(project.learningOutcomes || []).map((outcome, i) => (
                         <li key={i} className="text-sm text-neutral-600 flex items-center gap-2">
                           <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
                           {outcome}
@@ -492,7 +492,7 @@ Automated deployment pipeline with multiple environments.
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium text-neutral-900">Resume Bullet Points</h4>
                       <button
-                        onClick={() => copyToClipboard(project.resumeBullets.join("\n• "), `resume-${project.id}`)}
+                        onClick={() => copyToClipboard((project.resumeBullets || []).join("\n• "), `resume-${project.id}`)}
                         className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
                       >
                         {copiedId === `resume-${project.id}` ? (
@@ -509,7 +509,7 @@ Automated deployment pipeline with multiple environments.
                       </button>
                     </div>
                     <ul className="space-y-2">
-                      {project.resumeBullets.map((bullet, i) => (
+                      {(project.resumeBullets || []).map((bullet, i) => (
                         <li key={i} className="text-sm text-neutral-700 flex items-start gap-2">
                           <span className="text-blue-500 mt-1">•</span>
                           {bullet}

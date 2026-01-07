@@ -15,13 +15,13 @@ import {
   Users,
   UserCircle,
   FileText,
-  DollarSign,
   Settings,
   LogOut,
   Menu,
   X,
   ChevronDown,
   Bell,
+  BarChart3,
 } from "lucide-react";
 
 // Navigation structure with grouped items
@@ -47,7 +47,7 @@ const navGroups = [
     label: "Tools",
     items: [
       { href: "/resume-scanner", label: "Resume Scanner", icon: FileText },
-      { href: "/income", label: "Income Tracker", icon: DollarSign },
+      { href: "/jd-analyzer", label: "JD Analyzer", icon: BarChart3 },
     ],
   },
 ];

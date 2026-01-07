@@ -1,11 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { useSession } from "next-auth/react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { motion } from "framer-motion";
+import { getApiUrl } from "@/lib/fetch-api";
 import { Calendar, Clock, Zap, TrendingUp } from "lucide-react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { Button, Card, CardContent, Badge } from "@/components/ui";
+import { getApiUrl } from "@/lib/fetch-api";
 import toast from "react-hot-toast";
+import { getApiUrl } from "@/lib/fetch-api";
 
 interface TimeSlot {
   start_time: string;
@@ -26,7 +32,7 @@ export default function SchedulerPage() {
   const findOptimalSlots = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/v1/scheduler/find-slots", {
+      const response = await fetch(getApiUrl("/api/v1/scheduler/find-slots"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -53,7 +59,7 @@ export default function SchedulerPage() {
 
   const generatePomodoro = async () => {
     try {
-      const response = await fetch("/api/v1/scheduler/pomodoro", {
+      const response = await fetch(getApiUrl("/api/v1/scheduler/pomodoro"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

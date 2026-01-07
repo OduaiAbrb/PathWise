@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { useSession } from "next-auth/react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { motion } from "framer-motion";
+import { getApiUrl } from "@/lib/fetch-api";
 import {
   Trophy,
   Zap,
@@ -14,7 +17,9 @@ import {
   Calendar,
 } from "lucide-react";
 import { Button, Card, CardContent, Badge } from "@/components/ui";
+import { getApiUrl } from "@/lib/fetch-api";
 import toast from "react-hot-toast";
+import { getApiUrl } from "@/lib/fetch-api";
 
 interface UserStats {
   total_xp: number;
@@ -63,7 +68,7 @@ export default function GamificationPage() {
 
       try {
         // Fetch user stats
-        const statsRes = await fetch("/api/v1/gamification/stats", {
+        const statsRes = await fetch(getApiUrl("/api/v1/gamification/stats"), {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         if (statsRes.ok) {
@@ -72,7 +77,7 @@ export default function GamificationPage() {
         }
 
         // Fetch leaderboard
-        const leaderboardRes = await fetch("/api/v1/gamification/leaderboard?limit=50", {
+        const leaderboardRes = await fetch(getApiUrl("/api/v1/gamification/leaderboard?limit=50"), {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         if (leaderboardRes.ok) {

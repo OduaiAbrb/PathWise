@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { useParams } from "next/navigation";
+import { getApiUrl } from "@/lib/fetch-api";
 import { useSession } from "next-auth/react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { motion, AnimatePresence } from "framer-motion";
+import { getApiUrl } from "@/lib/fetch-api";
 import {
   ChevronDown,
   ChevronRight,
@@ -16,8 +20,11 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { Button, Card, CardContent, Badge } from "@/components/ui";
+import { getApiUrl } from "@/lib/fetch-api";
 import { formatDuration } from "@/lib/utils";
+import { getApiUrl } from "@/lib/fetch-api";
 import toast from "react-hot-toast";
+import { getApiUrl } from "@/lib/fetch-api";
 
 interface Skill {
   id: string;
@@ -160,7 +167,7 @@ export default function RoadmapDetailPage() {
     if (!roadmap) return;
 
     try {
-      const response = await fetch("/api/v1/roadmap/progress", {
+      const response = await fetch(getApiUrl("/api/v1/roadmap/progress"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -213,7 +220,7 @@ export default function RoadmapDetailPage() {
     if (!roadmap || minutes < 1) return;
 
     try {
-      await fetch("/api/v1/roadmap/time-log", {
+      await fetch(getApiUrl("/api/v1/roadmap/time-log"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

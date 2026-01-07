@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getApiUrl } from "@/lib/fetch-api";
 import Link from "next/link";
+import { getApiUrl } from "@/lib/fetch-api";
 import { useSession } from "next-auth/react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { motion } from "framer-motion";
+import { getApiUrl } from "@/lib/fetch-api";
 import {
   Plus,
   BookOpen,
@@ -14,9 +18,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Button, Card, CardContent, Badge } from "@/components/ui";
+import { getApiUrl } from "@/lib/fetch-api";
 import { useStore } from "@/lib/store";
+import { getApiUrl } from "@/lib/fetch-api";
 import { formatDate, calculateProgress } from "@/lib/utils";
+import { getApiUrl } from "@/lib/fetch-api";
 import type { Roadmap } from "@/lib/types";
+import { getApiUrl } from "@/lib/fetch-api";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -33,7 +41,7 @@ export default function DashboardPage() {
         return;
       }
       try {
-        const response = await fetch("/api/v1/roadmap/list", {
+        const response = await fetch(getApiUrl("/api/v1/roadmap/list"), {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },

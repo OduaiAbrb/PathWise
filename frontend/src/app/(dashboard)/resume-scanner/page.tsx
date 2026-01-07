@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { useSession } from "next-auth/react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { motion } from "framer-motion";
+import { getApiUrl } from "@/lib/fetch-api";
 import { Upload, FileText, Target, Zap, Download, CheckCircle } from "lucide-react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { Button, Card, CardContent, Badge } from "@/components/ui";
+import { getApiUrl } from "@/lib/fetch-api";
 import toast from "react-hot-toast";
+import { getApiUrl } from "@/lib/fetch-api";
 
 interface Resume {
   id: string;
@@ -35,7 +41,7 @@ export default function ResumeScannerPage() {
     if (!accessToken) return;
 
     try {
-      const response = await fetch("/api/v1/resume/list", {
+      const response = await fetch(getApiUrl("/api/v1/resume/list"), {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (response.ok) {
@@ -57,7 +63,7 @@ export default function ResumeScannerPage() {
     formData.append("is_primary", "true");
 
     try {
-      const response = await fetch("/api/v1/resume/upload", {
+      const response = await fetch(getApiUrl("/api/v1/resume/upload"), {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}` },
         body: formData,
@@ -84,7 +90,7 @@ export default function ResumeScannerPage() {
     formData.append("resume_id", selectedResume);
 
     try {
-      const response = await fetch("/api/v1/resume/analyze", {
+      const response = await fetch(getApiUrl("/api/v1/resume/analyze"), {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}` },
         body: formData,
@@ -111,7 +117,7 @@ export default function ResumeScannerPage() {
     formData.append("job_description", jobDescription);
 
     try {
-      const response = await fetch("/api/v1/resume/skill-gap", {
+      const response = await fetch(getApiUrl("/api/v1/resume/skill-gap"), {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}` },
         body: formData,

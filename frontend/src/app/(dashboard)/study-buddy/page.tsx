@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { useSession } from "next-auth/react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { motion } from "framer-motion";
+import { getApiUrl } from "@/lib/fetch-api";
 import { Send, Mic, MicOff, Lightbulb, Code, BookOpen, HelpCircle } from "lucide-react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { Button, Card, CardContent } from "@/components/ui";
+import { getApiUrl } from "@/lib/fetch-api";
 import toast from "react-hot-toast";
+import { getApiUrl } from "@/lib/fetch-api";
 
 interface Message {
   role: "user" | "assistant";
@@ -50,7 +56,7 @@ export default function StudyBuddyPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/v1/study-buddy/chat", {
+      const response = await fetch(getApiUrl("/api/v1/study-buddy/chat"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

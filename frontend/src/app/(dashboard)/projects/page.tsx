@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Plus, Code, Rocket, CheckCircle, Clock, Github } from "lucide-react";
 import { Button, Card, CardContent, Badge } from "@/components/ui";
 import toast from "react-hot-toast";
+import { getApiUrl } from "@/lib/fetch-api";
 
 interface Project {
   id: string;
@@ -36,7 +37,7 @@ export default function ProjectsPage() {
     if (!accessToken) return;
 
     try {
-      const response = await fetch("/api/v1/projects/list", {
+      const response = await fetch(getApiUrl("/api/v1/projects/list"), {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (response.ok) {
@@ -56,7 +57,7 @@ export default function ProjectsPage() {
 
     setIsGenerating(true);
     try {
-      const response = await fetch("/api/v1/projects/generate", {
+      const response = await fetch(getApiUrl("/api/v1/projects/generate"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

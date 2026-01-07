@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { useSession } from "next-auth/react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { motion } from "framer-motion";
+import { getApiUrl } from "@/lib/fetch-api";
 import { Search, Star, Calendar, DollarSign, Video, CheckCircle } from "lucide-react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { Button, Card, CardContent, Badge } from "@/components/ui";
+import { getApiUrl } from "@/lib/fetch-api";
 import toast from "react-hot-toast";
+import { getApiUrl } from "@/lib/fetch-api";
 
 interface Mentor {
   id: string;
@@ -33,7 +39,7 @@ export default function MentorsPage() {
     if (!accessToken) return;
 
     try {
-      const response = await fetch("/api/v1/mentors/search", {
+      const response = await fetch(getApiUrl("/api/v1/mentors/search"), {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (response.ok) {

@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { useSession } from "next-auth/react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { motion, AnimatePresence } from "framer-motion";
+import { getApiUrl } from "@/lib/fetch-api";
 import { Send, Sparkles, User, Loader2, Trash2 } from "lucide-react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { Button, Card, CardContent } from "@/components/ui";
+import { getApiUrl } from "@/lib/fetch-api";
 import toast from "react-hot-toast";
+import { getApiUrl } from "@/lib/fetch-api";
 
 interface Message {
   id: string;
@@ -38,7 +44,7 @@ export default function ChatPage() {
     const loadHistory = async () => {
       if (!accessToken) return;
       try {
-        const response = await fetch("/api/v1/chat/history?limit=50", {
+        const response = await fetch(getApiUrl("/api/v1/chat/history?limit=50"), {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -84,7 +90,7 @@ export default function ChatPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/v1/chat/message", {
+      const response = await fetch(getApiUrl("/api/v1/chat/message"), {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

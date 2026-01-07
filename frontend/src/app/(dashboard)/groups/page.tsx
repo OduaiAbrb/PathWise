@@ -1,11 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { useSession } from "next-auth/react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { motion } from "framer-motion";
+import { getApiUrl } from "@/lib/fetch-api";
 import { Plus, Users, MessageCircle, Search, Lock, Globe } from "lucide-react";
+import { getApiUrl } from "@/lib/fetch-api";
 import { Button, Card, CardContent, Badge } from "@/components/ui";
+import { getApiUrl } from "@/lib/fetch-api";
 import toast from "react-hot-toast";
+import { getApiUrl } from "@/lib/fetch-api";
 
 interface StudyGroup {
   id: string;
@@ -42,7 +48,7 @@ export default function GroupsPage() {
     if (!accessToken) return;
 
     try {
-      const response = await fetch("/api/v1/social/groups/my-groups", {
+      const response = await fetch(getApiUrl("/api/v1/social/groups/my-groups"), {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (response.ok) {
@@ -58,7 +64,7 @@ export default function GroupsPage() {
     if (!accessToken) return;
 
     try {
-      const response = await fetch("/api/v1/social/groups/search", {
+      const response = await fetch(getApiUrl("/api/v1/social/groups/search"), {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (response.ok) {
@@ -77,7 +83,7 @@ export default function GroupsPage() {
     }
 
     try {
-      const response = await fetch("/api/v1/social/groups/create", {
+      const response = await fetch(getApiUrl("/api/v1/social/groups/create"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -100,7 +106,7 @@ export default function GroupsPage() {
 
   const joinGroup = async (groupId: string) => {
     try {
-      const response = await fetch("/api/v1/social/groups/join", {
+      const response = await fetch(getApiUrl("/api/v1/social/groups/join"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

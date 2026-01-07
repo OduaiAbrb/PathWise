@@ -18,6 +18,7 @@ if SENTRY_DSN:
         traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
         profiles_sample_rate=float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0.1")),
         send_default_pii=True,
+        default_integrations=False,  # Disable auto-detection to avoid langchain conflict
         integrations=[
             StarletteIntegration(),
             FastApiIntegration(),

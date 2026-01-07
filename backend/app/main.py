@@ -1,8 +1,19 @@
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import os
 
 from app.core.config import settings
+
+# Initialize Sentry for error monitoring
+sentry_sdk.init(
+    dsn="https://a7bd063dbf9c7df54e3bc0affa579fdb@o4510670971863040.ingest.us.sentry.io/4510670975795200",
+    traces_sample_rate=1.0,
+    profiles_sample_rate=1.0,
+    send_default_pii=True,
+    environment=os.getenv("ENVIRONMENT", "production"),
+)
 from app.api.v1.router import api_router
 from app.db.database import engine, Base
 

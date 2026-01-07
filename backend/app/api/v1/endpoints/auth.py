@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime
@@ -18,6 +18,7 @@ from app.core.security import (
     create_access_token,
     get_current_user_id,
 )
+from app.services.email_service import send_welcome_email
 
 router = APIRouter()
 
@@ -25,6 +26,7 @@ router = APIRouter()
 @router.post("/register", response_model=dict)
 async def register(
     user_data: UserCreate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db)
 ):
     """Register a new user with email and password."""
@@ -52,6 +54,9 @@ async def register(
     
     # Generate token
     access_token = create_access_token(data={"sub": str(new_user.id)})
+    
+    # Send welcome email in background
+    background_tasks.add_task(send_welcome_email, new_user.email, new_user.name or "there")
     
     return {
         "success": True,

@@ -1,19 +1,29 @@
+import os
 import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.starlette import StarletteIntegration
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-import os
 
 from app.core.config import settings
 
 # Initialize Sentry for error monitoring
-sentry_sdk.init(
-    dsn="https://a7bd063dbf9c7df54e3bc0affa579fdb@o4510670971863040.ingest.us.sentry.io/4510670975795200",
-    traces_sample_rate=1.0,
-    profiles_sample_rate=1.0,
-    send_default_pii=True,
-    environment=os.getenv("ENVIRONMENT", "production"),
-)
+SENTRY_DSN = os.getenv("SENTRY_DSN", "https://a7bd063dbf9c7df54e3bc0affa579fdb@o4510670971863040.ingest.us.sentry.io/4510670975795200")
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment=os.getenv("SENTRY_ENVIRONMENT", "production"),
+        release=os.getenv("SENTRY_RELEASE"),
+        traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
+        profiles_sample_rate=float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0.1")),
+        send_default_pii=True,
+        integrations=[
+            StarletteIntegration(),
+            FastApiIntegration(),
+        ],
+    )
+
 from app.api.v1.router import api_router
 from app.db.database import engine, Base
 
@@ -62,3 +72,9 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+@app.get("/sentry-test")
+async def sentry_test():
+    """Test endpoint to verify Sentry is working."""
+    raise RuntimeError("Sentry backend test error - PathWise")

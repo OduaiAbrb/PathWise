@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import (
     auth, roadmap, chat, payments, gamification, study_buddy, 
     resume, projects, mentors, social, scheduler, income,
-    readiness, jd_comparison
+    readiness, jd_comparison, career
 )
 
 api_router = APIRouter()
@@ -22,3 +22,4 @@ api_router.include_router(scheduler.router, prefix="/scheduler", tags=["Smart Sc
 api_router.include_router(income.router, prefix="/income", tags=["Income Tracking"])
 api_router.include_router(readiness.router, prefix="/readiness", tags=["Job Readiness"])
 api_router.include_router(jd_comparison.router, prefix="/jd", tags=["JD Comparison"])
+api_router.include_router(career.router, prefix="/career", tags=["Career Discovery"])

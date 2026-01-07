@@ -41,15 +41,40 @@ export default function NewRoadmapPage() {
   const [skillLevel, setSkillLevel] = useState("intermediate");
   const [industry, setIndustry] = useState("Technology");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStep, setGenerationStep] = useState(0);
   const [error, setError] = useState("");
   const [extractedSkills, setExtractedSkills] = useState<string[]>([]);
+  const [selectedCareerPath, setSelectedCareerPath] = useState<any>(null);
 
-  // Check for pending JD from landing page
+  const generationSteps = [
+    "Analyzing job description...",
+    "Extracting required skills...",
+    "Building curriculum...",
+    "Finding best resources...",
+    "Finalizing your roadmap...",
+  ];
+
+  // Check for pending JD from landing page or career discovery
   useState(() => {
     const pending = localStorage.getItem("pendingJobDescription");
     if (pending) {
       setJobDescription(pending);
       localStorage.removeItem("pendingJobDescription");
+    }
+    
+    const careerPath = localStorage.getItem("selectedCareerPath");
+    if (careerPath) {
+      try {
+        const path = JSON.parse(careerPath);
+        setSelectedCareerPath(path);
+        // Pre-fill with career path info
+        const jd = `Looking for a ${path.title}\n\nRequired Skills:\n${path.skills.join(", ")}\n\nThis role involves ${path.description}`;
+        setJobDescription(jd);
+        handleJobDescriptionChange(jd);
+        localStorage.removeItem("selectedCareerPath");
+      } catch (e) {
+        console.error("Failed to parse career path");
+      }
     }
   });
 
@@ -66,6 +91,15 @@ export default function NewRoadmapPage() {
 
     setError("");
     setIsGenerating(true);
+    setGenerationStep(0);
+
+    // Progress through steps
+    const stepInterval = setInterval(() => {
+      setGenerationStep((prev) => {
+        if (prev < generationSteps.length - 1) return prev + 1;
+        return prev;
+      });
+    }, 1500);
 
     try {
       const response = await fetch(getApiUrl("/api/v1/roadmap/generate"), {
@@ -91,7 +125,9 @@ export default function NewRoadmapPage() {
     } catch (err) {
       setError("Something went wrong. Please try again.");
     } finally {
+      clearInterval(stepInterval);
       setIsGenerating(false);
+      setGenerationStep(0);
     }
   };
 
@@ -232,7 +268,7 @@ export default function NewRoadmapPage() {
           {isGenerating ? (
             <>
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Generating Your Roadmap...
+              {generationSteps[generationStep]}
             </>
           ) : (
             <>

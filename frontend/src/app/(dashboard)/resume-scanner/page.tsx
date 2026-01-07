@@ -21,6 +21,13 @@ interface ScanResult {
   missingSkills: string[];
   suggestions: string[];
   atsScore: number;
+  strengths: string[];
+  suggestedBullets: string[];
+  keywordAnalysis: {
+    found: string[];
+    missing: string[];
+    synonyms: { original: string; suggestion: string }[];
+  };
 }
 
 export default function ResumeScannerPage() {
@@ -73,41 +80,66 @@ export default function ResumeScannerPage() {
         const data = await response.json();
         setResult(data.data || data);
       } else {
-        // Mock result for demo
-        setResult({
-          score: 72,
-          matchedSkills: ["Python", "JavaScript", "React", "SQL", "Git"],
-          missingSkills: ["Docker", "Kubernetes", "AWS"],
-          suggestions: [
-            "Add more quantifiable achievements",
-            "Include Docker experience if you have any",
-            "Consider adding a projects section",
-          ],
-          atsScore: 85,
-        });
+        // Generate detailed mock result
+        setResult(generateMockResult());
       }
     } catch (error) {
-      // Mock result for demo
-      setResult({
-        score: 72,
-        matchedSkills: ["Python", "JavaScript", "React", "SQL", "Git"],
-        missingSkills: ["Docker", "Kubernetes", "AWS"],
-        suggestions: [
-          "Add more quantifiable achievements",
-          "Include Docker experience if you have any",
-          "Consider adding a projects section",
-        ],
-        atsScore: 85,
-      });
+      setResult(generateMockResult());
     } finally {
       setIsScanning(false);
     }
+  };
+
+  const generateMockResult = (): ScanResult => {
+    const jdKeywords = jobDescription.toLowerCase();
+    const foundSkills = ["Python", "JavaScript", "React", "SQL", "Git"].filter(
+      (s) => jdKeywords.includes(s.toLowerCase()) || Math.random() > 0.3
+    );
+    const missingSkills = ["Docker", "Kubernetes", "AWS", "TypeScript", "CI/CD"].filter(
+      (s) => jdKeywords.includes(s.toLowerCase()) && !foundSkills.includes(s)
+    );
+
+    return {
+      score: 72 + Math.floor(Math.random() * 15),
+      matchedSkills: foundSkills,
+      missingSkills: missingSkills.length > 0 ? missingSkills : ["Docker", "Kubernetes"],
+      strengths: [
+        "Strong technical skills section with relevant technologies",
+        "Clear work experience with measurable outcomes",
+        "Education section properly formatted",
+      ],
+      suggestions: [
+        "Add more quantifiable achievements (e.g., 'Improved API response time by 40%')",
+        "Include Docker/containerization experience if you have any",
+        "Add a projects section showcasing personal or open-source work",
+        "Consider adding certifications relevant to the role",
+      ],
+      suggestedBullets: [
+        "Developed and maintained RESTful APIs serving 10,000+ daily requests with 99.9% uptime",
+        "Led migration of legacy codebase to modern React architecture, reducing load time by 60%",
+        "Implemented automated testing pipeline, increasing code coverage from 45% to 85%",
+      ],
+      atsScore: 80 + Math.floor(Math.random() * 15),
+      keywordAnalysis: {
+        found: foundSkills,
+        missing: missingSkills.length > 0 ? missingSkills : ["Docker", "Kubernetes"],
+        synonyms: [
+          { original: "REST APIs", suggestion: "RESTful APIs" },
+          { original: "JS", suggestion: "JavaScript" },
+          { original: "Postgres", suggestion: "PostgreSQL" },
+        ],
+      },
+    };
   };
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600";
     if (score >= 60) return "text-amber-600";
     return "text-red-600";
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
   };
 
   return (
@@ -267,11 +299,105 @@ export default function ResumeScannerPage() {
                 </div>
               </div>
 
+              {/* Strengths */}
+              {result.strengths && result.strengths.length > 0 && (
+                <div className="card">
+                  <h3 className="font-semibold text-neutral-900 mb-3 flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    Strengths in Your Resume
+                  </h3>
+                  <ul className="space-y-2">
+                    {result.strengths.map((strength, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-neutral-600">
+                        <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        {strength}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Keyword Analysis */}
+              {result.keywordAnalysis && (
+                <div className="card">
+                  <h3 className="font-semibold text-neutral-900 mb-3 flex items-center gap-2">
+                    <Target className="w-5 h-5 text-purple-500" />
+                    Keyword Analysis
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium text-neutral-700 mb-2">Keywords Found</p>
+                      <div className="flex flex-wrap gap-2">
+                        {result.keywordAnalysis.found.map((keyword) => (
+                          <span key={keyword} className="badge-success text-xs">
+                            ✓ {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <p className="text-sm font-medium text-neutral-700 mb-2">Keywords Missing from JD</p>
+                      <div className="flex flex-wrap gap-2">
+                        {result.keywordAnalysis.missing.map((keyword) => (
+                          <span key={keyword} className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-xs">
+                            ✗ {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {result.keywordAnalysis.synonyms.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-neutral-700 mb-2">Suggested Synonyms</p>
+                        <div className="space-y-1">
+                          {result.keywordAnalysis.synonyms.map((syn, i) => (
+                            <p key={i} className="text-sm text-neutral-600">
+                              <span className="text-neutral-400">{syn.original}</span>
+                              {" → "}
+                              <span className="font-medium text-neutral-900">{syn.suggestion}</span>
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Suggested Bullet Points */}
+              {result.suggestedBullets && result.suggestedBullets.length > 0 && (
+                <div className="card bg-blue-50 border-blue-200">
+                  <h3 className="font-semibold text-neutral-900 mb-3 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-blue-500" />
+                    Suggested Bullet Points
+                  </h3>
+                  <p className="text-sm text-neutral-600 mb-3">
+                    Copy these to enhance your resume with impactful achievements:
+                  </p>
+                  <ul className="space-y-3">
+                    {result.suggestedBullets.map((bullet, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm">
+                        <span className="text-blue-500 mt-1">•</span>
+                        <span className="flex-1 text-neutral-700">{bullet}</span>
+                        <button
+                          onClick={() => copyToClipboard(bullet)}
+                          className="text-blue-600 hover:text-blue-700 text-xs px-2 py-1 bg-blue-100 rounded"
+                        >
+                          Copy
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {/* Suggestions */}
               <div className="card">
                 <h3 className="font-semibold text-neutral-900 mb-3 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-blue-500" />
-                  Suggestions
+                  <TrendingUp className="w-5 h-5 text-amber-500" />
+                  Improvement Suggestions
                 </h3>
                 <ul className="space-y-2">
                   {result.suggestions.map((suggestion, i) => (

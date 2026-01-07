@@ -15,6 +15,14 @@ import {
   Sparkles,
   Menu,
   X,
+  Trophy,
+  Bot,
+  FileText,
+  Lightbulb,
+  Users,
+  UserCircle,
+  Calendar,
+  DollarSign,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
@@ -22,7 +30,15 @@ import { Button } from "@/components/ui";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/roadmap/new", label: "New Roadmap", icon: Map },
+  { href: "/roadmap/new", label: "Roadmaps", icon: Map },
+  { href: "/gamification", label: "Gamification", icon: Trophy },
+  { href: "/study-buddy", label: "AI Study Buddy", icon: Bot },
+  { href: "/resume-scanner", label: "Resume Scanner", icon: FileText },
+  { href: "/projects", label: "Projects", icon: Lightbulb },
+  { href: "/mentors", label: "Mentors", icon: UserCircle },
+  { href: "/groups", label: "Study Groups", icon: Users },
+  { href: "/scheduler", label: "Scheduler", icon: Calendar },
+  { href: "/income", label: "Income Tracker", icon: DollarSign },
   { href: "/chat", label: "AI Chat", icon: MessageSquare },
   { href: "/settings", label: "Settings", icon: User },
   { href: "/billing", label: "Billing", icon: CreditCard },

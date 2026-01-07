@@ -12,7 +12,7 @@ from typing import Dict, List, Optional
 from uuid import UUID
 from datetime import datetime, timedelta
 
-from app.db.models import Roadmap, RoadmapProgress, User
+from app.db.models import Roadmap, Progress, User
 
 
 class ReadinessService:
@@ -75,7 +75,7 @@ class ReadinessService:
 
         # Get progress data
         progress_result = await db.execute(
-            select(RoadmapProgress).where(RoadmapProgress.roadmap_id == roadmap.id)
+            select(Progress).where(Progress.roadmap_id == roadmap.id)
         )
         progress_items = progress_result.scalars().all()
 
@@ -123,7 +123,7 @@ class ReadinessService:
     @staticmethod
     async def _calculate_skills_score(
         roadmap: Roadmap,
-        progress_items: List[RoadmapProgress]
+        progress_items: List[Progress]
     ) -> Dict:
         """Calculate skills coverage score"""
         phases = roadmap.phases or []
@@ -160,7 +160,7 @@ class ReadinessService:
     @staticmethod
     async def _calculate_projects_score(
         roadmap: Roadmap,
-        progress_items: List[RoadmapProgress]
+        progress_items: List[Progress]
     ) -> Dict:
         """Calculate projects completion score"""
         projects = roadmap.projects or []
@@ -201,7 +201,7 @@ class ReadinessService:
     @staticmethod
     async def _calculate_interview_score(
         roadmap: Roadmap,
-        progress_items: List[RoadmapProgress]
+        progress_items: List[Progress]
     ) -> Dict:
         """
         Calculate interview readiness score based on:
@@ -260,7 +260,7 @@ class ReadinessService:
     @staticmethod
     async def _get_missing_skills(
         roadmap: Roadmap,
-        progress_items: List[RoadmapProgress]
+        progress_items: List[Progress]
     ) -> List[str]:
         """Get list of missing critical and important skills"""
         phases = roadmap.phases or []
@@ -315,7 +315,7 @@ class ReadinessService:
 
         # Get progress
         progress_result = await db.execute(
-            select(RoadmapProgress).where(RoadmapProgress.roadmap_id == roadmap.id)
+            select(Progress).where(Progress.roadmap_id == roadmap.id)
         )
         progress_items = {p.skill_name: p for p in progress_result.scalars().all()}
 

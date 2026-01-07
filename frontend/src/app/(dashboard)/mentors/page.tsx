@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   UserCircle,
   Star,
@@ -11,6 +11,8 @@ import {
   Filter,
   ExternalLink,
   Clock,
+  X,
+  CheckCircle2,
 } from "lucide-react";
 
 interface Mentor {
@@ -30,6 +32,17 @@ interface Mentor {
 export default function MentorsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedExpertise, setSelectedExpertise] = useState<string | null>(null);
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
+  const [applicationSubmitted, setApplicationSubmitted] = useState(false);
+  const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  const [applicationData, setApplicationData] = useState({
+    expertise: "",
+    experience: "",
+    bio: "",
+    linkedin: "",
+  });
   const [mentors] = useState<Mentor[]>([
     {
       id: "1",
@@ -203,6 +216,10 @@ export default function MentorsPage() {
 
             <div className="flex gap-2 pt-4 border-t border-neutral-200">
               <button
+                onClick={() => {
+                  setSelectedMentor(mentor);
+                  setShowBookingModal(true);
+                }}
                 disabled={!mentor.available}
                 className="btn-primary flex-1 justify-center text-sm py-2"
               >
@@ -242,11 +259,269 @@ export default function MentorsPage() {
         <p className="text-neutral-400 mb-4">
           Share your expertise and help others grow in their careers
         </p>
-        <button className="btn bg-white text-neutral-900 hover:bg-neutral-100">
+        <button 
+          onClick={() => setShowApplyModal(true)}
+          className="btn bg-white text-neutral-900 hover:bg-neutral-100"
+        >
           Apply to Mentor
           <ExternalLink className="w-4 h-4" />
         </button>
       </motion.div>
+
+      {/* Apply to Mentor Modal */}
+      <AnimatePresence>
+        {showApplyModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowApplyModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
+            >
+              {applicationSubmitted ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-neutral-900 mb-2">Application Submitted!</h2>
+                  <p className="text-neutral-600 mb-6">
+                    We'll review your application and get back to you within 3-5 business days.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowApplyModal(false);
+                      setApplicationSubmitted(false);
+                    }}
+                    className="btn-primary"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-neutral-900">Apply to Become a Mentor</h2>
+                    <button
+                      onClick={() => setShowApplyModal(false)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Area of Expertise
+                      </label>
+                      <select
+                        value={applicationData.expertise}
+                        onChange={(e) => setApplicationData({ ...applicationData, expertise: e.target.value })}
+                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                      >
+                        <option value="">Select your expertise</option>
+                        <option value="System Design">System Design</option>
+                        <option value="Backend Development">Backend Development</option>
+                        <option value="Frontend Development">Frontend Development</option>
+                        <option value="DevOps & Cloud">DevOps & Cloud</option>
+                        <option value="Career Growth">Career Growth</option>
+                        <option value="Leadership">Leadership</option>
+                        <option value="Data Science">Data Science</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Years of Experience
+                      </label>
+                      <select
+                        value={applicationData.experience}
+                        onChange={(e) => setApplicationData({ ...applicationData, experience: e.target.value })}
+                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                      >
+                        <option value="">Select experience</option>
+                        <option value="3-5">3-5 years</option>
+                        <option value="5-8">5-8 years</option>
+                        <option value="8-12">8-12 years</option>
+                        <option value="12+">12+ years</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Short Bio
+                      </label>
+                      <textarea
+                        value={applicationData.bio}
+                        onChange={(e) => setApplicationData({ ...applicationData, bio: e.target.value })}
+                        placeholder="Tell us about your experience and why you want to mentor..."
+                        rows={4}
+                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        LinkedIn Profile (optional)
+                      </label>
+                      <input
+                        type="url"
+                        value={applicationData.linkedin}
+                        onChange={(e) => setApplicationData({ ...applicationData, linkedin: e.target.value })}
+                        placeholder="https://linkedin.com/in/yourprofile"
+                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={() => setShowApplyModal(false)}
+                      className="flex-1 px-4 py-3 border border-neutral-200 rounded-xl font-medium text-neutral-700 hover:bg-neutral-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => setApplicationSubmitted(true)}
+                      disabled={!applicationData.expertise || !applicationData.experience || !applicationData.bio}
+                      className="flex-1 btn-primary"
+                    >
+                      Submit Application
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Booking Modal */}
+      <AnimatePresence>
+        {showBookingModal && selectedMentor && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowBookingModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl p-6 max-w-md w-full"
+            >
+              {bookingConfirmed ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-neutral-900 mb-2">Session Booked!</h2>
+                  <p className="text-neutral-600 mb-6">
+                    Your session with {selectedMentor.name} has been confirmed. You'll receive a calendar invite shortly.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowBookingModal(false);
+                      setBookingConfirmed(false);
+                      setSelectedMentor(null);
+                    }}
+                    className="btn-primary"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-neutral-900">Book a Session</h2>
+                    <button
+                      onClick={() => setShowBookingModal(false)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-4 p-4 bg-neutral-50 rounded-xl mb-6">
+                    <div className="w-12 h-12 bg-neutral-200 rounded-full flex items-center justify-center">
+                      <UserCircle className="w-8 h-8 text-neutral-500" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-neutral-900">{selectedMentor.name}</p>
+                      <p className="text-sm text-neutral-600">{selectedMentor.title}</p>
+                      <p className="text-sm text-neutral-500">${selectedMentor.hourlyRate}/hour</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Select Date
+                      </label>
+                      <input
+                        type="date"
+                        min={new Date().toISOString().split('T')[0]}
+                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Select Time
+                      </label>
+                      <select className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent">
+                        <option value="">Choose a time slot</option>
+                        <option value="09:00">9:00 AM</option>
+                        <option value="10:00">10:00 AM</option>
+                        <option value="11:00">11:00 AM</option>
+                        <option value="14:00">2:00 PM</option>
+                        <option value="15:00">3:00 PM</option>
+                        <option value="16:00">4:00 PM</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        What would you like to discuss?
+                      </label>
+                      <textarea
+                        placeholder="Brief description of topics you'd like to cover..."
+                        rows={3}
+                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={() => setShowBookingModal(false)}
+                      className="flex-1 px-4 py-3 border border-neutral-200 rounded-xl font-medium text-neutral-700 hover:bg-neutral-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => setBookingConfirmed(true)}
+                      className="flex-1 btn-primary"
+                    >
+                      Confirm Booking
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

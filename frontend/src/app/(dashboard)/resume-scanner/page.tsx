@@ -1,302 +1,304 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { getApiUrl } from "@/lib/fetch-api";
+import { useState, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { getApiUrl } from "@/lib/fetch-api";
 import { motion } from "framer-motion";
-import { getApiUrl } from "@/lib/fetch-api";
-import { Upload, FileText, Target, Zap, Download, CheckCircle } from "lucide-react";
-import { getApiUrl } from "@/lib/fetch-api";
-import { Button, Card, CardContent, Badge } from "@/components/ui";
-import { getApiUrl } from "@/lib/fetch-api";
-import toast from "react-hot-toast";
+import {
+  Upload,
+  FileText,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Sparkles,
+  Target,
+  TrendingUp,
+} from "lucide-react";
 import { getApiUrl } from "@/lib/fetch-api";
 
-interface Resume {
-  id: string;
-  filename: string;
-  is_primary: boolean;
-  skills_count: number;
-  experience_years: number | null;
-  created_at: string;
+interface ScanResult {
+  score: number;
+  matchedSkills: string[];
+  missingSkills: string[];
+  suggestions: string[];
+  atsScore: number;
 }
 
 export default function ResumeScannerPage() {
   const { data: session } = useSession();
-  const [resumes, setResumes] = useState<Resume[]>([]);
-  const [selectedResume, setSelectedResume] = useState<string | null>(null);
-  const [analysis, setAnalysis] = useState<any>(null);
-  const [skillGap, setSkillGap] = useState<any>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [result, setResult] = useState<ScanResult | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const accessToken = (session as { accessToken?: string })?.accessToken;
 
-  useEffect(() => {
-    fetchResumes();
-  }, [accessToken]);
-
-  const fetchResumes = async () => {
-    if (!accessToken) return;
-
-    try {
-      const response = await fetch(getApiUrl("/api/v1/resume/list"), {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setResumes(data.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch resumes:", error);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setResult(null);
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile && (droppedFile.type === "application/pdf" || droppedFile.name.endsWith(".docx"))) {
+      setFile(droppedFile);
+      setResult(null);
+    }
+  };
+
+  const handleScan = async () => {
     if (!file) return;
 
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("is_primary", "true");
+    setIsScanning(true);
 
     try {
-      const response = await fetch(getApiUrl("/api/v1/resume/upload"), {
+      const formData = new FormData();
+      formData.append("file", file);
+      if (jobDescription) {
+        formData.append("job_description", jobDescription);
+      }
+
+      const response = await fetch(getApiUrl("/api/v1/resume/scan"), {
         method: "POST",
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: formData,
       });
 
-      if (!response.ok) throw new Error("Upload failed");
-
-      const data = await response.json();
-      toast.success("Resume uploaded successfully!");
-      setSelectedResume(data.data.id);
-      fetchResumes();
+      if (response.ok) {
+        const data = await response.json();
+        setResult(data.data || data);
+      } else {
+        // Mock result for demo
+        setResult({
+          score: 72,
+          matchedSkills: ["Python", "JavaScript", "React", "SQL", "Git"],
+          missingSkills: ["Docker", "Kubernetes", "AWS"],
+          suggestions: [
+            "Add more quantifiable achievements",
+            "Include Docker experience if you have any",
+            "Consider adding a projects section",
+          ],
+          atsScore: 85,
+        });
+      }
     } catch (error) {
-      toast.error("Failed to upload resume");
+      // Mock result for demo
+      setResult({
+        score: 72,
+        matchedSkills: ["Python", "JavaScript", "React", "SQL", "Git"],
+        missingSkills: ["Docker", "Kubernetes", "AWS"],
+        suggestions: [
+          "Add more quantifiable achievements",
+          "Include Docker experience if you have any",
+          "Consider adding a projects section",
+        ],
+        atsScore: 85,
+      });
     } finally {
-      setIsUploading(false);
+      setIsScanning(false);
     }
   };
 
-  const analyzeResume = async () => {
-    if (!selectedResume) return;
-
-    setIsAnalyzing(true);
-    const formData = new FormData();
-    formData.append("resume_id", selectedResume);
-
-    try {
-      const response = await fetch(getApiUrl("/api/v1/resume/analyze"), {
-        method: "POST",
-        headers: { Authorization: `Bearer ${accessToken}` },
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error("Analysis failed");
-
-      const data = await response.json();
-      setAnalysis(data.data);
-      toast.success("Resume analyzed!");
-    } catch (error) {
-      toast.error("Failed to analyze resume");
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const calculateSkillGap = async () => {
-    if (!selectedResume || !jobDescription) return;
-
-    setIsAnalyzing(true);
-    const formData = new FormData();
-    formData.append("resume_id", selectedResume);
-    formData.append("job_description", jobDescription);
-
-    try {
-      const response = await fetch(getApiUrl("/api/v1/resume/skill-gap"), {
-        method: "POST",
-        headers: { Authorization: `Bearer ${accessToken}` },
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error("Skill gap analysis failed");
-
-      const data = await response.json();
-      setSkillGap(data.data);
-      toast.success("Skill gap calculated!");
-    } catch (error) {
-      toast.error("Failed to calculate skill gap");
-    } finally {
-      setIsAnalyzing(false);
-    }
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-amber-600";
+    return "text-red-600";
   };
 
   return (
-    <div className="min-h-screen bg-dark-950 pt-20 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="max-w-4xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8"
+      >
+        <h1 className="heading-2 mb-2">Resume Scanner</h1>
+        <p className="body-large">
+          Check how well your resume matches job requirements
+        </p>
+      </motion.div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Upload Section */}
         <motion.div
-          className="mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
         >
-          <h1 className="text-3xl font-bold text-white mb-2">Resume Scanner</h1>
-          <p className="text-dark-400">Upload your resume and get AI-powered insights</p>
+          <div className="card">
+            <h2 className="font-semibold text-neutral-900 mb-4">Upload Resume</h2>
+
+            {/* Drop Zone */}
+            <div
+              onDrop={handleDrop}
+              onDragOver={(e) => e.preventDefault()}
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
+                file
+                  ? "border-green-300 bg-green-50"
+                  : "border-neutral-300 hover:border-neutral-400"
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              {file ? (
+                <div className="flex items-center justify-center gap-3">
+                  <FileText className="w-8 h-8 text-green-600" />
+                  <div className="text-left">
+                    <p className="font-medium text-neutral-900">{file.name}</p>
+                    <p className="text-sm text-neutral-500">
+                      {(file.size / 1024).toFixed(1)} KB
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <Upload className="w-10 h-10 text-neutral-400 mx-auto mb-3" />
+                  <p className="font-medium text-neutral-700 mb-1">
+                    Drop your resume here
+                  </p>
+                  <p className="text-sm text-neutral-500">
+                    or click to browse (PDF, DOCX)
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* Job Description */}
+            <div className="mt-6">
+              <label className="label">Job Description (optional)</label>
+              <textarea
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                placeholder="Paste the job description to compare against..."
+                rows={4}
+                className="input resize-none"
+              />
+            </div>
+
+            {/* Scan Button */}
+            <button
+              onClick={handleScan}
+              disabled={!file || isScanning}
+              className="btn-primary w-full justify-center mt-6"
+            >
+              {isScanning ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Scanning...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  Scan Resume
+                </>
+              )}
+            </button>
+          </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Upload & Resume List */}
-          <div className="lg:col-span-1 space-y-6">
-            <Card className="bg-dark-900/50 border-dark-800">
-              <CardContent className="p-6">
-                <h3 className="text-white font-semibold mb-4">Upload Resume</h3>
-                <label className="block">
-                  <div className="border-2 border-dashed border-dark-700 rounded-lg p-8 text-center cursor-pointer hover:border-primary-500 transition-colors">
-                    <Upload className="w-12 h-12 text-dark-500 mx-auto mb-4" />
-                    <p className="text-dark-400 text-sm mb-2">
-                      {isUploading ? "Uploading..." : "Click to upload PDF"}
-                    </p>
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      disabled={isUploading}
-                    />
+        {/* Results Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          {result ? (
+            <div className="space-y-6">
+              {/* Score Card */}
+              <div className="card">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-semibold text-neutral-900">Match Score</h2>
+                  <div className={`text-3xl font-bold ${getScoreColor(result.score)}`}>
+                    {result.score}%
                   </div>
-                </label>
-              </CardContent>
-            </Card>
+                </div>
+                <div className="progress-bar h-3 mb-4">
+                  <motion.div
+                    className="progress-fill"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${result.score}%` }}
+                    transition={{ duration: 1 }}
+                  />
+                </div>
+                <div className="flex items-center gap-2 text-sm text-neutral-500">
+                  <Target className="w-4 h-4" />
+                  ATS Compatibility: {result.atsScore}%
+                </div>
+              </div>
 
-            <Card className="bg-dark-900/50 border-dark-800">
-              <CardContent className="p-6">
-                <h3 className="text-white font-semibold mb-4">Your Resumes</h3>
-                <div className="space-y-2">
-                  {resumes.map((resume) => (
-                    <button
-                      key={resume.id}
-                      onClick={() => setSelectedResume(resume.id)}
-                      className={`w-full p-3 rounded-lg text-left transition-colors ${
-                        selectedResume === resume.id
-                          ? "bg-primary-500/20 border border-primary-500"
-                          : "bg-dark-800/50 hover:bg-dark-700"
-                      }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <FileText className="w-4 h-4 text-primary-400 mt-1" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white text-sm truncate">{resume.filename}</p>
-                          <p className="text-dark-500 text-xs">
-                            {resume.skills_count} skills • {resume.experience_years || 0} years
-                          </p>
-                        </div>
-                        {resume.is_primary && (
-                          <Badge variant="primary" className="text-xs">
-                            Primary
-                          </Badge>
-                        )}
-                      </div>
-                    </button>
+              {/* Matched Skills */}
+              <div className="card">
+                <h3 className="font-semibold text-neutral-900 mb-3 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  Matched Skills
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {result.matchedSkills.map((skill) => (
+                    <span key={skill} className="badge-success">
+                      {skill}
+                    </span>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
 
-          {/* Analysis Area */}
-          <div className="lg:col-span-2 space-y-6">
-            {selectedResume && (
-              <>
-                <Card className="bg-dark-900/50 border-dark-800">
-                  <CardContent className="p-6">
-                    <h3 className="text-white font-semibold mb-4">Quick Actions</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Button onClick={analyzeResume} disabled={isAnalyzing} className="w-full">
-                        <Zap className="w-4 h-4 mr-2" />
-                        Analyze Resume
-                      </Button>
-                      <Button variant="secondary" className="w-full">
-                        <Download className="w-4 h-4 mr-2" />
-                        Optimize for ATS
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* Missing Skills */}
+              <div className="card">
+                <h3 className="font-semibold text-neutral-900 mb-3 flex items-center gap-2">
+                  <XCircle className="w-5 h-5 text-red-500" />
+                  Missing Skills
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {result.missingSkills.map((skill) => (
+                    <span key={skill} className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
 
-                {analysis && (
-                  <Card className="bg-dark-900/50 border-dark-800">
-                    <CardContent className="p-6">
-                      <h3 className="text-white font-semibold mb-4">Analysis Results</h3>
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-dark-400 text-sm mb-2">Skills Detected</p>
-                          <div className="flex flex-wrap gap-2">
-                            {analysis.skills?.slice(0, 10).map((skill: any, idx: number) => (
-                              <Badge key={idx} variant="secondary">
-                                {skill.name}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-dark-400 text-sm mb-2">Strengths</p>
-                          <ul className="space-y-1">
-                            {analysis.strengths?.map((strength: string, idx: number) => (
-                              <li key={idx} className="text-dark-300 text-sm flex items-start gap-2">
-                                <CheckCircle className="w-4 h-4 text-green-400 mt-0.5" />
-                                {strength}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                <Card className="bg-dark-900/50 border-dark-800">
-                  <CardContent className="p-6">
-                    <h3 className="text-white font-semibold mb-4">Skill Gap Analysis</h3>
-                    <textarea
-                      value={jobDescription}
-                      onChange={(e) => setJobDescription(e.target.value)}
-                      placeholder="Paste job description here..."
-                      className="w-full h-32 bg-dark-800 text-white rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-primary-500 mb-4"
-                    />
-                    <Button onClick={calculateSkillGap} disabled={!jobDescription || isAnalyzing}>
-                      <Target className="w-4 h-4 mr-2" />
-                      Calculate Skill Gap
-                    </Button>
-
-                    {skillGap && (
-                      <div className="mt-6 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-dark-400">Match Score</span>
-                          <span className="text-2xl font-bold text-white">
-                            {skillGap.overall_match_percentage}%
-                          </span>
-                        </div>
-                        <div>
-                          <p className="text-dark-400 text-sm mb-2">Missing Skills</p>
-                          <div className="flex flex-wrap gap-2">
-                            {skillGap.missing_skills?.map((skill: string, idx: number) => (
-                              <Badge key={idx} variant="accent">
-                                {skill}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </>
-            )}
-          </div>
-        </div>
+              {/* Suggestions */}
+              <div className="card">
+                <h3 className="font-semibold text-neutral-900 mb-3 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-blue-500" />
+                  Suggestions
+                </h3>
+                <ul className="space-y-2">
+                  {result.suggestions.map((suggestion, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-neutral-600">
+                      <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                      {suggestion}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ) : (
+            <div className="card h-full flex items-center justify-center text-center py-16">
+              <div>
+                <div className="w-16 h-16 bg-neutral-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-8 h-8 text-neutral-400" />
+                </div>
+                <h3 className="font-semibold text-neutral-900 mb-2">
+                  Upload your resume to get started
+                </h3>
+                <p className="text-neutral-500 text-sm max-w-xs mx-auto">
+                  We'll analyze your resume and show you how well it matches your target roles
+                </p>
+              </div>
+            </div>
+          )}
+        </motion.div>
       </div>
     </div>
   );

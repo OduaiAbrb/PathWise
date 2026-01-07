@@ -1,0 +1,11 @@
+<svg width="200" height="50" viewBox="0 0 200 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Path/Road with arrow -->
+  <path d="M8 40 C8 40 12 35 15 30 C18 25 14 22 18 18 C22 14 20 10 24 6 L28 2 L32 6 L28 10" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M24 6 L28 2 L32 6" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Road base -->
+  <path d="M2 45 L20 45 C25 45 28 40 25 35 C22 30 28 25 25 20" stroke="#1a1a1a" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- Person dot -->
+  <circle cx="10" cy="38" r="4" fill="#1a1a1a"/>
+  <!-- Text -->
+  <text x="45" y="35" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="600" fill="#1a1a1a">PathWise</text>
+</svg>

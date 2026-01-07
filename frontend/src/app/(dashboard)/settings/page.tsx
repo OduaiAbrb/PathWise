@@ -3,185 +3,298 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
-import { User, Mail, Bell, Shield, Save, Loader2 } from "lucide-react";
-import { Button, Card, CardContent } from "@/components/ui";
-import toast from "react-hot-toast";
+import {
+  User,
+  Bell,
+  Shield,
+  CreditCard,
+  Moon,
+  Sun,
+  Check,
+  ChevronRight,
+} from "lucide-react";
 
 export default function SettingsPage() {
   const { data: session } = useSession();
-  const [isSaving, setIsSaving] = useState(false);
-  const [settings, setSettings] = useState({
-    name: session?.user?.name || "",
-    email: session?.user?.email || "",
-    emailNotifications: true,
-    weeklyDigest: true,
-    progressReminders: true,
+  const [activeTab, setActiveTab] = useState("profile");
+  const [notifications, setNotifications] = useState({
+    email: true,
+    push: true,
+    weekly: true,
+    marketing: false,
   });
+  const [saved, setSaved] = useState(false);
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast.success("Settings saved successfully!");
-    } catch {
-      toast.error("Failed to save settings");
-    } finally {
-      setIsSaving(false);
-    }
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   };
 
+  const tabs = [
+    { id: "profile", label: "Profile", icon: User },
+    { id: "notifications", label: "Notifications", icon: Bell },
+    { id: "security", label: "Security", icon: Shield },
+    { id: "billing", label: "Billing", icon: CreditCard },
+  ];
+
   return (
-    <div className="min-h-screen bg-dark-950 pt-20 pb-12">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+    <div className="max-w-4xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8"
+      >
+        <h1 className="heading-2 mb-2">Settings</h1>
+        <p className="body-large">Manage your account preferences</p>
+      </motion.div>
+
+      <div className="grid md:grid-cols-4 gap-6">
+        {/* Sidebar */}
         <motion.div
-          className="mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ delay: 0.1 }}
+          className="md:col-span-1"
         >
-          <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
-          <p className="text-dark-400">Manage your account preferences</p>
+          <nav className="space-y-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
+                  activeTab === tab.id
+                    ? "bg-neutral-900 text-white"
+                    : "text-neutral-600 hover:bg-neutral-100"
+                }`}
+              >
+                <tab.icon className="w-5 h-5" />
+                {tab.label}
+              </button>
+            ))}
+          </nav>
         </motion.div>
 
-        {/* Profile Section */}
+        {/* Content */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          transition={{ delay: 0.2 }}
+          className="md:col-span-3"
         >
-          <Card className="bg-dark-900/50 border-dark-800 mb-6">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-primary-500/10 rounded-xl flex items-center justify-center">
-                  <User className="w-5 h-5 text-primary-400" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-white">Profile</h2>
-                  <p className="text-dark-400 text-sm">Your personal information</p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-dark-300 text-sm mb-2">Name</label>
-                  <input
-                    type="text"
-                    value={settings.name}
-                    onChange={(e) => setSettings({ ...settings, name: e.target.value })}
-                    className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-dark-300 text-sm mb-2">Email</label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-dark-500" />
-                    <input
-                      type="email"
-                      value={settings.email}
-                      disabled
-                      className="w-full pl-12 pr-4 py-3 bg-dark-800/50 border border-dark-700 rounded-xl text-dark-400 cursor-not-allowed"
+          <div className="card">
+            {/* Profile Tab */}
+            {activeTab === "profile" && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-neutral-900">Profile Information</h2>
+                
+                <div className="flex items-center gap-4">
+                  {session?.user?.image ? (
+                    <img
+                      src={session.user.image}
+                      alt="Profile"
+                      className="w-20 h-20 rounded-full"
                     />
-                  </div>
-                  <p className="text-dark-500 text-sm mt-1">Email cannot be changed</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Notifications Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Card className="bg-dark-900/50 border-dark-800 mb-6">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-secondary-500/10 rounded-xl flex items-center justify-center">
-                  <Bell className="w-5 h-5 text-secondary-400" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-white">Notifications</h2>
-                  <p className="text-dark-400 text-sm">Manage your notification preferences</p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {[
-                  { key: "emailNotifications", label: "Email Notifications", description: "Receive updates via email" },
-                  { key: "weeklyDigest", label: "Weekly Digest", description: "Get a summary of your progress" },
-                  { key: "progressReminders", label: "Progress Reminders", description: "Reminders to continue learning" },
-                ].map((item) => (
-                  <div key={item.key} className="flex items-center justify-between py-3 border-b border-dark-800 last:border-0">
-                    <div>
-                      <p className="text-white font-medium">{item.label}</p>
-                      <p className="text-dark-400 text-sm">{item.description}</p>
+                  ) : (
+                    <div className="w-20 h-20 bg-neutral-200 rounded-full flex items-center justify-center">
+                      <User className="w-8 h-8 text-neutral-500" />
                     </div>
-                    <button
-                      onClick={() => setSettings({ ...settings, [item.key]: !settings[item.key as keyof typeof settings] })}
-                      className={`w-12 h-6 rounded-full transition-colors ${
-                        settings[item.key as keyof typeof settings] ? "bg-primary-500" : "bg-dark-700"
-                      }`}
-                    >
-                      <div
-                        className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                          settings[item.key as keyof typeof settings] ? "translate-x-6" : "translate-x-0.5"
-                        }`}
-                      />
+                  )}
+                  <div>
+                    <button className="btn-secondary text-sm py-2">
+                      Change Photo
                     </button>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Security Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <Card className="bg-dark-900/50 border-dark-800 mb-6">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-accent-500/10 rounded-xl flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-accent-400" />
                 </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Full Name</label>
+                    <input
+                      type="text"
+                      defaultValue={session?.user?.name || ""}
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Email</label>
+                    <input
+                      type="email"
+                      defaultValue={session?.user?.email || ""}
+                      className="input"
+                      disabled
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <h2 className="text-lg font-semibold text-white">Security</h2>
-                  <p className="text-dark-400 text-sm">Manage your account security</p>
+                  <label className="label">Target Role</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Senior Backend Engineer"
+                    className="input"
+                  />
+                </div>
+
+                <div>
+                  <label className="label">Bio</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Tell us about yourself..."
+                    className="input resize-none"
+                  />
+                </div>
+
+                <button onClick={handleSave} className="btn-primary">
+                  {saved ? (
+                    <>
+                      <Check className="w-5 h-5" />
+                      Saved
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Notifications Tab */}
+            {activeTab === "notifications" && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-neutral-900">Notification Preferences</h2>
+
+                <div className="space-y-4">
+                  {[
+                    { key: "email", label: "Email Notifications", description: "Receive updates via email" },
+                    { key: "push", label: "Push Notifications", description: "Browser push notifications" },
+                    { key: "weekly", label: "Weekly Progress Report", description: "Summary of your learning progress" },
+                    { key: "marketing", label: "Marketing Emails", description: "Tips, features, and promotions" },
+                  ].map((item) => (
+                    <div key={item.key} className="flex items-center justify-between p-4 bg-neutral-50 rounded-xl">
+                      <div>
+                        <p className="font-medium text-neutral-900">{item.label}</p>
+                        <p className="text-sm text-neutral-500">{item.description}</p>
+                      </div>
+                      <button
+                        onClick={() => setNotifications(prev => ({
+                          ...prev,
+                          [item.key]: !prev[item.key as keyof typeof notifications]
+                        }))}
+                        className={`w-12 h-7 rounded-full transition-colors ${
+                          notifications[item.key as keyof typeof notifications]
+                            ? "bg-neutral-900"
+                            : "bg-neutral-300"
+                        }`}
+                      >
+                        <div
+                          className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                            notifications[item.key as keyof typeof notifications]
+                              ? "translate-x-6"
+                              : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <button onClick={handleSave} className="btn-primary">
+                  {saved ? (
+                    <>
+                      <Check className="w-5 h-5" />
+                      Saved
+                    </>
+                  ) : (
+                    "Save Preferences"
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Security Tab */}
+            {activeTab === "security" && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-neutral-900">Security Settings</h2>
+
+                <div className="space-y-4">
+                  <div className="p-4 bg-neutral-50 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-neutral-900">Change Password</p>
+                        <p className="text-sm text-neutral-500">Update your password regularly</p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-neutral-400" />
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-neutral-50 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-neutral-900">Two-Factor Authentication</p>
+                        <p className="text-sm text-neutral-500">Add an extra layer of security</p>
+                      </div>
+                      <span className="text-sm text-neutral-500">Not enabled</span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-neutral-50 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-neutral-900">Active Sessions</p>
+                        <p className="text-sm text-neutral-500">Manage your logged-in devices</p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-neutral-400" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-neutral-200">
+                  <button className="text-red-600 hover:text-red-700 font-medium">
+                    Delete Account
+                  </button>
                 </div>
               </div>
+            )}
 
-              <div className="p-4 bg-dark-800/50 rounded-xl">
-                <p className="text-dark-300 text-sm">
-                  You are signed in with Google. Password management is handled through your Google account.
-                </p>
+            {/* Billing Tab */}
+            {activeTab === "billing" && (
+              <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-neutral-900">Billing & Subscription</h2>
+
+                <div className="p-6 bg-neutral-900 text-white rounded-xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="text-sm text-neutral-400">Current Plan</p>
+                      <p className="text-2xl font-bold">Free</p>
+                    </div>
+                    <button className="btn bg-white text-neutral-900 hover:bg-neutral-100">
+                      Upgrade to Pro
+                    </button>
+                  </div>
+                  <p className="text-sm text-neutral-400">
+                    1 active roadmap • Basic AI chat • Community resources
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-medium text-neutral-900">Payment Method</h3>
+                  <div className="p-4 bg-neutral-50 rounded-xl flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <CreditCard className="w-5 h-5 text-neutral-500" />
+                      <span className="text-neutral-600">No payment method added</span>
+                    </div>
+                    <button className="text-sm font-medium text-neutral-900 hover:underline">
+                      Add
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-medium text-neutral-900">Billing History</h3>
+                  <p className="text-sm text-neutral-500">No billing history available</p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Save Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          <Button
-            variant="primary"
-            size="lg"
-            className="w-full"
-            onClick={handleSave}
-            disabled={isSaving}
-            leftIcon={isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-          >
-            {isSaving ? "Saving..." : "Save Changes"}
-          </Button>
+            )}
+          </div>
         </motion.div>
       </div>
     </div>

@@ -1,15 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { getApiUrl } from "@/lib/fetch-api";
 import { useSession } from "next-auth/react";
-import { getApiUrl } from "@/lib/fetch-api";
 import { motion, AnimatePresence } from "framer-motion";
-import { getApiUrl } from "@/lib/fetch-api";
 import { Send, Sparkles, User, Loader2, Trash2 } from "lucide-react";
-import { getApiUrl } from "@/lib/fetch-api";
 import { Button, Card, CardContent } from "@/components/ui";
-import { getApiUrl } from "@/lib/fetch-api";
 import toast from "react-hot-toast";
 import { getApiUrl } from "@/lib/fetch-api";
 

@@ -1,262 +1,272 @@
 "use client";
 
 import { useState } from "react";
-import { getApiUrl } from "@/lib/fetch-api";
 import { useRouter } from "next/navigation";
-import { getApiUrl } from "@/lib/fetch-api";
 import { useSession } from "next-auth/react";
-import { getApiUrl } from "@/lib/fetch-api";
 import { motion } from "framer-motion";
-import { getApiUrl } from "@/lib/fetch-api";
 import {
   Sparkles,
-  FileText,
   ArrowRight,
-  Loader2,
+  Target,
+  Clock,
+  BookOpen,
+  ChevronDown,
   AlertCircle,
 } from "lucide-react";
-import { Button, Card, CardContent, Badge } from "@/components/ui";
-import { getApiUrl } from "@/lib/fetch-api";
-import toast from "react-hot-toast";
 import { getApiUrl } from "@/lib/fetch-api";
 
 const skillLevels = [
-  {
-    id: "beginner",
-    label: "Beginner",
-    description: "New to this field, learning fundamentals",
-  },
-  {
-    id: "intermediate",
-    label: "Intermediate",
-    description: "Some experience, looking to level up",
-  },
-  {
-    id: "advanced",
-    label: "Advanced",
-    description: "Experienced, targeting senior roles",
-  },
+  { id: "beginner", label: "Beginner", description: "New to this field" },
+  { id: "intermediate", label: "Intermediate", description: "Some experience" },
+  { id: "advanced", label: "Advanced", description: "Looking to specialize" },
+];
+
+const industries = [
+  "Technology",
+  "Finance",
+  "Healthcare",
+  "E-commerce",
+  "Education",
+  "Gaming",
+  "Media",
+  "Other",
 ];
 
 export default function NewRoadmapPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const [jobDescription, setJobDescription] = useState("");
-  const [skillLevel, setSkillLevel] = useState("beginner");
-  const [industry, setIndustry] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState("");
-  
-  // Get access token from session
   const accessToken = (session as { accessToken?: string })?.accessToken;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  const [jobDescription, setJobDescription] = useState("");
+  const [skillLevel, setSkillLevel] = useState("intermediate");
+  const [industry, setIndustry] = useState("Technology");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState("");
+  const [extractedSkills, setExtractedSkills] = useState<string[]>([]);
 
+  // Check for pending JD from landing page
+  useState(() => {
+    const pending = localStorage.getItem("pendingJobDescription");
+    if (pending) {
+      setJobDescription(pending);
+      localStorage.removeItem("pendingJobDescription");
+    }
+  });
+
+  const handleGenerate = async () => {
     if (!jobDescription.trim()) {
-      setError("Please enter a job description");
+      setError("Please paste a job description");
       return;
     }
 
     if (jobDescription.length < 100) {
-      setError("Job description should be at least 100 characters for best results");
+      setError("Job description seems too short. Please paste the full description.");
       return;
     }
 
+    setError("");
     setIsGenerating(true);
 
     try {
       const response = await fetch(getApiUrl("/api/v1/roadmap/generate"), {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           job_description: jobDescription,
           skill_level: skillLevel,
-          industry: industry || undefined,
+          industry: industry,
         }),
       });
 
-      if (!response.ok) {
+      if (response.ok) {
         const data = await response.json();
-        throw new Error(data.detail || "Failed to generate roadmap");
+        router.push(`/roadmap/${data.data?.id || data.id}`);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || "Failed to generate roadmap");
       }
-
-      const data = await response.json();
-      toast.success("Roadmap generated successfully!");
-      router.push(`/roadmap/${data.data.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-      toast.error("Failed to generate roadmap");
+      setError("Something went wrong. Please try again.");
     } finally {
       setIsGenerating(false);
     }
   };
 
+  // Simulate skill extraction as user types
+  const handleJobDescriptionChange = (value: string) => {
+    setJobDescription(value);
+    setError("");
+
+    if (value.length > 200) {
+      // Simple keyword extraction for preview
+      const keywords = [
+        "Python", "JavaScript", "TypeScript", "React", "Node.js", "SQL",
+        "AWS", "Docker", "Kubernetes", "REST", "GraphQL", "Git",
+        "PostgreSQL", "MongoDB", "Redis", "CI/CD", "Agile", "Scrum"
+      ];
+      const found = keywords.filter(k => 
+        value.toLowerCase().includes(k.toLowerCase())
+      );
+      setExtractedSkills(found.slice(0, 8));
+    } else {
+      setExtractedSkills([]);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-dark-950 pt-20 pb-12">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          className="text-center mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Create Your Learning Roadmap
-          </h1>
-          <p className="text-dark-400">
-            Paste a job description and let AI create your personalized path
+    <div className="max-w-3xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8"
+      >
+        <h1 className="heading-2 mb-2">Create Your Learning Roadmap</h1>
+        <p className="body-large">
+          Paste a job description and we'll create a personalized learning path.
+        </p>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="card"
+      >
+        {/* Job Description Input */}
+        <div className="mb-6">
+          <label className="label">Job Description</label>
+          <textarea
+            value={jobDescription}
+            onChange={(e) => handleJobDescriptionChange(e.target.value)}
+            placeholder="Paste the full job description here. Include requirements, responsibilities, and qualifications for best results..."
+            rows={8}
+            className="input resize-none"
+          />
+          <p className="text-sm text-neutral-500 mt-2">
+            {jobDescription.length} characters
+            {jobDescription.length < 100 && jobDescription.length > 0 && (
+              <span className="text-amber-600"> • Add more details for better results</span>
+            )}
           </p>
-        </motion.div>
+        </div>
 
-        {/* Form */}
-        <motion.form
-          onSubmit={handleSubmit}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <Card className="bg-dark-900/50 border-dark-800 mb-6">
-            <CardContent className="p-6">
-              {/* Job Description */}
-              <div className="mb-6">
-                <label className="block text-white font-medium mb-2">
-                  Job Description <span className="text-red-400">*</span>
-                </label>
-                <div className="relative">
-                  <FileText className="absolute left-4 top-4 w-5 h-5 text-dark-500" />
-                  <textarea
-                    value={jobDescription}
-                    onChange={(e) => setJobDescription(e.target.value)}
-                    placeholder="Paste the full job description here... Include requirements, responsibilities, and desired qualifications for the best results."
-                    rows={10}
-                    className="w-full pl-12 pr-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 resize-none"
-                  />
-                </div>
-                <p className="text-dark-500 text-sm mt-2">
-                  {jobDescription.length} characters
-                  {jobDescription.length > 0 && jobDescription.length < 100 && (
-                    <span className="text-yellow-400">
-                      {" "}
-                      (minimum 100 recommended)
-                    </span>
-                  )}
-                </p>
-              </div>
-
-              {/* Skill Level */}
-              <div className="mb-6">
-                <label className="block text-white font-medium mb-3">
-                  Your Current Skill Level
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {skillLevels.map((level) => (
-                    <button
-                      key={level.id}
-                      type="button"
-                      onClick={() => setSkillLevel(level.id)}
-                      className={`p-4 rounded-xl border text-left transition-all ${
-                        skillLevel === level.id
-                          ? "bg-primary-500/10 border-primary-500 text-white"
-                          : "bg-dark-800 border-dark-700 text-dark-300 hover:border-dark-600"
-                      }`}
-                    >
-                      <p className="font-medium mb-1">{level.label}</p>
-                      <p className="text-sm text-dark-400">
-                        {level.description}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Industry (Optional) */}
-              <div>
-                <label className="block text-white font-medium mb-2">
-                  Industry <span className="text-dark-500">(optional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={industry}
-                  onChange={(e) => setIndustry(e.target.value)}
-                  placeholder="e.g., Fintech, Healthcare, E-commerce"
-                  className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Error Message */}
-          {error && (
-            <motion.div
-              className="flex items-center gap-2 text-red-400 mb-6 p-4 bg-red-500/10 rounded-xl"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
-              <p>{error}</p>
-            </motion.div>
-          )}
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            className="w-full"
-            isLoading={isGenerating}
-            disabled={isGenerating}
-            rightIcon={
-              isGenerating ? undefined : <ArrowRight className="w-5 h-5" />
-            }
+        {/* Extracted Skills Preview */}
+        {extractedSkills.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="mb-6 p-4 bg-neutral-50 rounded-xl"
           >
-            {isGenerating ? "Generating Your Roadmap..." : "Generate Roadmap"}
-          </Button>
+            <p className="text-sm font-medium text-neutral-700 mb-3">
+              Skills detected:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {extractedSkills.map((skill) => (
+                <span key={skill} className="badge-primary">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
-          {/* Info */}
-          <p className="text-center text-dark-500 text-sm mt-4">
-            Generation typically takes 15-30 seconds
-          </p>
-        </motion.form>
+        {/* Skill Level */}
+        <div className="mb-6">
+          <label className="label">Your Current Level</label>
+          <div className="grid grid-cols-3 gap-3">
+            {skillLevels.map((level) => (
+              <button
+                key={level.id}
+                onClick={() => setSkillLevel(level.id)}
+                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                  skillLevel === level.id
+                    ? "border-neutral-900 bg-neutral-50"
+                    : "border-neutral-200 hover:border-neutral-300"
+                }`}
+              >
+                <p className="font-medium text-neutral-900">{level.label}</p>
+                <p className="text-sm text-neutral-500">{level.description}</p>
+              </button>
+            ))}
+          </div>
+        </div>
 
-        {/* Tips */}
-        <motion.div
-          className="mt-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+        {/* Industry */}
+        <div className="mb-6">
+          <label className="label">Target Industry</label>
+          <div className="relative">
+            <select
+              value={industry}
+              onChange={(e) => setIndustry(e.target.value)}
+              className="input appearance-none pr-10"
+            >
+              {industries.map((ind) => (
+                <option key={ind} value={ind}>{ind}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3"
+          >
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <p className="text-sm text-red-700">{error}</p>
+          </motion.div>
+        )}
+
+        {/* Generate Button */}
+        <button
+          onClick={handleGenerate}
+          disabled={isGenerating || !jobDescription.trim()}
+          className="btn-primary w-full justify-center"
         >
-          <h3 className="text-white font-medium mb-4">
-            Tips for better results:
-          </h3>
-          <ul className="space-y-2 text-dark-400">
-            <li className="flex items-start gap-2">
-              <span className="text-primary-400">•</span>
-              Include the complete job description with all requirements
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary-400">•</span>
-              Keep technical requirements and soft skills mentioned
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary-400">•</span>
-              Specify the industry for more relevant resources
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-primary-400">•</span>
-              Be honest about your skill level for accurate pacing
-            </li>
-          </ul>
-        </motion.div>
-      </div>
+          {isGenerating ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Generating Your Roadmap...
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-5 h-5" />
+              Generate Roadmap
+            </>
+          )}
+        </button>
+
+        {/* What You'll Get */}
+        <div className="mt-8 pt-6 border-t border-neutral-200">
+          <p className="text-sm font-medium text-neutral-700 mb-4">What you'll get:</p>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="w-10 h-10 bg-neutral-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                <Target className="w-5 h-5 text-neutral-600" />
+              </div>
+              <p className="text-sm text-neutral-600">Skill-by-skill breakdown</p>
+            </div>
+            <div className="text-center">
+              <div className="w-10 h-10 bg-neutral-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                <BookOpen className="w-5 h-5 text-neutral-600" />
+              </div>
+              <p className="text-sm text-neutral-600">Curated resources</p>
+            </div>
+            <div className="text-center">
+              <div className="w-10 h-10 bg-neutral-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                <Clock className="w-5 h-5 text-neutral-600" />
+              </div>
+              <p className="text-sm text-neutral-600">Time estimates</p>
+            </div>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }

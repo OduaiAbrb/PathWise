@@ -1,38 +1,59 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { getApiUrl } from "@/lib/fetch-api";
 import { useSession } from "next-auth/react";
-import { getApiUrl } from "@/lib/fetch-api";
-import { motion } from "framer-motion";
-import { getApiUrl } from "@/lib/fetch-api";
-import { Send, Mic, MicOff, Lightbulb, Code, BookOpen, HelpCircle } from "lucide-react";
-import { getApiUrl } from "@/lib/fetch-api";
-import { Button, Card, CardContent } from "@/components/ui";
-import { getApiUrl } from "@/lib/fetch-api";
-import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Send,
+  Sparkles,
+  User,
+  BookOpen,
+  Code,
+  HelpCircle,
+  Lightbulb,
+  RefreshCw,
+  Copy,
+  Check,
+} from "lucide-react";
 import { getApiUrl } from "@/lib/fetch-api";
 
 interface Message {
+  id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
 }
 
+interface LearningContext {
+  currentPhase: string;
+  currentSkill: string;
+  targetRole: string;
+  skillLevel: string;
+}
+
+const quickPrompts = [
+  { icon: Code, label: "Explain this concept", prompt: "Can you explain this concept in simple terms with examples?" },
+  { icon: HelpCircle, label: "Why is this important?", prompt: "Why is this skill important for my target role?" },
+  { icon: Lightbulb, label: "Practice exercise", prompt: "Give me a practice exercise to test my understanding" },
+  { icon: BookOpen, label: "Real-world example", prompt: "Show me a real-world example of how this is used" },
+];
+
 export default function StudyBuddyPage() {
   const { data: session } = useSession();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Hi! I'm your AI Study Buddy. I can help you understand concepts, debug code, generate quizzes, and more. What would you like to learn today?",
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const accessToken = (session as { accessToken?: string })?.accessToken;
+
+  // Mock learning context - in production, fetch from API
+  const [context] = useState<LearningContext>({
+    currentPhase: "Phase 2: Backend Fundamentals",
+    currentSkill: "REST APIs",
+    targetRole: "Backend Engineer",
+    skillLevel: "Intermediate",
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -42,12 +63,13 @@ export default function StudyBuddyPage() {
     scrollToBottom();
   }, [messages]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  const sendMessage = async (content: string) => {
+    if (!content.trim() || isLoading) return;
 
     const userMessage: Message = {
+      id: Date.now().toString(),
       role: "user",
-      content: input,
+      content: content.trim(),
       timestamp: new Date(),
     };
 
@@ -60,162 +82,222 @@ export default function StudyBuddyPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          message: input,
-          conversation_history: messages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
+          message: content,
+          context: {
+            current_phase: context.currentPhase,
+            current_skill: context.currentSkill,
+            target_role: context.targetRole,
+            skill_level: context.skillLevel,
+          },
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to get response");
-
-      const data = await response.json();
-      const assistantMessage: Message = {
+      if (response.ok) {
+        const data = await response.json();
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: data.data?.response || data.response || "I'm here to help with your learning journey!",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+      } else {
+        throw new Error("Failed to get response");
+      }
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data.data.response,
+        content: "Sorry, I encountered an error. Please try again.",
         timestamp: new Date(),
       };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      toast.error("Failed to send message");
-      console.error(error);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const quickActions = [
-    {
-      icon: Lightbulb,
-      label: "Explain a concept",
-      prompt: "Can you explain ",
-    },
-    {
-      icon: Code,
-      label: "Debug my code",
-      prompt: "I have a bug in my code: ",
-    },
-    {
-      icon: BookOpen,
-      label: "Generate a quiz",
-      prompt: "Generate a quiz about ",
-    },
-    {
-      icon: HelpCircle,
-      label: "Ask a question",
-      prompt: "I have a question: ",
-    },
-  ];
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(input);
+  };
+
+  const copyToClipboard = async (text: string, id: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const clearChat = () => {
+    setMessages([]);
+  };
 
   return (
-    <div className="min-h-screen bg-dark-950 pt-20 pb-12">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <h1 className="text-3xl font-bold text-white mb-2">AI Study Buddy</h1>
-          <p className="text-dark-400">Your personal learning assistant, available 24/7</p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Quick Actions Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="bg-dark-900/50 border-dark-800">
-              <CardContent className="p-4">
-                <h3 className="text-white font-semibold mb-4">Quick Actions</h3>
-                <div className="space-y-2">
-                  {quickActions.map((action, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setInput(action.prompt)}
-                      className="w-full flex items-center gap-3 p-3 rounded-lg bg-dark-800/50 hover:bg-dark-700 transition-colors text-left"
-                    >
-                      <action.icon className="w-5 h-5 text-primary-400" />
-                      <span className="text-dark-300 text-sm">{action.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+    <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="heading-2 mb-1">AI Study Buddy</h1>
+            <p className="text-neutral-500">
+              Context-aware AI tutor for your learning journey
+            </p>
           </div>
+          {messages.length > 0 && (
+            <button
+              onClick={clearChat}
+              className="btn-ghost text-sm"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Clear Chat
+            </button>
+          )}
+        </div>
 
-          {/* Chat Area */}
-          <div className="lg:col-span-3">
-            <Card className="bg-dark-900/50 border-dark-800 h-[600px] flex flex-col">
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {messages.map((message, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+        {/* Learning Context Banner */}
+        <div className="mt-4 p-4 bg-neutral-100 rounded-xl">
+          <div className="flex items-center gap-2 text-sm text-neutral-600">
+            <BookOpen className="w-4 h-4" />
+            <span>Currently learning:</span>
+            <span className="font-medium text-neutral-900">{context.currentSkill}</span>
+            <span className="text-neutral-400">•</span>
+            <span>{context.currentPhase}</span>
+            <span className="text-neutral-400">•</span>
+            <span>Target: {context.targetRole}</span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Chat Area */}
+      <div className="flex-1 overflow-hidden flex flex-col card p-0">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {messages.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="h-full flex flex-col items-center justify-center text-center"
+            >
+              <div className="w-16 h-16 bg-neutral-100 rounded-2xl flex items-center justify-center mb-4">
+                <Sparkles className="w-8 h-8 text-neutral-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+                How can I help you learn today?
+              </h3>
+              <p className="text-neutral-500 max-w-md mb-8">
+                I know you're learning {context.currentSkill} for your {context.targetRole} goal. 
+                Ask me anything about this topic!
+              </p>
+
+              {/* Quick Prompts */}
+              <div className="grid grid-cols-2 gap-3 w-full max-w-lg">
+                {quickPrompts.map((prompt) => (
+                  <button
+                    key={prompt.label}
+                    onClick={() => sendMessage(prompt.prompt)}
+                    className="flex items-center gap-3 p-4 bg-neutral-50 hover:bg-neutral-100 rounded-xl text-left transition-colors"
                   >
-                    <div
-                      className={`max-w-[80%] rounded-lg p-4 ${
-                        message.role === "user"
-                          ? "bg-primary-500 text-white"
-                          : "bg-dark-800 text-dark-200"
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap">{message.content}</p>
-                      <p className="text-xs mt-2 opacity-60">
-                        {message.timestamp.toLocaleTimeString()}
-                      </p>
-                    </div>
-                  </motion.div>
+                    <prompt.icon className="w-5 h-5 text-neutral-500" />
+                    <span className="text-sm font-medium text-neutral-700">{prompt.label}</span>
+                  </button>
                 ))}
-                {isLoading && (
-                  <div className="flex justify-start">
-                    <div className="bg-dark-800 rounded-lg p-4">
-                      <div className="flex gap-2">
-                        <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" />
-                        <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce delay-100" />
-                        <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce delay-200" />
-                      </div>
+              </div>
+            </motion.div>
+          ) : (
+            <AnimatePresence>
+              {messages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex gap-4 ${message.role === "user" ? "justify-end" : ""}`}
+                >
+                  {message.role === "assistant" && (
+                    <div className="w-8 h-8 bg-neutral-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[80%] ${
+                      message.role === "user"
+                        ? "bg-neutral-900 text-white rounded-2xl rounded-br-md"
+                        : "bg-neutral-100 text-neutral-900 rounded-2xl rounded-bl-md"
+                    } p-4`}
+                  >
+                    <p className="whitespace-pre-wrap">{message.content}</p>
+                    {message.role === "assistant" && (
+                      <button
+                        onClick={() => copyToClipboard(message.content, message.id)}
+                        className="mt-2 text-xs text-neutral-500 hover:text-neutral-700 flex items-center gap-1"
+                      >
+                        {copiedId === message.id ? (
+                          <>
+                            <Check className="w-3 h-3" /> Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3" /> Copy
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  {message.role === "user" && (
+                    <div className="w-8 h-8 bg-neutral-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 text-neutral-600" />
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+              {isLoading && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex gap-4"
+                >
+                  <div className="w-8 h-8 bg-neutral-900 rounded-lg flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="bg-neutral-100 rounded-2xl rounded-bl-md p-4">
+                    <div className="flex gap-1">
+                      <span className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                     </div>
                   </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
 
-              {/* Input Area */}
-              <div className="border-t border-dark-800 p-4">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-                    placeholder="Ask me anything..."
-                    className="flex-1 bg-dark-800 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    disabled={isLoading}
-                  />
-                  <Button
-                    onClick={() => setIsListening(!isListening)}
-                    variant={isListening ? "primary" : "secondary"}
-                    className="px-4"
-                  >
-                    {isListening ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
-                  </Button>
-                  <Button
-                    onClick={sendMessage}
-                    disabled={!input.trim() || isLoading}
-                    className="px-6"
-                  >
-                    <Send className="w-5 h-5" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          </div>
+        {/* Input */}
+        <div className="border-t border-neutral-200 p-4">
+          <form onSubmit={handleSubmit} className="flex gap-3">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={`Ask about ${context.currentSkill}...`}
+              className="input flex-1"
+              disabled={isLoading}
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || isLoading}
+              className="btn-primary px-4"
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </form>
         </div>
       </div>
     </div>

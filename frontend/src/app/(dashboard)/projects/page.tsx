@@ -365,7 +365,7 @@ A performant product catalog with search and cart.
     );
 
     try {
-      await fetch(getApiUrl(`/api/v1/projects/${projectId}/status`), {
+      await fetch(getApiUrl(`/api/v1/projects/${projectId}`), {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -375,6 +375,25 @@ A performant product catalog with search and cart.
       });
     } catch (error) {
       console.error("Failed to update status:", error);
+    }
+  };
+
+  const updateProjectGithub = async (projectId: string, githubUrl: string) => {
+    setProjects((prev) =>
+      prev.map((p) => (p.id === projectId ? { ...p, githubUrl } : p))
+    );
+
+    try {
+      await fetch(getApiUrl(`/api/v1/projects/${projectId}`), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ github_url: githubUrl }),
+      });
+    } catch (error) {
+      console.error("Failed to update GitHub URL:", error);
     }
   };
 

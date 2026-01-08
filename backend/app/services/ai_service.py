@@ -1,27 +1,45 @@
 import json
 import uuid
 from typing import Optional, List
-from openai import AsyncOpenAI
+from dotenv import load_dotenv
 
+# Load environment variables
+load_dotenv()
+
+from emergentintegrations.llm.chat import LlmChat, UserMessage, AssistantMessage
 from app.core.config import settings
 
-client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+# Use Emergent LLM key if available, fall back to OpenAI
+API_KEY = settings.EMERGENT_LLM_KEY or settings.OPENAI_API_KEY
+MODEL_NAME = "gpt-4o"  # Using gpt-4o via Emergent
 
 
 ROADMAP_SYSTEM_PROMPT = """You are an expert career advisor and learning path designer. Your task is to analyze job descriptions and create comprehensive, personalized learning roadmaps.
 
+PRODUCT NORTH STAR:
+PathWise exists to solve ONE problem:
+People don't know what to learn, in what order, or when they are actually ready for jobs.
+
+Your roadmaps must turn:
+- confusion → clarity
+- learning → readiness  
+- effort → confidence
+- progress → proof
+
 When given a job description, you must:
 1. Extract the key job title
-2. Identify all required and preferred skills
+2. Identify all required and preferred skills, ranked by INTERVIEW FREQUENCY
 3. Organize skills into logical learning phases
-4. Suggest specific resources for each skill
-5. Recommend portfolio projects
+4. Explain WHY each skill matters and WHAT HAPPENS IF SKIPPED
+5. Suggest specific resources for each skill
+6. Recommend portfolio projects that map directly to job requirements
 
 Output your response as valid JSON with this structure:
 {
   "job_title": "extracted job title",
   "industry": "detected industry",
   "estimated_weeks": number,
+  "why_this_roadmap": "Brief explanation of why skills are ordered this way",
   "phases": [
     {
       "id": "phase-uuid",
@@ -36,8 +54,11 @@ Output your response as valid JSON with this structure:
           "category": "technical|soft|domain",
           "difficulty": "beginner|intermediate|advanced",
           "importance": "critical|important|optional",
+          "interview_frequency": number (percentage of interviews that test this),
           "estimated_hours": number,
           "description": "Brief skill description",
+          "why_this_matters": "Explain why this skill is critical for the role",
+          "what_if_skipped": "Consequences of skipping this skill",
           "resources": [
             {
               "id": "resource-uuid",
@@ -61,6 +82,8 @@ Output your response as valid JSON with this structure:
       "difficulty": "beginner|intermediate|advanced",
       "estimated_hours": number,
       "skills": ["skill names used"],
+      "resume_bullet": "How to describe this on resume",
+      "interview_talking_points": ["point 1", "point 2"],
       "steps": ["step 1", "step 2", ...]
     }
   ]
@@ -95,10 +118,12 @@ RESOURCE QUALITY REQUIREMENTS:
 Guidelines:
 - Create 3-5 phases, progressing from foundational to advanced
 - Include 3-6 skills per phase
+- Order skills by INTERVIEW FREQUENCY within phases
 - Suggest 2-4 quality resources per skill (prefer free resources)
 - Recommend 2-4 portfolio projects of increasing complexity
 - Adjust difficulty based on the user's stated skill level
-- Generate unique UUIDs for all id fields"""
+- Generate unique UUIDs for all id fields
+- ALWAYS include interview_frequency for each skill"""
 
 
 async def generate_roadmap(
@@ -106,7 +131,7 @@ async def generate_roadmap(
     skill_level: str,
     industry: Optional[str] = None
 ) -> dict:
-    """Generate a learning roadmap using GPT-4."""
+    """Generate a learning roadmap using Emergent LLM."""
     
     print(f"🎯 Generating roadmap for: {job_description[:100]}...")
     print(f"📊 Skill level: {skill_level}, Industry: {industry}")
@@ -119,24 +144,38 @@ Description:
 User's Current Skill Level: {skill_level}
 {f"Industry: {industry}" if industry else ""}
 
-IMPORTANT: Even if the description is brief, infer the role and create a comprehensive roadmap.
-Generate a complete learning path with phases, skills, high-quality resources (with real URLs), and projects."""
+IMPORTANT: 
+- Even if the description is brief, infer the role and create a comprehensive roadmap.
+- Rank skills by INTERVIEW FREQUENCY (percentage of interviews that ask about this skill)
+- Explain WHY each skill matters for getting hired
+- Explain WHAT HAPPENS if the user skips a skill
+- Generate portfolio projects with resume bullets and interview talking points
+
+Generate a complete learning path with phases, skills, high-quality resources (with real URLs), and projects.
+Output as valid JSON."""
 
     try:
-        print("🤖 Calling OpenAI API...")
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": ROADMAP_SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt}
-            ],
-            temperature=0.7,
-            max_tokens=4000,
-            response_format={"type": "json_object"}
-        )
+        print(f"🤖 Calling Emergent LLM API with key: {API_KEY[:20]}...")
         
-        print("✅ OpenAI response received")
-        result = json.loads(response.choices[0].message.content)
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"roadmap-{uuid.uuid4()}",
+            system_message=ROADMAP_SYSTEM_PROMPT
+        ).with_model("openai", MODEL_NAME)
+        
+        user_message = UserMessage(text=user_prompt)
+        response_text = await chat.send_message(user_message)
+        
+        print("✅ LLM response received")
+        
+        # Parse JSON from response
+        # Handle case where response might have markdown code blocks
+        if "```json" in response_text:
+            response_text = response_text.split("```json")[1].split("```")[0]
+        elif "```" in response_text:
+            response_text = response_text.split("```")[1].split("```")[0]
+            
+        result = json.loads(response_text.strip())
         print(f"📦 Roadmap generated: {result.get('job_title', 'Unknown')} with {len(result.get('phases', []))} phases")
         
         # Ensure all IDs are present
@@ -146,6 +185,9 @@ Generate a complete learning path with phases, skills, high-quality resources (w
             for skill in phase.get("skills", []):
                 if not skill.get("id"):
                     skill["id"] = str(uuid.uuid4())
+                # Ensure interview_frequency exists
+                if not skill.get("interview_frequency"):
+                    skill["interview_frequency"] = 50  # Default
                 for resource in skill.get("resources", []):
                     if not resource.get("id"):
                         resource["id"] = str(uuid.uuid4())
@@ -161,14 +203,18 @@ Generate a complete learning path with phases, skills, high-quality resources (w
         raise
 
 
-CHAT_SYSTEM_PROMPT = """You are PathWise AI, a helpful career and learning assistant. You help users with:
+CHAT_SYSTEM_PROMPT = """You are PathWise AI, a world-class career and learning assistant. You help users with:
 - Questions about their learning roadmap
 - Career advice and guidance
 - Explaining technical concepts
 - Suggesting resources and learning strategies
 - Motivation and accountability
 
-Be encouraging, practical, and specific in your responses. If the user shares their roadmap context, reference it in your answers."""
+RULES:
+- Be encouraging but HONEST - no sugar-coating
+- Be practical and specific in your responses
+- If the user shares their roadmap context, reference it in your answers
+- Always focus on what helps the user GET HIRED"""
 
 
 async def chat_response(
@@ -176,34 +222,37 @@ async def chat_response(
     conversation_history: List[dict],
     roadmap_context: Optional[dict] = None
 ) -> str:
-    """Generate a chat response using GPT-4."""
+    """Generate a chat response using Emergent LLM."""
     
-    messages = [{"role": "system", "content": CHAT_SYSTEM_PROMPT}]
+    system_msg = CHAT_SYSTEM_PROMPT
     
     # Add roadmap context if available
     if roadmap_context:
-        context_msg = f"""User's Current Roadmap Context:
+        system_msg += f"""
+
+User's Current Roadmap Context:
 - Job Target: {roadmap_context.get('job_title', 'Not specified')}
 - Progress: {roadmap_context.get('completion_percentage', 0)}%
 - Current Phase: {roadmap_context.get('current_phase', 'Not started')}"""
-        messages.append({"role": "system", "content": context_msg})
-    
-    # Add conversation history
-    for msg in conversation_history[-10:]:  # Last 10 messages
-        messages.append({"role": msg["role"], "content": msg["content"]})
-    
-    # Add current message
-    messages.append({"role": "user", "content": message})
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=messages,
-            temperature=0.7,
-            max_tokens=1000,
-        )
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"chat-{uuid.uuid4()}",
+            system_message=system_msg
+        ).with_model("openai", MODEL_NAME)
         
-        return response.choices[0].message.content
+        # Add conversation history
+        for msg in conversation_history[-10:]:
+            if msg["role"] == "user":
+                chat.messages.append(UserMessage(text=msg["content"]))
+            else:
+                chat.messages.append(AssistantMessage(text=msg["content"]))
+        
+        user_message = UserMessage(text=message)
+        response = await chat.send_message(user_message)
+        
+        return response
         
     except Exception as e:
         print(f"AI chat error: {e}")
@@ -215,6 +264,8 @@ RESUME_ANALYSIS_PROMPT = """Analyze this resume and provide:
 2. Years of experience estimation
 3. Strengths and areas for improvement
 4. Recommendations for the target role (if provided)
+
+Be HONEST - no sugar-coating. The user needs to know their real gaps.
 
 Output as JSON:
 {
@@ -231,7 +282,7 @@ async def analyze_resume(
     resume_text: str,
     target_role: Optional[str] = None
 ) -> dict:
-    """Analyze a resume using GPT-4."""
+    """Analyze a resume using Emergent LLM."""
     
     user_prompt = f"""Analyze this resume:
 
@@ -240,18 +291,22 @@ async def analyze_resume(
 {f"Target Role: {target_role}" if target_role else ""}"""
 
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": RESUME_ANALYSIS_PROMPT},
-                {"role": "user", "content": user_prompt}
-            ],
-            temperature=0.5,
-            max_tokens=2000,
-            response_format={"type": "json_object"}
-        )
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"resume-{uuid.uuid4()}",
+            system_message=RESUME_ANALYSIS_PROMPT
+        ).with_model("openai", MODEL_NAME)
         
-        return json.loads(response.choices[0].message.content)
+        user_message = UserMessage(text=user_prompt)
+        response_text = await chat.send_message(user_message)
+        
+        # Parse JSON from response
+        if "```json" in response_text:
+            response_text = response_text.split("```json")[1].split("```")[0]
+        elif "```" in response_text:
+            response_text = response_text.split("```")[1].split("```")[0]
+            
+        return json.loads(response_text.strip())
         
     except Exception as e:
         print(f"Resume analysis error: {e}")

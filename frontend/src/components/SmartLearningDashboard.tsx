@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { getApiUrl } from "@/lib/fetch-api";
 import {
   BarChart3,
   Users,
@@ -55,72 +57,108 @@ interface RecentActivity {
 
 export default function SmartLearningDashboard() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const accessToken = (session as { accessToken?: string })?.accessToken;
+  
   const [activeWidgets, setActiveWidgets] = useState<DashboardWidget[]>([]);
   const [metrics, setMetrics] = useState<LearningMetric[]>([]);
+  const [roadmaps, setRoadmaps] = useState<any[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [selectedTimeframe, setSelectedTimeframe] = useState("week");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load dashboard data
-    const dashboardMetrics: LearningMetric[] = [
-      {
-        label: "Study Hours",
-        value: 24.5,
-        change: 12,
-        trend: "up",
-        icon: Clock
-      },
-      {
-        label: "Completed Lessons",
-        value: 47,
-        change: 8,
-        trend: "up",  
-        icon: BookOpen
-      },
-      {
-        label: "Quiz Score",
-        value: 87,
-        change: 5,
-        trend: "up",
-        icon: Trophy
-      },
-      {
-        label: "Study Streak",
-        value: 12,
-        change: 0,
-        trend: "stable",
-        icon: Zap
+    const fetchDashboardData = async () => {
+      if (!accessToken) {
+        setIsLoading(false);
+        return;
       }
-    ];
 
-    const activities: RecentActivity[] = [
-      {
-        id: "1",
-        type: "achievement",
-        title: "React Master Badge Earned!",
-        description: "Completed all React fundamentals with 95% score",
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000)
-      },
-      {
-        id: "2", 
-        type: "group",
-        title: "Joined 'Backend Engineers Hub'",
-        description: "Connected with 24 fellow learners",
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000)
-      },
-      {
-        id: "3",
-        type: "study",
-        title: "Completed: Advanced JavaScript Patterns",
-        description: "3.5 hours of focused learning",
-        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000)
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Fetch gamification stats
+        const statsResponse = await fetch(getApiUrl("/api/v1/gamification/stats"), {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        // Fetch roadmaps
+        const roadmapsResponse = await fetch(getApiUrl("/api/v1/roadmaps"), {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json();
+          const stats = statsData.data || {};
+
+          // Convert backend stats to dashboard metrics
+          const dashboardMetrics: LearningMetric[] = [
+            {
+              label: "Study Hours",
+              value: Math.round((stats.total_study_minutes || 0) / 60 * 10) / 10,
+              change: 0,
+              trend: "stable" as const,
+              icon: Clock,
+            },
+            {
+              label: "Skills Completed",
+              value: stats.skills_completed || 0,
+              change: 0,
+              trend: "stable" as const,
+              icon: BookOpen,
+            },
+            {
+              label: "Current Level",
+              value: stats.level || 1,
+              change: 0,
+              trend: "stable" as const,
+              icon: Trophy,
+            },
+            {
+              label: "Current Streak",
+              value: stats.current_streak || 0,
+              change: 0,
+              trend: stats.current_streak > (stats.longest_streak || 0) / 2 ? "up" as const : "stable" as const,
+              icon: Zap,
+            },
+          ];
+
+          setMetrics(dashboardMetrics);
+
+          // Convert achievements to recent activity
+          if (stats.achievements && stats.achievements.length > 0) {
+            const activities: RecentActivity[] = stats.achievements.slice(0, 3).map((achievement: any) => ({
+              id: achievement.id,
+              type: "achievement" as const,
+              title: achievement.title,
+              description: achievement.description,
+              timestamp: new Date(achievement.unlocked_at),
+            }));
+            setRecentActivity(activities);
+          }
+        }
+
+        if (roadmapsResponse.ok) {
+          const roadmapsData = await roadmapsResponse.json();
+          setRoadmaps(roadmapsData.data || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
+        setError("Failed to load dashboard data");
+      } finally {
+        setIsLoading(false);
       }
-    ];
+    };
 
-    setMetrics(dashboardMetrics);
-    setRecentActivity(activities);
-  }, []);
+    fetchDashboardData();
+  }, [accessToken]);
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -225,48 +263,70 @@ export default function SmartLearningDashboard() {
               </button>
             </div>
             
-            {/* Progress Charts Placeholder */}
+            {/* Real Roadmap Progress */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">JavaScript Fundamentals</span>
-                <span className="text-sm text-gray-500">85%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full" style={{width: "85%"}}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">React Development</span>
-                <span className="text-sm text-gray-500">67%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{width: "67%"}}></div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Node.js Backend</span>
-                <span className="text-sm text-gray-500">23%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-purple-500 h-2 rounded-full" style={{width: "23%"}}></div>
-              </div>
+              {isLoading ? (
+                <div className="text-center py-8 text-gray-500">Loading your roadmaps...</div>
+              ) : roadmaps.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 mb-4">No active roadmaps yet</p>
+                  <button
+                    onClick={() => router.push("/roadmap/new")}
+                    className="text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    Create Your First Roadmap →
+                  </button>
+                </div>
+              ) : (
+                roadmaps.slice(0, 3).map((roadmap, index) => {
+                  const colors = ["blue", "green", "purple"];
+                  const color = colors[index % colors.length];
+                  return (
+                    <div key={roadmap.id}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-700">{roadmap.job_title}</span>
+                        <span className="text-sm text-gray-500">{roadmap.completion_percentage}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                        <div
+                          className={`bg-${color}-500 h-2 rounded-full transition-all`}
+                          style={{ width: `${roadmap.completion_percentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-900">Weekly Goal</p>
-                  <p className="text-sm text-gray-600">8 hours of study time</p>
+            {roadmaps.length > 0 && (
+              <div className="mt-6 pt-6 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900">Overall Progress</p>
+                    <p className="text-sm text-gray-600">{roadmaps.length} active roadmap{roadmaps.length > 1 ? 's' : ''}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-blue-600">
+                      {Math.round(
+                        roadmaps.reduce((sum, r) => sum + (r.completion_percentage || 0), 0) / roadmaps.length
+                      )}%
+                    </p>
+                    <p className="text-sm text-gray-500">Average completion</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-blue-600">6.2h</p>
-                  <p className="text-sm text-gray-500">1.8h remaining</p>
+                <div className="mt-3 w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all"
+                    style={{
+                      width: `${Math.round(
+                        roadmaps.reduce((sum, r) => sum + (r.completion_percentage || 0), 0) / roadmaps.length
+                      )}%`,
+                    }}
+                  ></div>
                 </div>
               </div>
-              <div className="mt-3 w-full bg-gray-200 rounded-full h-3">
-                <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full" style={{width: "77%"}}></div>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Recent Activity */}
@@ -279,7 +339,15 @@ export default function SmartLearningDashboard() {
             </div>
             
             <div className="space-y-4">
-              {recentActivity.map((activity) => {
+              {isLoading ? (
+                <div className="text-center py-4 text-gray-500">Loading activity...</div>
+              ) : recentActivity.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No recent activity</p>
+                  <p className="text-xs mt-2">Start learning to see your progress here!</p>
+                </div>
+              ) : (
+                recentActivity.map((activity) => {
                 const IconComponent = getActivityIcon(activity.type);
                 return (
                   <div key={activity.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">

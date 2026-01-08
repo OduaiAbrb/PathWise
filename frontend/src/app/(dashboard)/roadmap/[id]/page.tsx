@@ -406,20 +406,20 @@ export default function RoadmapDetailPage() {
         ))}
       </div>
 
-      {/* AI Study Buddy CTA */}
+      {/* AI Mentor CTA */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
         className="mt-8"
       >
-        <Link href="/study-buddy" className="card-hover block p-6 text-center">
-          <div className="w-12 h-12 bg-neutral-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-            <Sparkles className="w-6 h-6 text-neutral-600" />
+        <Link href="/study-buddy" className="card-hover block p-6 text-center border-2 border-blue-200">
+          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <Sparkles className="w-6 h-6 text-blue-600" />
           </div>
-          <h3 className="font-semibold text-neutral-900 mb-1">Need help with a skill?</h3>
-          <p className="text-sm text-neutral-500">
-            Ask our AI Study Buddy for explanations and practice exercises
+          <h3 className="font-semibold text-neutral-900 mb-1">Get Interview Pressure Training</h3>
+          <p className="text-sm text-neutral-600">
+            Ask your AI Mentor tough questions. Practice explaining your decisions under pressure.
           </p>
         </Link>
       </motion.div>

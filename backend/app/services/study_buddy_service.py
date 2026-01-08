@@ -48,11 +48,16 @@ BE STRICT. This is training for real interviews where rejection is the default o
 async def chat_with_study_buddy(
     message: str,
     conversation_history: List[dict],
-    user_context: Optional[dict] = None
+    user_context: Optional[dict] = None,
+    additional_context: Optional[str] = None
 ) -> str:
-    """Have a conversation with the AI Study Buddy."""
+    """Have a conversation with the Personal AI Mentor."""
     
     messages = [{"role": "system", "content": STUDY_BUDDY_SYSTEM_PROMPT}]
+    
+    # Add additional context if provided (from frontend)
+    if additional_context:
+        messages.append({"role": "system", "content": additional_context})
     
     # Add user context if available
     if user_context:
@@ -80,7 +85,42 @@ async def chat_with_study_buddy(
         return response.choices[0].message.content
         
     except Exception as e:
-        print(f"Study Buddy error: {e}")
+        print(f"Personal AI Mentor error: {e}")
+        raise
+
+
+async def chat_interview_mode(
+    message: str,
+    conversation_history: List[dict],
+    user_context: Optional[str] = None
+) -> str:
+    """Interview Pressure Mode - strict interviewer simulation."""
+    
+    messages = [{"role": "system", "content": INTERVIEW_MODE_SYSTEM_PROMPT}]
+    
+    # Add user context if provided
+    if user_context:
+        messages.append({"role": "system", "content": user_context})
+    
+    # Add conversation history
+    for msg in conversation_history[-10:]:  # Last 10 messages for interview
+        messages.append({"role": msg["role"], "content": msg["content"]})
+    
+    # Add current message
+    messages.append({"role": "user", "content": message})
+    
+    try:
+        response = await client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=messages,
+            temperature=0.8,  # Slightly higher for variety in questions
+            max_tokens=1000,
+        )
+        
+        return response.choices[0].message.content
+        
+    except Exception as e:
+        print(f"Interview mode error: {e}")
         raise
 
 

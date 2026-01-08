@@ -7,3 +7,11 @@ healthcheckPath = "/"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
+
+[[deploy.environmentVariables]]
+name = "NEXT_PUBLIC_API_URL"
+value = "https://pathwise-production-0768.up.railway.app"
+
+[[deploy.environmentVariables]]
+name = "NEXTAUTH_URL"
+value = "https://frontend-production-752a.up.railway.app"

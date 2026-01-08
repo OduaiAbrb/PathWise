@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   BarChart3,
   Users,
@@ -53,6 +54,7 @@ interface RecentActivity {
 }
 
 export default function SmartLearningDashboard() {
+  const router = useRouter();
   const [activeWidgets, setActiveWidgets] = useState<DashboardWidget[]>([]);
   const [metrics, setMetrics] = useState<LearningMetric[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
@@ -309,10 +311,10 @@ export default function SmartLearningDashboard() {
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { icon: BookOpen, label: "Start Learning", color: "blue" },
-              { icon: Users, label: "Join Study Group", color: "green" },
-              { icon: Brain, label: "Take Quiz", color: "purple" },
-              { icon: Calendar, label: "Schedule Session", color: "orange" }
+              { icon: BookOpen, label: "Start Learning", color: "blue", path: "/learning-paths" },
+              { icon: Users, label: "Join Study Group", color: "green", path: "/groups" },
+              { icon: Brain, label: "Take Quiz", color: "purple", path: "/study-buddy" },
+              { icon: Calendar, label: "Schedule Session", color: "orange", path: "/scheduler" }
             ].map((action, index) => {
               const IconComponent = action.icon;
               return (
@@ -321,7 +323,8 @@ export default function SmartLearningDashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className={`flex flex-col items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-${action.color}-200 hover:bg-${action.color}-50 transition-colors group`}
+                  onClick={() => router.push(action.path)}
+                  className={`flex flex-col items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-${action.color}-200 hover:bg-${action.color}-50 transition-colors group cursor-pointer`}
                 >
                   <div className={`p-3 bg-${action.color}-100 text-${action.color}-600 rounded-lg group-hover:bg-${action.color}-200 transition-colors`}>
                     <IconComponent className="w-6 h-6" />

@@ -83,54 +83,139 @@ export default function AdvancedCodeEditor() {
     const sampleFiles: CodeFile[] = [
       {
         id: "1",
-        name: "App.tsx",
-        language: "typescript",
-        content: `import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-
-function App() {
-  const [count, setCount] = useState(0);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="app"
-    >
-      <h1>Welcome to PathWise</h1>
-      <button onClick={() => setCount(count + 1)}>
-        Count: {count}
-      </button>
-    </motion.div>
-  );
-}
-
-export default App;`,
+        name: "Main.java",
+        language: "java",
+        content: `public class Main {
+    public static void main(String[] args) {
+        System.out.println("Welcome to PathWise!");
+        
+        // Example: Array operations
+        int[] numbers = {1, 2, 3, 4, 5};
+        int sum = 0;
+        
+        for (int num : numbers) {
+            sum += num;
+        }
+        
+        System.out.println("Sum: " + sum);
+    }
+}`,
         lastModified: new Date(),
-        isUnsaved: true
+        isUnsaved: false
       },
       {
-        id: "2", 
-        name: "utils.ts",
-        language: "typescript",
-        content: `export const formatDate = (date: Date): string => {
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
+        id: "2",
+        name: "app.py",
+        language: "python",
+        content: `def main():
+    """PathWise Python Example"""
+    print("Welcome to PathWise!")
+    
+    # Example: List comprehension
+    numbers = [1, 2, 3, 4, 5]
+    squared = [n**2 for n in numbers]
+    
+    print(f"Squared numbers: {squared}")
+    
+    # Example: Dictionary operations
+    student = {
+        "name": "Alex",
+        "grade": "A",
+        "courses": ["Python", "JavaScript", "C++"]
+    }
+    
+    print(f"Student: {student['name']}")
 
-export const debounce = <T extends (...args: any[]) => any>(
-  func: T,
-  delay: number
-): ((...args: Parameters<T>) => void) => {
-  let timeoutId: NodeJS.Timeout;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func(...args), delay);
-  };
-};`,
+if __name__ == "__main__":
+    main()`,
+        lastModified: new Date(Date.now() - 100000),
+        isUnsaved: false
+      },
+      {
+        id: "3",
+        name: "main.cpp",
+        language: "cpp",
+        content: `#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+int main() {
+    cout << "Welcome to PathWise!" << endl;
+    
+    // Example: Vector operations
+    vector<int> numbers = {1, 2, 3, 4, 5};
+    int sum = 0;
+    
+    for (int num : numbers) {
+        sum += num;
+    }
+    
+    cout << "Sum: " << sum << endl;
+    
+    return 0;
+}`,
+        lastModified: new Date(Date.now() - 200000),
+        isUnsaved: false
+      },
+      {
+        id: "4",
+        name: "Program.cs",
+        language: "csharp",
+        content: `using System;
+using System.Linq;
+using System.Collections.Generic;
+
+namespace PathWise
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Welcome to PathWise!");
+            
+            // Example: LINQ operations
+            var numbers = new List<int> { 1, 2, 3, 4, 5 };
+            var sum = numbers.Sum();
+            var squared = numbers.Select(n => n * n).ToList();
+            
+            Console.WriteLine($"Sum: {sum}");
+            Console.WriteLine($"Squared: {string.Join(", ", squared)}");
+        }
+    }
+}`,
+        lastModified: new Date(Date.now() - 250000),
+        isUnsaved: false
+      },
+      {
+        id: "5",
+        name: "app.js",
+        language: "javascript",
+        content: `// PathWise JavaScript Example
+console.log("Welcome to PathWise!");
+
+// Example: Array methods
+const numbers = [1, 2, 3, 4, 5];
+const sum = numbers.reduce((acc, num) => acc + num, 0);
+const squared = numbers.map(n => n ** 2);
+
+console.log("Sum:", sum);
+console.log("Squared:", squared);
+
+// Example: Async/await
+async function fetchData() {
+    try {
+        const response = await fetch('https://api.example.com/data');
+        const data = await response.json();
+        console.log(data);
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+}
+
+// Export for use in other modules
+export { fetchData };`,
         lastModified: new Date(Date.now() - 300000),
         isUnsaved: false
       }

@@ -71,7 +71,7 @@ export default function RoadmapDetailPage() {
       if (!accessToken || !params.id) return;
 
       try {
-        const response = await fetch(getApiUrl(`/api/v1/roadmap/${params.id}`), {
+        const response = await fetch(getApiUrl(`/api/v1/roadmaps/${params.id}`), {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -136,7 +136,7 @@ export default function RoadmapDetailPage() {
 
     // Update on server with correct endpoint and data format
     try {
-      const response = await fetch(getApiUrl("/api/v1/roadmap/progress"), {
+      const response = await fetch(getApiUrl("/api/v1/roadmaps/progress"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -90,41 +90,55 @@ export default function CareerDashboard() {
 
       if (roadmapsResponse.ok) {
         const roadmapsData = await roadmapsResponse.json();
+        console.log("📊 Dashboard roadmaps data:", roadmapsData);
         const activeRoadmap = roadmapsData.data?.[0]; // Get primary roadmap
         
         if (activeRoadmap) {
+          console.log("✅ Active roadmap found:", activeRoadmap.job_title);
           setTargetRole(activeRoadmap.job_title);
           
-          // Find today's mission from roadmap tasks
-          const allTasks = activeRoadmap.phases?.flatMap((phase: any) => 
-            phase.tasks?.map((task: any) => ({
-              ...task,
-              phaseTitle: phase.title,
+          // Find today's mission from roadmap skills
+          const allSkills = activeRoadmap.phases?.flatMap((phase: any) => 
+            phase.skills?.map((skill: any) => ({
+              id: skill.id,
+              name: skill.name,
+              description: skill.description,
+              status: skill.progress?.status || skill.status || "not_started",
+              phaseTitle: phase.title || phase.name,
               roadmapId: activeRoadmap.id,
+              difficulty: skill.difficulty,
+              estimated_hours: skill.estimated_hours,
+              resources: skill.resources,
             })) || []
           ) || [];
 
-          // Get first incomplete task
-          const nextTask = allTasks.find((task: any) => task.status !== "completed");
+          console.log("🎯 All skills:", allSkills.length);
+
+          // Get first incomplete skill
+          const nextSkill = allSkills.find((skill: any) => skill.status !== "completed");
           
-          if (nextTask) {
+          if (nextSkill) {
+            console.log("✅ Next skill for today's mission:", nextSkill.name);
             setTodaysMission({
-              id: nextTask.id,
-              title: nextTask.title,
-              description: nextTask.description || `Complete ${nextTask.title} in ${nextTask.phaseTitle}`,
+              id: nextSkill.id,
+              title: nextSkill.name,
+              description: nextSkill.description || `Master ${nextSkill.name} in ${nextSkill.phaseTitle}`,
               whyItMatters: `This skill appears in ${Math.floor(Math.random() * 30 + 60)}% of job postings for ${activeRoadmap.job_title}`,
-              estimatedMinutes: nextTask.estimated_time || 60,
+              estimatedMinutes: (nextSkill.estimated_hours || 1) * 60,
               type: "learn",
-              roadmapId: nextTask.roadmapId,
-              taskId: nextTask.id,
-              difficulty: nextTask.difficulty || "medium",
+              roadmapId: nextSkill.roadmapId,
+              taskId: nextSkill.id,
+              difficulty: nextSkill.difficulty || "medium",
             });
+          } else {
+            console.log("⚠️ No incomplete skills found");
           }
 
           // Calculate readiness score
-          const completedTasks = allTasks.filter((t: any) => t.status === "completed").length;
-          const totalTasks = allTasks.length;
-          const overallScore = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+          const completedSkills = allSkills.filter((s: any) => s.status === "completed").length;
+          const totalSkills = allSkills.length;
+          const overallScore = totalSkills > 0 ? Math.round((completedSkills / totalSkills) * 100) : 0;
+          console.log("📈 Progress:", completedSkills, "/", totalSkills, "=", overallScore + "%");
 
           setReadinessScore({
             overall: overallScore,
@@ -132,7 +146,7 @@ export default function CareerDashboard() {
             projects: Math.max(overallScore - 10, 0),
             interview: Math.max(overallScore - 15, 0),
             lastUpdated: new Date(),
-            trend: completedTasks > 0 ? "up" : "stable",
+            trend: completedSkills > 0 ? "up" : "stable",
           });
         }
       }

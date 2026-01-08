@@ -66,23 +66,31 @@ Output your response as valid JSON with this structure:
   ]
 }
 
-CRITICAL RESOURCE URL GUIDELINES:
-- For video resources, ONLY use verified YouTube channels and playlists
-- Valid YouTube formats: https://www.youtube.com/watch?v=VIDEO_ID or https://www.youtube.com/playlist?list=PLAYLIST_ID
-- For courses, use: Udemy, Coursera, edX, freeCodeCamp, The Odin Project
-- For documentation, use official docs: MDN, Python.org, React.dev, etc.
-- For articles, use: Medium, Dev.to, official blogs
-- NEVER use placeholder URLs or broken links
-- Prefer well-known, high-quality free resources
+CRITICAL RESOURCE URL GUIDELINES - FOLLOW EXACTLY:
+✅ HIGH-QUALITY FREE RESOURCES ONLY:
+- YouTube: Use specific VIDEO IDs or PLAYLIST IDs from verified channels
+  * Web Dev: Traversy Media, freeCodeCamp, Net Ninja, Web Dev Simplified
+  * Python: Corey Schafer, Tech With Tim, mCoding
+  * Data Science: StatQuest, Krish Naik, freeCodeCamp
+  * DevOps: TechWorld with Nana, NetworkChuck, KodeKloud
+- Official Documentation: MDN, Python.org, React.dev, FastAPI.tiangolo.com, etc.
+- Free Platforms: freeCodeCamp.org, The Odin Project, Scrimba, W3Schools
+- Quality Blogs: Real Python, CSS-Tricks, Smashing Magazine
+- Interactive: Codecademy, Khan Academy, LeetCode, HackerRank
 
-Recommended Resources by Category:
-- Web Development: freeCodeCamp, MDN Web Docs, The Odin Project
-- Python: Python.org docs, Real Python, Corey Schafer YouTube
-- JavaScript: javascript.info, MDN, Traversy Media YouTube
-- React: React.dev, Net Ninja YouTube, Scrimba
-- Backend: FastAPI docs, Django docs, Node.js docs
-- DevOps: TechWorld with Nana YouTube, Docker docs, Kubernetes docs
-- Data Science: Kaggle, DataCamp, StatQuest YouTube
+❌ NEVER USE:
+- Broken or placeholder URLs
+- Generic course marketplace URLs without specific course IDs
+- Paid-only content unless it's highly rated
+- Outdated resources (pre-2020 unless it's timeless content)
+- Low-quality tutorial sites
+
+RESOURCE QUALITY REQUIREMENTS:
+- quality_score must be 0.7-1.0 for all resources
+- Each resource MUST have a specific, working URL
+- Prefer beginner-friendly resources for beginner skills
+- Include mix of video, documentation, and interactive resources
+- Duration estimates must be realistic
 
 Guidelines:
 - Create 3-5 phases, progressing from foundational to advanced
@@ -100,17 +108,22 @@ async def generate_roadmap(
 ) -> dict:
     """Generate a learning roadmap using GPT-4."""
     
-    user_prompt = f"""Create a detailed learning roadmap for this job:
+    print(f"🎯 Generating roadmap for: {job_description[:100]}...")
+    print(f"📊 Skill level: {skill_level}, Industry: {industry}")
+    
+    user_prompt = f"""Create a detailed learning roadmap for this job/career goal:
 
-Job Description:
+Description:
 {job_description}
 
 User's Current Skill Level: {skill_level}
 {f"Industry: {industry}" if industry else ""}
 
-Generate a comprehensive roadmap with phases, skills, resources, and projects."""
+IMPORTANT: Even if the description is brief, infer the role and create a comprehensive roadmap.
+Generate a complete learning path with phases, skills, high-quality resources (with real URLs), and projects."""
 
     try:
+        print("🤖 Calling OpenAI API...")
         response = await client.chat.completions.create(
             model=settings.OPENAI_MODEL,
             messages=[
@@ -122,7 +135,9 @@ Generate a comprehensive roadmap with phases, skills, resources, and projects.""
             response_format={"type": "json_object"}
         )
         
+        print("✅ OpenAI response received")
         result = json.loads(response.choices[0].message.content)
+        print(f"📦 Roadmap generated: {result.get('job_title', 'Unknown')} with {len(result.get('phases', []))} phases")
         
         # Ensure all IDs are present
         for phase in result.get("phases", []):

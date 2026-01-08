@@ -80,12 +80,12 @@ export default function NewRoadmapPage() {
 
   const handleGenerate = async () => {
     if (!jobDescription.trim()) {
-      setError("Please paste a job description");
+      setError("Please enter a job description or career goal");
       return;
     }
 
-    if (jobDescription.length < 100) {
-      setError("Job description seems too short. Please paste the full description.");
+    if (jobDescription.length < 20) {
+      setError("Please provide more details about the role or skills you want to learn (at least 20 characters).");
       return;
     }
 

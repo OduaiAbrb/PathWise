@@ -1,17 +1,11 @@
 import json
 import uuid
 from typing import Optional, List
-from dotenv import load_dotenv
+from openai import AsyncOpenAI
 
-# Load environment variables
-load_dotenv()
-
-from emergentintegrations.llm.chat import LlmChat, UserMessage
 from app.core.config import settings
 
-# Use Emergent LLM key if available, fall back to OpenAI
-API_KEY = settings.EMERGENT_LLM_KEY or settings.OPENAI_API_KEY
-MODEL_NAME = "gpt-4o"  # Using gpt-4o via Emergent
+client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
 
 ROADMAP_SYSTEM_PROMPT = """You are an expert career advisor and learning path designer. Your task is to analyze job descriptions and create comprehensive, personalized learning roadmaps.
@@ -155,27 +149,20 @@ Generate a complete learning path with phases, skills, high-quality resources (w
 Output as valid JSON."""
 
     try:
-        print(f"🤖 Calling Emergent LLM API with key: {API_KEY[:20]}...")
+        print("🤖 Calling OpenAI API...")
+        response = await client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": ROADMAP_SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.7,
+            max_tokens=4000,
+            response_format={"type": "json_object"}
+        )
         
-        chat = LlmChat(
-            api_key=API_KEY,
-            session_id=f"roadmap-{uuid.uuid4()}",
-            system_message=ROADMAP_SYSTEM_PROMPT
-        ).with_model("openai", MODEL_NAME)
-        
-        user_message = UserMessage(text=user_prompt)
-        response_text = await chat.send_message(user_message)
-        
-        print("✅ LLM response received")
-        
-        # Parse JSON from response
-        # Handle case where response might have markdown code blocks
-        if "```json" in response_text:
-            response_text = response_text.split("```json")[1].split("```")[0]
-        elif "```" in response_text:
-            response_text = response_text.split("```")[1].split("```")[0]
-            
-        result = json.loads(response_text.strip())
+        print("✅ OpenAI response received")
+        result = json.loads(response.choices[0].message.content)
         print(f"📦 Roadmap generated: {result.get('job_title', 'Unknown')} with {len(result.get('phases', []))} phases")
         
         # Ensure all IDs are present
@@ -246,20 +233,23 @@ User's Current Roadmap Context:
 - Current Phase: {roadmap_context.get('current_phase', 'Not started')}"""
     
     try:
-        chat = LlmChat(
-            api_key=API_KEY,
-            session_id=f"chat-{uuid.uuid4()}",
-            system_message=system_msg
-        ).with_model("openai", MODEL_NAME)
+        messages = [{"role": "system", "content": system_msg}]
         
-        # Add conversation history as messages
+        # Add conversation history
         for msg in conversation_history[-10:]:
-            chat.messages.append({"role": msg["role"], "content": msg["content"]})
+            messages.append({"role": msg["role"], "content": msg["content"]})
         
-        user_message = UserMessage(text=message)
-        response = await chat.send_message(user_message)
+        # Add current message
+        messages.append({"role": "user", "content": message})
         
-        return response
+        response = await client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=messages,
+            temperature=0.7,
+            max_tokens=1000,
+        )
+        
+        return response.choices[0].message.content
         
     except Exception as e:
         print(f"AI chat error: {e}")
@@ -289,7 +279,7 @@ async def analyze_resume(
     resume_text: str,
     target_role: Optional[str] = None
 ) -> dict:
-    """Analyze a resume using Emergent LLM."""
+    """Analyze a resume using OpenAI."""
     
     user_prompt = f"""Analyze this resume:
 
@@ -298,22 +288,18 @@ async def analyze_resume(
 {f"Target Role: {target_role}" if target_role else ""}"""
 
     try:
-        chat = LlmChat(
-            api_key=API_KEY,
-            session_id=f"resume-{uuid.uuid4()}",
-            system_message=RESUME_ANALYSIS_PROMPT
-        ).with_model("openai", MODEL_NAME)
+        response = await client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": RESUME_ANALYSIS_PROMPT},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.5,
+            max_tokens=2000,
+            response_format={"type": "json_object"}
+        )
         
-        user_message = UserMessage(text=user_prompt)
-        response_text = await chat.send_message(user_message)
-        
-        # Parse JSON from response
-        if "```json" in response_text:
-            response_text = response_text.split("```json")[1].split("```")[0]
-        elif "```" in response_text:
-            response_text = response_text.split("```")[1].split("```")[0]
-            
-        return json.loads(response_text.strip())
+        return json.loads(response.choices[0].message.content)
         
     except Exception as e:
         print(f"Resume analysis error: {e}")

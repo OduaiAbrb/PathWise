@@ -196,10 +196,8 @@ Provide:
         user_message = UserMessage(text=prompt)
         response = await chat.send_message(user_message)
         
-        content = response.choices[0].message.content
-        
         return {
-            "explanation": content,
+            "explanation": response,
             "language": language,
         }
         
@@ -223,22 +221,28 @@ Format as JSON:
       "explanation": "Why this is correct"
     }}
   ]
-}}"""
+}}
+
+Output ONLY valid JSON, nothing else."""
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": "You are a quiz generator. Output valid JSON only."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=2000,
-            response_format={"type": "json_object"}
-        )
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"quiz-{uuid.uuid4()}",
+            system_message="You are a quiz generator. Output valid JSON only."
+        ).with_model("openai", MODEL_NAME)
+        
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
         
         import json
-        return json.loads(response.choices[0].message.content)
+        # Parse JSON from response
+        if "```json" in response:
+            response = response.split("```json")[1].split("```")[0]
+        elif "```" in response:
+            response = response.split("```")[1].split("```")[0]
+            
+        return json.loads(response.strip())
         
     except Exception as e:
         print(f"Quiz generation error: {e}")
@@ -272,12 +276,17 @@ Provide:
 4. Specific suggestions
 5. Next steps
 
-Format as JSON."""
+Format as JSON only."""
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"review-{uuid.uuid4()}",
+            system_message=STUDY_BUDDY_SYSTEM_PROMPT
+        ).with_model("openai", MODEL_NAME)
+        
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
                 {"role": "system", "content": STUDY_BUDDY_SYSTEM_PROMPT},
                 {"role": "user", "content": prompt}
             ],

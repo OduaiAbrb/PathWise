@@ -1,0 +1,18 @@
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.production.environment]
+  NEXT_PUBLIC_API_URL = "https://pathwise-api.railway.app"
+  
+[context.deploy-preview.environment]
+  NEXT_PUBLIC_API_URL = "https://pathwise-api-staging.railway.app"

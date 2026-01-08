@@ -21,7 +21,7 @@ import {
   CheckCircle,
   Camera,
   Mic,
-  Screen,
+  ScreenShare,
   Settings,
   Bell,
   Filter

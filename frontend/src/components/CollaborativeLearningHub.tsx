@@ -24,7 +24,7 @@ import {
   Settings,
   Camera,
   Mic,
-  Screen,
+  ScreenShare,
   FileText,
   Download,
   Upload,

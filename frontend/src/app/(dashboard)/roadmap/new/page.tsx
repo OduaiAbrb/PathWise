@@ -1,148 +1,74 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
+import { getApiUrl } from "@/lib/fetch-api";
 import {
   Sparkles,
   ArrowRight,
   Target,
   Clock,
+  CheckCircle2,
+  Zap,
+  AlertTriangle,
+  Flame,
   BookOpen,
-  ChevronDown,
-  AlertCircle,
+  Code,
+  Brain,
 } from "lucide-react";
-import { getApiUrl } from "@/lib/fetch-api";
 
-const skillLevels = [
-  { id: "beginner", label: "Beginner", description: "New to this field" },
-  { id: "intermediate", label: "Intermediate", description: "Some experience" },
-  { id: "advanced", label: "Advanced", description: "Looking to specialize" },
-];
+/**
+ * Roadmap Generation Page
+ * 
+ * ADAPTIVE ROADMAP SYSTEM:
+ * - personalized
+ * - non-static
+ * - interview-oriented
+ * - adaptive over time
+ * 
+ * Each skill explains:
+ * - why this skill matters
+ * - why this order exists
+ * - what happens if skipped
+ */
 
-const industries = [
-  "Technology",
-  "Finance",
-  "Healthcare",
-  "E-commerce",
-  "Education",
-  "Gaming",
-  "Media",
-  "Other",
-];
-
-export default function NewRoadmapPage() {
+function RoadmapNewContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const accessToken = (session as { accessToken?: string })?.accessToken;
 
-  const [jobDescription, setJobDescription] = useState("");
-  const [skillLevel, setSkillLevel] = useState("intermediate");
-  const [industry, setIndustry] = useState("Technology");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generationStep, setGenerationStep] = useState(0);
-  const [error, setError] = useState("");
-  const [extractedSkills, setExtractedSkills] = useState<string[]>([]);
-  const [selectedCareerPath, setSelectedCareerPath] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [jobDescription, setJobDescription] = useState("");
+  const [targetRole, setTargetRole] = useState("");
+  const [experienceLevel, setExperienceLevel] = useState("beginner");
 
-  const generationSteps = [
-    "Analyzing job description...",
-    "Extracting required skills...",
-    "Building curriculum...",
-    "Finding best resources...",
-    "Finalizing your roadmap...",
-  ];
+  // Load saved data from onboarding
+  useEffect(() => {
+    const savedRole = localStorage.getItem("pathwise_target_role");
+    const savedJD = localStorage.getItem("pathwise_jd");
+    const savedExp = localStorage.getItem("pathwise_experience");
 
-  // Check for pending JD from landing page or career discovery
-  useState(() => {
-    const pending = localStorage.getItem("pendingJobDescription");
-    if (pending) {
-      setJobDescription(pending);
-      localStorage.removeItem("pendingJobDescription");
+    if (savedRole) setTargetRole(savedRole);
+    if (savedJD) setJobDescription(savedJD);
+    if (savedExp) setExperienceLevel(savedExp);
+
+    // If coming from onboarding with data, auto-generate
+    if (savedRole && !savedJD) {
+      setJobDescription(`I want to become a ${savedRole}. Create a comprehensive learning roadmap for this role.`);
     }
-    
-    const careerPath = localStorage.getItem("selectedCareerPath");
-    if (careerPath) {
-      try {
-        const path = JSON.parse(careerPath);
-        setSelectedCareerPath(path);
-        // Pre-fill with career path info
-        const jd = `Looking for a ${path.title}\n\nRequired Skills:\n${path.skills.join(", ")}\n\nThis role involves ${path.description}`;
-        setJobDescription(jd);
-        handleJobDescriptionChange(jd);
-        localStorage.removeItem("selectedCareerPath");
-      } catch (e) {
-        console.error("Failed to parse career path");
-      }
-    }
-  });
+  }, []);
 
-  const handleGenerate = async () => {
-    if (!jobDescription.trim()) {
-      setError("Please enter a job description or career goal");
-      return;
-    }
+  const generateRoadmap = async () => {
+    if (!accessToken || (!jobDescription && !targetRole)) return;
 
-    if (jobDescription.length < 20) {
-      setError("Please provide more details about the role or skills you want to learn (at least 20 characters).");
-      return;
-    }
-
-    // Better session validation
-    if (status === "loading") {
-      setError("Loading session... please wait a moment and try again.");
-      return;
-    }
-
-    if (status === "unauthenticated" || !session || !accessToken) {
-      setError("Authentication required. Please refresh the page and sign in again.");
-      return;
-    }
-
-    setError("");
     setIsGenerating(true);
-    setGenerationStep(0);
-
-    // Progress through steps with timeout protection
-    const stepInterval = setInterval(() => {
-      setGenerationStep((prev) => {
-        if (prev < generationSteps.length - 1) return prev + 1;
-        return prev;
-      });
-    }, 1500);
-
-    // Add timeout protection (30 seconds max)
-    const timeoutId = setTimeout(() => {
-      clearInterval(stepInterval);
-      setIsGenerating(false);
-      setGenerationStep(0);
-      setError("Roadmap generation timed out. Please try again with a shorter job description.");
-    }, 30000);
+    setError(null);
 
     try {
-      // Debug logging
-      console.log("🚀 Starting roadmap generation...");
-      console.log("📍 Session status:", status);
-      console.log("🔑 Token present:", !!accessToken);
-      console.log("📝 Payload:", { job_description: jobDescription.substring(0, 50) + "...", skill_level: skillLevel, industry });
-
-      // Test token first
-      console.log("🧪 Testing token validity...");
-      const tokenTest = await fetch(getApiUrl("/api/v1/auth/verify-token"), {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      console.log("🧪 Token test response:", tokenTest.status);
-      if (!tokenTest.ok) {
-        const errorData = await tokenTest.json().catch(() => ({}));
-        console.error("❌ Token test failed:", errorData);
-        setError("Authentication token is invalid. Please sign out and sign in again.");
-        return;
-      }
-      console.log("✅ Token is valid, proceeding with roadmap generation...");
-
       const response = await fetch(getApiUrl("/api/v1/roadmaps/generate"), {
         method: "POST",
         headers: {
@@ -150,225 +76,210 @@ export default function NewRoadmapPage() {
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          job_description: jobDescription,
-          skill_level: skillLevel,
-          industry: industry,
+          job_description: jobDescription || `I want to become a ${targetRole}`,
+          skill_level: experienceLevel,
+          industry: "technology",
         }),
       });
 
-      console.log("✅ Response status:", response.status);
-
-      clearTimeout(timeoutId); // Clear timeout on response
-
-      if (response.ok) {
-        const data = await response.json();
-        router.push(`/roadmap/${data.data?.id || data.id}`);
-      } else if (response.status === 401 || response.status === 403) {
-        // Try to get error details for better messaging
-        const errorData = await response.json().catch(() => ({}));
-        const errorMsg = errorData.detail || "Session expired. Please refresh the page and sign in again.";
-        console.error("❌ Auth error:", errorMsg);
-        setError(errorMsg);
-      } else if (response.status === 429) {
-        const errorData = await response.json().catch(() => ({}));
-        setError(errorData.detail || "Roadmap limit reached. Delete old roadmaps or upgrade to Pro.");
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        setError(errorData.detail || errorData.message || `Server error (${response.status}). Please try again.`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to generate roadmap");
       }
-    } catch (err) {
-      clearTimeout(timeoutId);
-      console.error("Roadmap generation error:", err);
+
+      const data = await response.json();
       
-      if (err instanceof TypeError && err.message.includes('fetch')) {
-        setError("Network error. Please check your connection and try again.");
-      } else {
-        setError("Something went wrong. Please try again.");
-      }
-    } finally {
-      clearInterval(stepInterval);
+      // Clear localStorage
+      localStorage.removeItem("pathwise_target_role");
+      localStorage.removeItem("pathwise_jd");
+      localStorage.removeItem("pathwise_experience");
+
+      // Redirect to the roadmap view
+      router.push(`/roadmap/${data.data.id}`);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
       setIsGenerating(false);
-      setGenerationStep(0);
     }
   };
 
-  // Simulate skill extraction as user types
-  const handleJobDescriptionChange = (value: string) => {
-    setJobDescription(value);
-    setError("");
-
-    if (value.length > 200) {
-      // Simple keyword extraction for preview
-      const keywords = [
-        "Python", "JavaScript", "TypeScript", "React", "Node.js", "SQL",
-        "AWS", "Docker", "Kubernetes", "REST", "GraphQL", "Git",
-        "PostgreSQL", "MongoDB", "Redis", "CI/CD", "Agile", "Scrum"
-      ];
-      const found = keywords.filter(k => 
-        value.toLowerCase().includes(k.toLowerCase())
-      );
-      setExtractedSkills(found.slice(0, 8));
-    } else {
-      setExtractedSkills([]);
+  // Auto-generate if coming from onboarding with data
+  useEffect(() => {
+    const savedRole = localStorage.getItem("pathwise_target_role");
+    if (savedRole && accessToken && status === "authenticated") {
+      // Slight delay to ensure session is ready
+      const timer = setTimeout(() => {
+        if (!isGenerating) {
+          generateRoadmap();
+        }
+      }, 1000);
+      return () => clearTimeout(timer);
     }
-  };
+  }, [accessToken, status]);
+
+  if (status === "loading" || isGenerating) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center"
+        >
+          <div className="relative">
+            <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto" />
+            <Sparkles className="w-8 h-8 text-blue-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mt-6 mb-2">
+            Building Your Roadmap
+          </h2>
+          <p className="text-slate-600 max-w-md mx-auto">
+            Our AI is analyzing {targetRole || "your role"}, extracting skills ranked by interview frequency, and creating your personalized path...
+          </p>
+          
+          <div className="mt-8 space-y-3 max-w-sm mx-auto text-left">
+            {[
+              { icon: Target, text: "Identifying critical skills", delay: 0 },
+              { icon: Flame, text: "Ranking by interview frequency", delay: 0.5 },
+              { icon: BookOpen, text: "Curating learning resources", delay: 1 },
+              { icon: Code, text: "Designing portfolio projects", delay: 1.5 },
+            ].map((item, i) => (
+              <motion.div
+                key={item.text}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: item.delay }}
+                className="flex items-center gap-3 text-slate-700"
+              >
+                <item.icon className="w-5 h-5 text-blue-600" />
+                <span>{item.text}</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-2xl mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
       >
-        <h1 className="heading-2 mb-2">Create Your Learning Roadmap</h1>
-        <p className="body-large">
-          Paste a job description and we'll create a personalized learning path.
-        </p>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="card"
-      >
-        {/* Job Description Input */}
-        <div className="mb-6">
-          <label className="label">Job Description</label>
-          <textarea
-            value={jobDescription}
-            onChange={(e) => handleJobDescriptionChange(e.target.value)}
-            placeholder="Paste the full job description here. Include requirements, responsibilities, and qualifications for best results..."
-            rows={8}
-            className="input resize-none"
-          />
-          <p className="text-sm text-neutral-500 mt-2">
-            {jobDescription.length} characters
-            {jobDescription.length < 100 && jobDescription.length > 0 && (
-              <span className="text-amber-600"> • Add more details for better results</span>
-            )}
+        <div className="text-center mb-8">
+          <Sparkles className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">
+            Create Your Roadmap
+          </h1>
+          <p className="text-slate-600">
+            Paste a job description or describe your target role. We'll create a personalized, interview-focused learning path.
           </p>
         </div>
 
-        {/* Extracted Skills Preview */}
-        {extractedSkills.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            className="mb-6 p-4 bg-neutral-50 rounded-xl"
-          >
-            <p className="text-sm font-medium text-neutral-700 mb-3">
-              Skills detected:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {extractedSkills.map((skill) => (
-                <span key={skill} className="badge-primary">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Skill Level */}
-        <div className="mb-6">
-          <label className="label">Your Current Level</label>
-          <div className="grid grid-cols-3 gap-3">
-            {skillLevels.map((level) => (
-              <button
-                key={level.id}
-                onClick={() => setSkillLevel(level.id)}
-                className={`p-4 rounded-xl border-2 text-left transition-all ${
-                  skillLevel === level.id
-                    ? "border-neutral-900 bg-neutral-50"
-                    : "border-neutral-200 hover:border-neutral-300"
-                }`}
-              >
-                <p className="font-medium text-neutral-900">{level.label}</p>
-                <p className="text-sm text-neutral-500">{level.description}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Industry */}
-        <div className="mb-6">
-          <label className="label">Target Industry</label>
-          <div className="relative">
-            <select
-              value={industry}
-              onChange={(e) => setIndustry(e.target.value)}
-              className="input appearance-none pr-10"
-            >
-              {industries.map((ind) => (
-                <option key={ind} value={ind}>{ind}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 pointer-events-none" />
-          </div>
-        </div>
-
-        {/* Error */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3"
-          >
-            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-            <p className="text-sm text-red-700">{error}</p>
-          </motion.div>
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-red-800">Generation Failed</p>
+              <p className="text-sm text-red-700 mt-1">{error}</p>
+            </div>
+          </div>
         )}
 
-        {/* Generate Button */}
-        <button
-          onClick={handleGenerate}
-          disabled={isGenerating || !jobDescription.trim() || status === "loading"}
-          className="btn-primary w-full justify-center"
-        >
-          {status === "loading" ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Loading session...
-            </>
-          ) : isGenerating ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              {generationSteps[generationStep]}
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-5 h-5" />
-              Generate Roadmap
-            </>
-          )}
-        </button>
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6">
+          {/* Target Role */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Target Role
+            </label>
+            <input
+              type="text"
+              value={targetRole}
+              onChange={(e) => setTargetRole(e.target.value)}
+              placeholder="e.g., Backend Engineer, Data Scientist, DevOps Engineer"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-0"
+            />
+          </div>
 
-        {/* What You'll Get */}
-        <div className="mt-8 pt-6 border-t border-neutral-200">
-          <p className="text-sm font-medium text-neutral-700 mb-4">What you'll get:</p>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="w-10 h-10 bg-neutral-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <Target className="w-5 h-5 text-neutral-600" />
-              </div>
-              <p className="text-sm text-neutral-600">Skill-by-skill breakdown</p>
+          {/* Job Description */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Job Description (Optional - for more precise roadmap)
+            </label>
+            <textarea
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              placeholder="Paste a real job posting to get skills ranked by interview frequency..."
+              className="w-full h-40 px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-0 resize-none"
+            />
+          </div>
+
+          {/* Experience Level */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Your Experience Level
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { id: "beginner", label: "Beginner" },
+                { id: "some", label: "Some Experience" },
+                { id: "intermediate", label: "Intermediate" },
+              ].map((level) => (
+                <button
+                  key={level.id}
+                  onClick={() => setExperienceLevel(level.id)}
+                  className={`py-3 px-4 rounded-xl border-2 text-sm font-medium transition-all ${
+                    experienceLevel === level.id
+                      ? "border-blue-500 bg-blue-50 text-blue-700"
+                      : "border-slate-200 hover:border-slate-300 text-slate-700"
+                  }`}
+                >
+                  {level.label}
+                </button>
+              ))}
             </div>
-            <div className="text-center">
-              <div className="w-10 h-10 bg-neutral-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <BookOpen className="w-5 h-5 text-neutral-600" />
+          </div>
+
+          {/* Generate Button */}
+          <button
+            onClick={generateRoadmap}
+            disabled={!targetRole && !jobDescription}
+            className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl font-semibold text-lg transition-colors flex items-center justify-center gap-2"
+          >
+            <Sparkles className="w-5 h-5" />
+            Generate My Roadmap
+          </button>
+        </div>
+
+        {/* What to expect */}
+        <div className="mt-8 p-6 bg-slate-50 rounded-2xl">
+          <h3 className="font-semibold text-slate-900 mb-4">What you'll get:</h3>
+          <div className="space-y-3">
+            {[
+              { icon: Target, text: "Skills ranked by interview frequency and job demand" },
+              { icon: Zap, text: "Clear explanation of why each skill matters" },
+              { icon: Clock, text: "Realistic time estimates for each phase" },
+              { icon: AlertTriangle, text: "Honest feedback on what happens if you skip skills" },
+            ].map((item) => (
+              <div key={item.text} className="flex items-center gap-3 text-slate-700">
+                <item.icon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                <span>{item.text}</span>
               </div>
-              <p className="text-sm text-neutral-600">Curated resources</p>
-            </div>
-            <div className="text-center">
-              <div className="w-10 h-10 bg-neutral-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <Clock className="w-5 h-5 text-neutral-600" />
-              </div>
-              <p className="text-sm text-neutral-600">Time estimates</p>
-            </div>
+            ))}
           </div>
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function RoadmapNewPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <RoadmapNewContent />
+    </Suspense>
   );
 }

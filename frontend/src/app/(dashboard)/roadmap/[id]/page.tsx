@@ -349,6 +349,24 @@ export default function RoadmapDetailPage() {
                               </div>
                               <p className="text-sm text-neutral-600 mb-3">{skill.description}</p>
                               
+                              {/* Why this matters */}
+                              {skill.importance === "critical" && (
+                                <div className="mb-3 p-3 bg-red-50 border-l-4 border-red-500 rounded">
+                                  <p className="text-xs font-semibold text-red-900 mb-1">🎯 Why this matters:</p>
+                                  <p className="text-xs text-red-800">
+                                    Appears in <strong>75-90%</strong> of {roadmap.job_title} interviews. Employers expect mastery.
+                                  </p>
+                                </div>
+                              )}
+                              {skill.importance === "important" && (
+                                <div className="mb-3 p-3 bg-amber-50 border-l-4 border-amber-500 rounded">
+                                  <p className="text-xs font-semibold text-amber-900 mb-1">🎯 Why this matters:</p>
+                                  <p className="text-xs text-amber-800">
+                                    Appears in <strong>50-75%</strong> of {roadmap.job_title} interviews. Strong advantage.
+                                  </p>
+                                </div>
+                              )}
+                              
                               <div className="flex items-center gap-4 text-sm text-neutral-500 mb-3">
                                 <span className="flex items-center gap-1">
                                   <Clock className="w-4 h-4" />

@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-from emergentintegrations.llm.chat import LlmChat, UserMessage, AssistantMessage
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 from app.core.config import settings
 
 # Use Emergent LLM key if available

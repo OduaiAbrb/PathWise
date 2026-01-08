@@ -18,6 +18,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Brain,
 } from "lucide-react";
 import { getApiUrl } from "@/lib/fetch-api";
 
@@ -35,6 +36,8 @@ interface Project {
   readmeTemplate: string;
   resumeBullets: string[];
   learningOutcomes: string[];
+  interviewTalkingPoints?: string[];
+  mockInterviewQuestions?: string[];
 }
 
 export default function ProjectsPage() {
@@ -132,6 +135,19 @@ uvicorn main:app --reload
           "Implement JWT authentication",
           "Design relational database schemas",
           "Write comprehensive API tests",
+        ],
+        interviewTalkingPoints: [
+          "Explain why you chose JWT over session-based auth and the trade-offs",
+          "Walk through your database schema design decisions and normalization",
+          "Describe how you handle error responses and validation consistently",
+          "Discuss how you'd scale this API to handle 10,000+ concurrent users",
+        ],
+        mockInterviewQuestions: [
+          "How did you implement authentication in this project?",
+          "What's the difference between PUT and PATCH, and which did you use?",
+          "How do you prevent SQL injection in your database queries?",
+          "Explain your API versioning strategy",
+          "How would you add rate limiting to this API?",
         ],
       },
       {
@@ -441,9 +457,9 @@ A performant product catalog with search and cart.
       >
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="heading-2 mb-2">Portfolio Projects</h1>
+            <h1 className="heading-2 mb-2">Interview-Grade Projects</h1>
             <p className="body-large">
-              Build projects that showcase your skills to employers
+              Build projects that get you hired. Each includes resume bullets, talking points, and interview prep.
             </p>
           </div>
           <button
@@ -564,7 +580,7 @@ A performant product catalog with search and cart.
                 ) : (
                   <>
                     <ChevronDown className="w-4 h-4" />
-                    View Problem Statement, README & Resume Bullets
+                    View Details, Resume Bullets & Interview Prep
                   </>
                 )}
               </button>
@@ -650,6 +666,48 @@ A performant product catalog with search and cart.
                       {project.readmeTemplate}
                     </pre>
                   </div>
+
+                  {/* Interview Talking Points */}
+                  {(project.interviewTalkingPoints && project.interviewTalkingPoints.length > 0) && (
+                    <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl">
+                      <h4 className="font-medium text-neutral-900 mb-3 flex items-center gap-2">
+                        <Target className="w-5 h-5 text-purple-600" />
+                        Interview Talking Points
+                      </h4>
+                      <ul className="space-y-2">
+                        {project.interviewTalkingPoints.map((point, i) => (
+                          <li key={i} className="text-sm text-neutral-700 flex items-start gap-2">
+                            <span className="text-purple-500 font-bold mt-0.5">{i + 1}.</span>
+                            <span>{point}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="text-xs text-purple-700 mt-3 italic">
+                        Practice explaining these before interviews. Interviewers will ask about your technical decisions.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Mock Interview Questions */}
+                  {(project.mockInterviewQuestions && project.mockInterviewQuestions.length > 0) && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                      <h4 className="font-medium text-neutral-900 mb-3 flex items-center gap-2">
+                        <Brain className="w-5 h-5 text-red-600" />
+                        Mock Interview Questions
+                      </h4>
+                      <ul className="space-y-2">
+                        {project.mockInterviewQuestions.map((question, i) => (
+                          <li key={i} className="text-sm text-neutral-700 flex items-start gap-2">
+                            <span className="text-red-500 font-bold mt-0.5">Q{i + 1}:</span>
+                            <span>{question}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="text-xs text-red-700 mt-3 italic">
+                        Prepare answers for these. They're based on real interview questions for similar projects.
+                      </p>
+                    </div>
+                  )}
                 </motion.div>
               )}
 

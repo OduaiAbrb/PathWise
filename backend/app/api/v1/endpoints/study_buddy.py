@@ -67,16 +67,26 @@ async def chat_endpoint(
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db)
 ):
-    """Chat with AI Study Buddy."""
+    """Chat with Personal AI Mentor (supports interview mode)."""
     try:
-        response = await chat_with_study_buddy(
-            request.message,
-            [{"role": msg.role, "content": msg.content} for msg in request.conversation_history],
-            request.user_context
-        )
+        # Choose handler based on mode
+        if request.mode == "interview":
+            response = await chat_interview_mode(
+                request.message,
+                [{"role": msg.role, "content": msg.content} for msg in request.conversation_history],
+                request.context
+            )
+        else:
+            response = await chat_with_study_buddy(
+                request.message,
+                [{"role": msg.role, "content": msg.content} for msg in request.conversation_history],
+                request.user_context,
+                request.context
+            )
         
         return {
             "success": True,
+            "response": response,
             "data": {
                 "response": response,
                 "timestamp": "now"

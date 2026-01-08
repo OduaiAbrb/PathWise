@@ -1,9 +1,17 @@
 """Personal AI Mentor service (renamed from Study Buddy) for learning assistance and interview preparation."""
 from typing import List, Optional
-from openai import AsyncOpenAI
+import uuid
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+from emergentintegrations.llm.chat import LlmChat, UserMessage, AssistantMessage
 from app.core.config import settings
 
-client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+# Use Emergent LLM key if available
+API_KEY = settings.EMERGENT_LLM_KEY or settings.OPENAI_API_KEY
+MODEL_NAME = "gpt-4o"
 
 # Personal AI Mentor System Prompt (world-class)
 STUDY_BUDDY_SYSTEM_PROMPT = """You are PathWise Personal AI Mentor, the world's most effective career guidance AI. Your role is to:

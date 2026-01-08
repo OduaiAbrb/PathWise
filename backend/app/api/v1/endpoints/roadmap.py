@@ -28,11 +28,14 @@ async def create_roadmap(
     db: AsyncSession = Depends(get_db)
 ):
     """Generate a new learning roadmap from a job description."""
+    print(f"🎯 Roadmap generation started for user: {user_id}")
+    print(f"📝 Request: job_description length={len(request.job_description)}, skill_level={request.skill_level}, industry={request.industry}")
     
     # Convert user_id string to UUID
     try:
         user_uuid = uuid.UUID(user_id)
     except ValueError:
+        print(f"❌ Invalid user ID format: {user_id}")
         raise HTTPException(status_code=400, detail="Invalid user ID format")
     
     # Check user tier for rate limiting

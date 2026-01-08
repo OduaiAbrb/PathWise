@@ -47,7 +47,24 @@ def decode_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return payload
-    except JWTError:
+    except jwt.ExpiredSignatureError:
+        print(f"❌ Token expired")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except jwt.InvalidTokenError as e:
+        print(f"❌ Invalid token error: {str(e)}")
+        print(f"🔑 Token (first 20 chars): {token[:20]}...")
+        print(f"🔐 Using SECRET_KEY (first 10 chars): {settings.SECRET_KEY[:10]}...")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Could not validate credentials: {str(e)}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except JWTError as e:
+        print(f"❌ JWT Error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -60,11 +77,15 @@ async def get_current_user_id(
 ) -> str:
     """Extract user ID from JWT token."""
     token = credentials.credentials
+    print(f"🔍 Received token (first 30 chars): {token[:30]}...")
     payload = decode_token(token)
+    print(f"✅ Token decoded successfully. Payload: {payload}")
     user_id: str = payload.get("sub")
     if user_id is None:
+        print(f"❌ No 'sub' field in payload")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
         )
+    print(f"✅ User ID extracted: {user_id}")
     return user_id

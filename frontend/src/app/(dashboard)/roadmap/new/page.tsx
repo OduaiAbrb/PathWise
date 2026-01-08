@@ -121,6 +121,12 @@ export default function NewRoadmapPage() {
     }, 30000);
 
     try {
+      // Debug logging
+      console.log("🚀 Starting roadmap generation...");
+      console.log("📍 Session status:", status);
+      console.log("🔑 Token present:", !!accessToken);
+      console.log("📝 Payload:", { job_description: jobDescription.substring(0, 50) + "...", skill_level: skillLevel, industry });
+
       const response = await fetch(getApiUrl("/api/v1/roadmaps/generate"), {
         method: "POST",
         headers: {
@@ -133,6 +139,8 @@ export default function NewRoadmapPage() {
           industry: industry,
         }),
       });
+
+      console.log("✅ Response status:", response.status);
 
       clearTimeout(timeoutId); // Clear timeout on response
 

@@ -44,7 +44,7 @@ interface ReadinessScore {
 
 export default function CareerDashboard() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const accessToken = (session as { accessToken?: string })?.accessToken;
 
   const [todaysMission, setTodaysMission] = useState<TodaysMission | null>(null);
@@ -53,10 +53,19 @@ export default function CareerDashboard() {
   const [targetRole, setTargetRole] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
+  const [authError, setAuthError] = useState(false);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [accessToken]);
+    // Only fetch when session is ready
+    if (status === "authenticated" && accessToken) {
+      fetchDashboardData();
+    } else if (status === "unauthenticated") {
+      setIsLoading(false);
+      setAuthError(true);
+    } else if (status === "loading") {
+      setIsLoading(true);
+    }
+  }, [accessToken, status]);
 
   const fetchDashboardData = async () => {
     if (!accessToken) {
@@ -71,6 +80,13 @@ export default function CareerDashboard() {
       const roadmapsResponse = await fetch(getApiUrl("/api/v1/roadmaps"), {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
+
+      // Check for auth errors
+      if (roadmapsResponse.status === 401 || roadmapsResponse.status === 403) {
+        setAuthError(true);
+        setIsLoading(false);
+        return;
+      }
 
       if (roadmapsResponse.ok) {
         const roadmapsData = await roadmapsResponse.json();
@@ -170,6 +186,30 @@ export default function CareerDashboard() {
           <div className="w-12 h-12 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin mx-auto mb-4" />
           <p className="text-neutral-600">Loading your career progress...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card text-center py-12"
+        >
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="heading-3 mb-2">Session Expired</h2>
+          <p className="text-neutral-600 mb-6">
+            Your session has expired. Please refresh the page to sign in again.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="btn-primary mx-auto"
+          >
+            Refresh Page
+          </button>
+        </motion.div>
       </div>
     );
   }

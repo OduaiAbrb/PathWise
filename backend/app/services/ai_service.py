@@ -304,3 +304,140 @@ async def analyze_resume(
     except Exception as e:
         print(f"Resume analysis error: {e}")
         raise
+
+
+async def generate_portfolio_content(
+    target_role: str,
+    roadmap_data: list,
+    skill_level: str
+) -> dict:
+    """Generate portfolio content including bio, projects, resume bullets"""
+    
+    skills_list = []
+    for phase in roadmap_data:
+        for skill in phase.get("skills", []):
+            skills_list.append(skill.get("name"))
+    
+    prompt = f"""Generate professional portfolio content for a {target_role} candidate.
+
+Skills mastered: {", ".join(skills_list[:15])}
+Experience level: {skill_level}
+
+Generate:
+1. Professional bio (2-3 sentences, confident but honest)
+2. 5 resume bullet points showcasing these skills
+3. 3 LinkedIn post ideas to demonstrate expertise
+4. 3 portfolio project ideas with descriptions
+5. Skill certificates to highlight
+
+Output as JSON with keys: tagline, bio, resume_bullets, linkedin_posts, projects, certificates"""
+
+    try:
+        response = await client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a career coach helping users create compelling portfolios."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=2000,
+            response_format={"type": "json_object"}
+        )
+        
+        return json.loads(response.choices[0].message.content)
+        
+    except Exception as e:
+        print(f"Portfolio generation error: {e}")
+        raise
+
+
+async def generate_interview_questions(
+    session_type: str,
+    target_role: str,
+    difficulty: str
+) -> list:
+    """Generate interview questions for simulation"""
+    
+    prompt = f"""Generate {session_type} interview questions for a {target_role} position.
+
+Difficulty: {difficulty}
+Session type: {session_type}
+
+Requirements:
+- For coding: Include 3 coding problems with examples
+- For system_design: Include 2 system design scenarios
+- For behavioral: Include 5 STAR method questions
+- For full_mock: Mix of all types (8 questions total)
+
+Output as JSON array with format:
+[{{
+  "id": "unique_id",
+  "type": "coding|system_design|behavioral",
+  "question": "question text",
+  "hints": ["hint1", "hint2"],
+  "ideal_answer": "what a strong answer includes"
+}}]"""
+
+    try:
+        response = await client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are an expert technical interviewer."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=3000,
+            response_format={"type": "json_object"}
+        )
+        
+        result = json.loads(response.choices[0].message.content)
+        return result.get("questions", [])
+        
+    except Exception as e:
+        print(f"Interview question generation error: {e}")
+        raise
+
+
+async def evaluate_interview_response(
+    questions: list,
+    responses: list,
+    target_role: str,
+    session_type: str
+) -> dict:
+    """Evaluate interview responses"""
+    
+    evaluation_data = {
+        "questions": questions,
+        "responses": responses
+    }
+    
+    prompt = f"""Evaluate this {session_type} interview for a {target_role} position.
+
+Interview data: {json.dumps(evaluation_data, indent=2)}
+
+Provide:
+1. Overall score (0-100)
+2. Detailed feedback for each response
+3. Top 3 strengths
+4. Top 3 areas for improvement
+5. Specific recommendations
+
+Be HONEST but constructive. Output as JSON."""
+
+    try:
+        response = await client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are an expert interview evaluator providing honest, constructive feedback."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.5,
+            max_tokens=2000,
+            response_format={"type": "json_object"}
+        )
+        
+        return json.loads(response.choices[0].message.content)
+        
+    except Exception as e:
+        print(f"Interview evaluation error: {e}")
+        raise

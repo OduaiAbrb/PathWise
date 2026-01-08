@@ -33,6 +33,8 @@ except Exception as e:
 
 from app.api.v1.router import api_router
 from app.db.database import engine, Base
+from app.db import models  # Import models to register them
+from app.models import portfolio  # Import new models
 
 
 @asynccontextmanager

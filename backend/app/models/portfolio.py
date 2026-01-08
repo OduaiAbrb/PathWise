@@ -1,19 +1,19 @@
 from sqlalchemy import Column, String, Text, Boolean, Integer, DateTime, ForeignKey, JSON
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
 from datetime import datetime
 
-from app.db.base_class import Base
+from app.db.database import Base
+from app.db.models import UUID
 
 
 class Portfolio(Base):
     """User portfolio with auto-generated projects and content"""
     __tablename__ = "portfolios"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    roadmap_id = Column(UUID(as_uuid=True), ForeignKey("roadmaps.id"), nullable=True)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(), ForeignKey("users.id"), nullable=False)
+    roadmap_id = Column(UUID(), ForeignKey("roadmaps.id"), nullable=True)
     
     # Portfolio settings
     title = Column(String, nullable=False)  # e.g., "Backend Engineer Portfolio"
@@ -50,8 +50,8 @@ class InterviewSession(Base):
     """Interview simulation sessions"""
     __tablename__ = "interview_sessions"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(), ForeignKey("users.id"), nullable=False)
     
     # Session details
     session_type = Column(String, nullable=False)  # coding, system_design, behavioral, full_mock
@@ -90,9 +90,9 @@ class AccountabilityPartner(Base):
     """Accountability partner matching"""
     __tablename__ = "accountability_partners"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user1_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    user2_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
+    user1_id = Column(UUID(), ForeignKey("users.id"), nullable=False)
+    user2_id = Column(UUID(), ForeignKey("users.id"), nullable=False)
     
     # Match details
     matched_on_roadmap = Column(String, nullable=True)  # Common career goal
@@ -118,7 +118,7 @@ class DailyChallenge(Base):
     """Daily challenges for engagement"""
     __tablename__ = "daily_challenges"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
     
     # Challenge details
     title = Column(String, nullable=False)
@@ -152,9 +152,9 @@ class UserChallenge(Base):
     """User challenge attempts and completions"""
     __tablename__ = "user_challenges"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    challenge_id = Column(UUID(as_uuid=True), ForeignKey("daily_challenges.id"), nullable=False)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(), ForeignKey("users.id"), nullable=False)
+    challenge_id = Column(UUID(), ForeignKey("daily_challenges.id"), nullable=False)
     
     # Attempt details
     user_answer = Column(Text, nullable=True)

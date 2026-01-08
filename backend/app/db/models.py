@@ -52,6 +52,11 @@ class User(Base):
     roadmaps = relationship("Roadmap", back_populates="user", cascade="all, delete-orphan")
     qa_history = relationship("QAHistory", back_populates="user", cascade="all, delete-orphan")
     payments = relationship("Payment", back_populates="user", cascade="all, delete-orphan")
+    portfolios = relationship("Portfolio", back_populates="user", cascade="all, delete-orphan")
+    interview_sessions = relationship("InterviewSession", back_populates="user", cascade="all, delete-orphan")
+    challenges = relationship("UserChallenge", back_populates="user", cascade="all, delete-orphan")
+    accountability_partners_initiated = relationship("AccountabilityPartner", foreign_keys="AccountabilityPartner.user1_id", back_populates="user1", cascade="all, delete-orphan")
+    accountability_partners_received = relationship("AccountabilityPartner", foreign_keys="AccountabilityPartner.user2_id", back_populates="user2", cascade="all, delete-orphan")
 
 
 class Roadmap(Base):
@@ -76,6 +81,7 @@ class Roadmap(Base):
     progress = relationship("Progress", back_populates="roadmap", cascade="all, delete-orphan")
     qa_history = relationship("QAHistory", back_populates="roadmap", cascade="all, delete-orphan")
     job_matches = relationship("JobMatch", back_populates="roadmap", cascade="all, delete-orphan")
+    portfolios = relationship("Portfolio", back_populates="roadmap", cascade="all, delete-orphan")
 
 
 class Progress(Base):

@@ -212,6 +212,121 @@ A performant product catalog with search and cart.
     ];
   };
 
+  const getRandomProjectTemplate = (): Project => {
+    const templates: Project[] = [
+      {
+        id: Date.now().toString(),
+        title: "Real-Time Chat Application",
+        description: "Build a full-stack chat app with WebSocket support, user authentication, and message history.",
+        problemStatement: "Create a chat application where users can join rooms, send messages in real-time, see typing indicators, and view message history. Include user presence and online status.",
+        skills: ["WebSockets", "Real-Time Apps", "Full-Stack Development"],
+        techStack: ["React", "Socket.io", "Node.js", "MongoDB"],
+        difficulty: "intermediate",
+        estimatedHours: 20,
+        status: "not_started",
+        readmeTemplate: `# Real-Time Chat Application\n\n## Overview\nFull-stack chat with WebSocket support.\n\n## Features\n- Real-time messaging\n- User authentication\n- Chat rooms\n- Typing indicators`,
+        resumeBullets: [
+          "Built real-time chat application serving 500+ concurrent users using Socket.io",
+          "Implemented WebSocket connections reducing message latency to <100ms",
+          "Designed MongoDB schema handling 10,000+ messages daily with optimized queries",
+        ],
+        learningOutcomes: ["WebSocket programming", "Real-time data synchronization", "Chat UX patterns"],
+      },
+      {
+        id: Date.now().toString(),
+        title: "E-Commerce Product Dashboard",
+        description: "Create an admin dashboard for managing products, orders, and analytics with charts and data visualization.",
+        problemStatement: "Build a comprehensive dashboard for e-commerce store owners to manage inventory, track orders, view sales analytics, and generate reports.",
+        skills: ["Data Visualization", "Admin Panels", "State Management"],
+        techStack: ["React", "TypeScript", "Chart.js", "REST API"],
+        difficulty: "intermediate",
+        estimatedHours: 16,
+        status: "not_started",
+        readmeTemplate: `# E-Commerce Dashboard\n\n## Overview\nAdmin panel for e-commerce management.\n\n## Features\n- Product CRUD operations\n- Order tracking\n- Sales analytics\n- Inventory management`,
+        resumeBullets: [
+          "Developed admin dashboard reducing product management time by 60%",
+          "Implemented interactive charts visualizing $50K+ monthly revenue trends",
+          "Built inventory system tracking 1,000+ SKUs with low-stock alerts",
+        ],
+        learningOutcomes: ["Data visualization", "Complex state management", "Admin panel design"],
+      },
+      {
+        id: Date.now().toString(),
+        title: "AI-Powered Content Summarizer",
+        description: "Build a web app that uses AI to summarize articles, documents, and web pages into concise bullet points.",
+        problemStatement: "Create an application that takes long-form content and generates accurate summaries. Support multiple content sources (URL, PDF, text) and adjustable summary lengths.",
+        skills: ["AI Integration", "API Design", "Text Processing"],
+        techStack: ["Python", "OpenAI API", "FastAPI", "React"],
+        difficulty: "advanced",
+        estimatedHours: 22,
+        status: "not_started",
+        readmeTemplate: `# AI Content Summarizer\n\n## Overview\nAI-powered tool for content summarization.\n\n## Features\n- Multi-source input (URL, PDF, text)\n- Adjustable summary length\n- Bullet point generation\n- Key insights extraction`,
+        resumeBullets: [
+          "Integrated OpenAI GPT-4 API processing 1,000+ documents monthly",
+          "Built web scraping pipeline extracting content from 50+ news sources",
+          "Achieved 95% user satisfaction with summary accuracy and relevance",
+        ],
+        learningOutcomes: ["AI API integration", "Text processing", "Prompt engineering"],
+      },
+      {
+        id: Date.now().toString(),
+        title: "Task Automation CLI Tool",
+        description: "Develop a command-line tool that automates repetitive development tasks like file generation, git workflows, and deployment scripts.",
+        problemStatement: "Create a CLI that developers can use to scaffold projects, automate git operations, run tests, and deploy applications with simple commands.",
+        skills: ["CLI Development", "DevOps", "Scripting"],
+        techStack: ["Python", "Click", "Git", "Docker"],
+        difficulty: "intermediate",
+        estimatedHours: 14,
+        status: "not_started",
+        readmeTemplate: `# Task Automation CLI\n\n## Overview\nCLI tool for automating development workflows.\n\n## Features\n- Project scaffolding\n- Git workflow automation\n- Test runners\n- Deployment scripts`,
+        resumeBullets: [
+          "Created CLI tool reducing project setup time from 2 hours to 5 minutes",
+          "Automated git workflows saving developers 10+ hours weekly",
+          "Built deployment scripts deploying to AWS with zero-downtime",
+        ],
+        learningOutcomes: ["CLI design patterns", "Process automation", "Developer tooling"],
+      },
+      {
+        id: Date.now().toString(),
+        title: "Fitness Tracker Progressive Web App",
+        description: "Build a PWA that tracks workouts, nutrition, and progress with offline support and push notifications.",
+        problemStatement: "Create a mobile-first fitness app that works offline, syncs data when online, sends workout reminders, and visualizes progress over time.",
+        skills: ["PWA", "Offline-First", "Mobile Development"],
+        techStack: ["React", "Service Workers", "IndexedDB", "Push API"],
+        difficulty: "advanced",
+        estimatedHours: 24,
+        status: "not_started",
+        readmeTemplate: `# Fitness Tracker PWA\n\n## Overview\nOffline-capable fitness tracking application.\n\n## Features\n- Workout logging\n- Nutrition tracking\n- Progress charts\n- Push notifications\n- Offline support`,
+        resumeBullets: [
+          "Developed PWA with offline-first architecture serving 2,000+ active users",
+          "Implemented Service Workers enabling 100% offline functionality",
+          "Built push notification system achieving 40% weekly engagement rate",
+        ],
+        learningOutcomes: ["PWA architecture", "Offline data sync", "Service Workers"],
+      },
+      {
+        id: Date.now().toString(),
+        title: "Code Snippet Manager",
+        description: "Create a personal knowledge base for storing, organizing, and sharing code snippets with syntax highlighting and tagging.",
+        problemStatement: "Build a tool where developers can save useful code snippets, organize them by language and tags, search quickly, and share collections publicly.",
+        skills: ["CRUD Operations", "Search", "Syntax Highlighting"],
+        techStack: ["Next.js", "PostgreSQL", "Prism.js", "Tailwind CSS"],
+        difficulty: "beginner",
+        estimatedHours: 12,
+        status: "not_started",
+        readmeTemplate: `# Code Snippet Manager\n\n## Overview\nOrganize and share code snippets efficiently.\n\n## Features\n- Snippet CRUD\n- Syntax highlighting\n- Tag organization\n- Full-text search\n- Public sharing`,
+        resumeBullets: [
+          "Built snippet manager organizing 500+ code examples across 15 languages",
+          "Implemented full-text search returning results in <200ms",
+          "Designed tag system enabling multi-dimensional snippet categorization",
+        ],
+        learningOutcomes: ["Database design", "Search implementation", "Code syntax highlighting"],
+      },
+    ];
+
+    return templates[Math.floor(Math.random() * templates.length)];
+  };
+
   const generateProject = async () => {
     setIsGenerating(true);
     try {
@@ -230,42 +345,15 @@ A performant product catalog with search and cart.
           setProjects((prev) => [data.data, ...prev]);
         }
       } else {
-        // Add a new sample project
-        const newProject: Project = {
-          id: Date.now().toString(),
-          title: "CI/CD Pipeline Builder",
-          description: "Create an automated deployment pipeline with testing, staging, and production environments.",
-          problemStatement: "Build a CI/CD pipeline that automatically tests code on push, deploys to staging for review, and promotes to production on approval. Include rollback capabilities.",
-          skills: ["DevOps", "Docker", "CI/CD"],
-          techStack: ["GitHub Actions", "Docker", "AWS", "Terraform"],
-          difficulty: "advanced",
-          estimatedHours: 18,
-          status: "not_started",
-          readmeTemplate: `# CI/CD Pipeline
-
-## Overview
-Automated deployment pipeline with multiple environments.
-
-## Features
-- Automated testing on push
-- Staging environment for review
-- One-click production deployment
-- Automatic rollback on failure`,
-          resumeBullets: [
-            "Designed CI/CD pipeline reducing deployment time from 2 hours to 15 minutes",
-            "Implemented infrastructure as code with Terraform managing 20+ AWS resources",
-            "Built automated rollback system achieving 99.9% deployment success rate",
-          ],
-          learningOutcomes: [
-            "Design CI/CD workflows",
-            "Containerize applications with Docker",
-            "Manage infrastructure as code",
-          ],
-        };
+        // Generate a random unique project
+        const newProject = getRandomProjectTemplate();
         setProjects((prev) => [newProject, ...prev]);
       }
     } catch (error) {
       console.error("Failed to generate project:", error);
+      // Still generate a random project on error
+      const newProject = getRandomProjectTemplate();
+      setProjects((prev) => [newProject, ...prev]);
     } finally {
       setIsGenerating(false);
     }

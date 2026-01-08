@@ -47,7 +47,6 @@ const navGroups = [
     label: "Connect",
     items: [
       { href: "/groups", label: "Study Groups", icon: Users },
-      { href: "/collaborative-hub", label: "Live Sessions", icon: Zap },
       { href: "/mentors", label: "Mentors", icon: UserCircle },
     ],
   },

@@ -152,17 +152,16 @@ Include:
 Keep it clear and engaging."""
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": STUDY_BUDDY_SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=1000,
-        )
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"explain-{uuid.uuid4()}",
+            system_message=STUDY_BUDDY_SYSTEM_PROMPT
+        ).with_model("openai", MODEL_NAME)
         
-        return response.choices[0].message.content
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
+        
+        return response
         
     except Exception as e:
         print(f"Concept explanation error: {e}")
@@ -188,15 +187,14 @@ Provide:
 4. Best practices to avoid this in the future"""
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": STUDY_BUDDY_SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.5,
-            max_tokens=1500,
-        )
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"debug-{uuid.uuid4()}",
+            system_message=STUDY_BUDDY_SYSTEM_PROMPT
+        ).with_model("openai", MODEL_NAME)
+        
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
         
         content = response.choices[0].message.content
         

@@ -164,9 +164,14 @@ export default function NewRoadmapPage() {
         const data = await response.json();
         router.push(`/roadmap/${data.data?.id || data.id}`);
       } else if (response.status === 401 || response.status === 403) {
-        setError("Session expired. Please refresh the page and sign in again.");
+        // Try to get error details for better messaging
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.detail || "Session expired. Please refresh the page and sign in again.";
+        console.error("❌ Auth error:", errorMsg);
+        setError(errorMsg);
       } else if (response.status === 429) {
-        setError("Free accounts are limited to 3 roadmaps. Upgrade to create more.");
+        const errorData = await response.json().catch(() => ({}));
+        setError(errorData.detail || "Roadmap limit reached. Delete old roadmaps or upgrade to Pro.");
       } else {
         const errorData = await response.json().catch(() => ({}));
         setError(errorData.detail || errorData.message || `Server error (${response.status}). Please try again.`);

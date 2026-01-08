@@ -45,15 +45,17 @@ async def create_roadmap(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Free tier: max 3 roadmaps
+    # Free tier: max 10 roadmaps (increased for testing)
     if user.tier == "free":
         roadmap_count = await db.execute(
             select(Roadmap).where(Roadmap.user_id == user_id)
         )
-        if len(roadmap_count.scalars().all()) >= 3:
+        existing_roadmaps = roadmap_count.scalars().all()
+        print(f"📊 User has {len(existing_roadmaps)} existing roadmaps")
+        if len(existing_roadmaps) >= 10:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Free tier limited to 3 roadmaps. Upgrade to Pro for unlimited."
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Free tier limited to 10 roadmaps. You have {len(existing_roadmaps)}. Delete old roadmaps or upgrade to Pro."
             )
     
     try:

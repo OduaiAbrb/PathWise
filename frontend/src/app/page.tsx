@@ -72,9 +72,9 @@ export default function LandingPage() {
           className="grid md:grid-cols-2 gap-6 mb-8"
         >
           {/* Flow A: User knows */}
-          <button
-            onClick={() => router.push("/onboarding?flow=knows")}
-            className="group relative p-8 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-500 hover:shadow-lg transition-all duration-300 text-left"
+          <Link
+            href="/onboarding?flow=knows"
+            className="group relative p-8 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-500 hover:shadow-lg transition-all duration-300 text-left block"
             data-testid="flow-knows-button"
           >
             <div className="absolute top-4 right-4 w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center group-hover:bg-emerald-500 transition-colors">
@@ -93,12 +93,12 @@ export default function LandingPage() {
               Build my roadmap
               <ArrowRight className="w-5 h-5" />
             </div>
-          </button>
+          </Link>
 
           {/* Flow B: Career discovery */}
-          <button
-            onClick={() => router.push("/onboarding?flow=discovery")}
-            className="group relative p-8 rounded-2xl border-2 border-slate-200 bg-white hover:border-blue-500 hover:shadow-lg transition-all duration-300 text-left"
+          <Link
+            href="/onboarding?flow=discovery"
+            className="group relative p-8 rounded-2xl border-2 border-slate-200 bg-white hover:border-blue-500 hover:shadow-lg transition-all duration-300 text-left block"
             data-testid="flow-discovery-button"
           >
             <div className="absolute top-4 right-4 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-500 transition-colors">
@@ -117,7 +117,7 @@ export default function LandingPage() {
               Discover my path
               <ArrowRight className="w-5 h-5" />
             </div>
-          </button>
+          </Link>
         </motion.div>
 
         {/* Trust Signal */}

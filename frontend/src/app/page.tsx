@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { CheckCircle2, HelpCircle, ArrowRight, Sparkles } from "lucide-react";
 
@@ -15,8 +15,6 @@ import { CheckCircle2, HelpCircle, ArrowRight, Sparkles } from "lucide-react";
  * This IS a career outcome engine.
  */
 export default function LandingPage() {
-  const router = useRouter();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center p-4">
       <motion.div

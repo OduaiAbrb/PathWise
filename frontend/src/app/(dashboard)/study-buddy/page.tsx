@@ -35,7 +35,7 @@ interface LearningContext {
 }
 
 export default function StudyBuddyPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -48,8 +48,12 @@ export default function StudyBuddyPage() {
 
   // Fetch user's current learning context from active roadmap
   useEffect(() => {
-    fetchLearningContext();
-  }, [accessToken]);
+    if (status === "authenticated" && accessToken) {
+      fetchLearningContext();
+    } else if (status === "unauthenticated") {
+      setIsLoadingContext(false);
+    }
+  }, [accessToken, status]);
 
   const fetchLearningContext = async () => {
     if (!accessToken) {
@@ -69,6 +73,17 @@ export default function StudyBuddyPage() {
           Authorization: `Bearer ${accessToken}`,
         },
       });
+
+      if (response.status === 401 || response.status === 403) {
+        console.error("Auth error fetching learning context");
+        setContext({
+          currentPhase: "Getting Started",
+          currentSkill: "Fundamentals",
+          targetRole: "Software Developer",
+          skillLevel: "Beginner",
+        });
+        return;
+      }
 
       if (response.ok) {
         const data = await response.json();

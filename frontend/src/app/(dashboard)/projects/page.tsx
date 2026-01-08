@@ -41,7 +41,7 @@ interface Project {
 }
 
 export default function ProjectsPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -51,10 +51,12 @@ export default function ProjectsPage() {
   const accessToken = (session as { accessToken?: string })?.accessToken;
 
   useEffect(() => {
-    if (accessToken) {
+    if (status === "authenticated" && accessToken) {
       fetchProjects();
+    } else if (status === "unauthenticated") {
+      setIsLoading(false);
     }
-  }, [accessToken]);
+  }, [accessToken, status]);
 
   const fetchProjects = async () => {
     if (!accessToken) {
@@ -69,7 +71,10 @@ export default function ProjectsPage() {
         },
       });
 
-      if (response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        console.error("Auth error fetching projects");
+        setProjects(getSampleProjects());
+      } else if (response.ok) {
         const data = await response.json();
         setProjects(data.data || []);
       } else {

@@ -112,13 +112,13 @@ export default function NewRoadmapPage() {
       });
     }, 1500);
 
-    // Add timeout protection (30 seconds max)
+    // Add timeout protection (90 seconds for complex descriptions)
     const timeoutId = setTimeout(() => {
       clearInterval(stepInterval);
       setIsGenerating(false);
       setGenerationStep(0);
-      setError("Roadmap generation timed out. Please try again with a shorter job description.");
-    }, 30000);
+      setError("Roadmap generation is taking longer than expected. The AI may still be working - please wait a moment and check your dashboard.");
+    }, 90000);
 
     try {
       // Debug logging
@@ -174,7 +174,8 @@ export default function NewRoadmapPage() {
         setError(errorData.detail || "Roadmap limit reached. Delete old roadmaps or upgrade to Pro.");
       } else {
         const errorData = await response.json().catch(() => ({}));
-        setError(errorData.detail || errorData.message || `Server error (${response.status}). Please try again.`);
+        console.error("❌ Server error:", response.status, errorData);
+        setError(errorData.detail || errorData.message || `Server error (${response.status}). ${response.status === 500 ? 'The AI service may be overloaded. Please try again in a moment.' : 'Please try again.'}`);
       }
     } catch (err) {
       clearTimeout(timeoutId);

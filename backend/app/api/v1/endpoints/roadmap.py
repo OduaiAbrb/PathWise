@@ -59,12 +59,14 @@ async def create_roadmap(
             )
     
     try:
-        # Generate roadmap using AI
+        print(f"🎯 Starting AI roadmap generation...")
+        # Generate roadmap using AI with timeout protection
         ai_result = await generate_roadmap(
             job_description=request.job_description,
             skill_level=request.skill_level,
             industry=request.industry
         )
+        print(f"✅ AI generation complete!")
         
         # Create roadmap in database
         new_roadmap = Roadmap(

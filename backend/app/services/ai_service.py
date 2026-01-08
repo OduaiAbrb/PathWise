@@ -157,8 +157,18 @@ Generate a complete learning path with phases, skills, high-quality resources (w
         return result
         
     except Exception as e:
-        print(f"AI roadmap generation error: {e}")
-        raise
+        error_msg = str(e)
+        print(f"❌ AI roadmap generation error: {error_msg}")
+        
+        # Provide more helpful error messages
+        if "rate_limit" in error_msg.lower():
+            raise Exception("OpenAI API rate limit reached. Please try again in a moment.")
+        elif "api_key" in error_msg.lower() or "authentication" in error_msg.lower():
+            raise Exception("OpenAI API key is invalid or missing. Please contact support.")
+        elif "timeout" in error_msg.lower():
+            raise Exception("AI generation timed out. Please try with a shorter description.")
+        else:
+            raise Exception(f"AI generation failed: {error_msg}")
 
 
 CHAT_SYSTEM_PROMPT = """You are PathWise AI, a helpful career and learning assistant. You help users with:

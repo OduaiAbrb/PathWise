@@ -115,7 +115,7 @@ export default function NewRoadmapPage() {
     }, 30000);
 
     try {
-      const response = await fetch(getApiUrl("/api/v1/roadmap/generate"), {
+      const response = await fetch(getApiUrl("/api/v1/roadmaps/generate"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

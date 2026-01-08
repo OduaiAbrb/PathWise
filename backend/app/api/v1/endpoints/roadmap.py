@@ -114,6 +114,8 @@ async def create_roadmap(
         )
 
 
+@router.get("", response_model=dict)
+@router.get("/", response_model=dict)
 @router.get("/list", response_model=dict)
 async def list_roadmaps(
     user_id: str = Depends(get_current_user_id),

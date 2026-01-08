@@ -346,8 +346,3 @@ Format as JSON only."""
     except Exception as e:
         print(f"Learning path error: {e}")
         raise
-        return json.loads(response.choices[0].message.content)
-        
-    except Exception as e:
-        print(f"Learning path error: {e}")
-        raise

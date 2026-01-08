@@ -287,16 +287,15 @@ Format as JSON only."""
         
         user_message = UserMessage(text=prompt)
         response = await chat.send_message(user_message)
-                {"role": "system", "content": STUDY_BUDDY_SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.6,
-            max_tokens=2000,
-            response_format={"type": "json_object"}
-        )
         
         import json
-        return json.loads(response.choices[0].message.content)
+        # Parse JSON from response
+        if "```json" in response:
+            response = response.split("```json")[1].split("```")[0]
+        elif "```" in response:
+            response = response.split("```")[1].split("```")[0]
+            
+        return json.loads(response.strip())
         
     except Exception as e:
         print(f"Project review error: {e}")
@@ -323,21 +322,30 @@ Provide a structured learning plan with:
 3. Recommended resources
 4. Milestones to track progress
 
-Format as JSON."""
+Format as JSON only."""
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": STUDY_BUDDY_SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=2500,
-            response_format={"type": "json_object"}
-        )
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"path-{uuid.uuid4()}",
+            system_message=STUDY_BUDDY_SYSTEM_PROMPT
+        ).with_model("openai", MODEL_NAME)
+        
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
         
         import json
+        # Parse JSON from response
+        if "```json" in response:
+            response = response.split("```json")[1].split("```")[0]
+        elif "```" in response:
+            response = response.split("```")[1].split("```")[0]
+            
+        return json.loads(response.strip())
+        
+    except Exception as e:
+        print(f"Learning path error: {e}")
+        raise
         return json.loads(response.choices[0].message.content)
         
     except Exception as e:

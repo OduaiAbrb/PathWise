@@ -1,7 +1,7 @@
 "use client";
 
-import CertificationPortfolioSystem from "@/components/CertificationPortfolioSystem";
+import PortfolioGenerator from "@/components/PortfolioGenerator";
 
 export default function PortfolioPage() {
-  return <CertificationPortfolioSystem />;
+  return <PortfolioGenerator />;
 }

@@ -22,7 +22,13 @@ import {
   ChevronDown,
   Bell,
   BarChart3,
+  Code,
+  Search,
+  Award,
+  Brain,
+  Zap,
 } from "lucide-react";
+import NotificationSystem from "@/components/NotificationSystem";
 
 // Navigation structure with grouped items
 const navGroups = [
@@ -31,8 +37,9 @@ const navGroups = [
     items: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { href: "/roadmap/new", label: "Roadmaps", icon: Map },
+      { href: "/learning-paths", label: "Learning Paths", icon: Brain },
       { href: "/projects", label: "Projects", icon: Lightbulb },
-      { href: "/study-buddy", label: "AI Study Buddy", icon: Bot },
+      { href: "/study-buddy", label: "AI Assistant", icon: Bot },
       { href: "/scheduler", label: "Scheduler", icon: Calendar },
     ],
   },
@@ -40,12 +47,21 @@ const navGroups = [
     label: "Connect",
     items: [
       { href: "/groups", label: "Study Groups", icon: Users },
+      { href: "/collaborative-hub", label: "Live Sessions", icon: Zap },
       { href: "/mentors", label: "Mentors", icon: UserCircle },
     ],
   },
   {
-    label: "Tools",
+    label: "Create",
     items: [
+      { href: "/code-editor", label: "Code Editor", icon: Code },
+      { href: "/portfolio", label: "Portfolio", icon: Award },
+    ],
+  },
+  {
+    label: "Discover",
+    items: [
+      { href: "/search", label: "Search & Discovery", icon: Search },
       { href: "/resume-scanner", label: "Resume Scanner", icon: FileText },
       { href: "/jd-analyzer", label: "JD Analyzer", icon: BarChart3 },
     ],
@@ -119,10 +135,7 @@ export default function DashboardLayout({
 
           {/* Right: User Menu */}
           <div className="flex items-center gap-3">
-            <button className="p-2 hover:bg-neutral-100 rounded-lg relative">
-              <Bell className="w-5 h-5 text-neutral-600" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-            </button>
+            <NotificationSystem />
             
             <div className="flex items-center gap-3 pl-3 border-l border-neutral-200">
               {session.user?.image ? (

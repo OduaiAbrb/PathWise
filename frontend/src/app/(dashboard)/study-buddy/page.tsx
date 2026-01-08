@@ -42,6 +42,7 @@ export default function StudyBuddyPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [context, setContext] = useState<LearningContext | null>(null);
   const [isLoadingContext, setIsLoadingContext] = useState(true);
+  const [interviewMode, setInterviewMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const accessToken = (session as { accessToken?: string })?.accessToken;
 

@@ -30,39 +30,23 @@ import {
 } from "lucide-react";
 import NotificationSystem from "@/components/NotificationSystem";
 
-// Navigation structure with grouped items
+// Navigation structure - streamlined, focused on career outcomes
 const navGroups = [
   {
-    label: "Learn",
+    label: "Core",
     items: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/roadmap/new", label: "Roadmaps", icon: Map },
-      { href: "/learning-paths", label: "Learning Paths", icon: Brain },
+      { href: "/roadmap/new", label: "Roadmap", icon: Map },
       { href: "/projects", label: "Projects", icon: Lightbulb },
-      { href: "/study-buddy", label: "AI Assistant", icon: Bot },
-      { href: "/scheduler", label: "Scheduler", icon: Calendar },
-    ],
-  },
-  {
-    label: "Connect",
-    items: [
-      { href: "/groups", label: "Study Groups", icon: Users },
-      { href: "/mentors", label: "Mentors", icon: UserCircle },
-    ],
-  },
-  {
-    label: "Create",
-    items: [
-      { href: "/code-editor", label: "Code Editor", icon: Code },
+      { href: "/study-buddy", label: "AI Mentor", icon: Bot },
       { href: "/portfolio", label: "Portfolio", icon: Award },
     ],
   },
   {
-    label: "Discover",
+    label: "Tools",
     items: [
-      { href: "/search", label: "Search & Discovery", icon: Search },
-      { href: "/resume-scanner", label: "Resume Scanner", icon: FileText },
-      { href: "/jd-analyzer", label: "JD Analyzer", icon: BarChart3 },
+      { href: "/groups", label: "Study Groups", icon: Users },
+      { href: "/search", label: "Resources", icon: Search },
     ],
   },
 ];

@@ -11,6 +11,7 @@ import {
   Play,
   CheckCircle2,
   TrendingUp,
+  TrendingDown,
   AlertCircle,
   ArrowRight,
   Zap,
@@ -19,6 +20,10 @@ import {
   BookOpen,
   Code,
   FileText,
+  ChevronRight,
+  AlertTriangle,
+  Brain,
+  Flame,
 } from "lucide-react";
 
 interface TodaysMission {
@@ -26,11 +31,13 @@ interface TodaysMission {
   title: string;
   description: string;
   whyItMatters: string;
+  whatHappensIfSkipped: string;
   estimatedMinutes: number;
-  type: "learn" | "practice" | "project" | "interview_prep";
+  type: "learn" | "practice" | "test" | "interview_prep";
   roadmapId: string;
   taskId: string;
   difficulty: "easy" | "medium" | "hard";
+  interviewFrequency: number; // % of interviews that ask this
 }
 
 interface ReadinessScore {
@@ -40,8 +47,22 @@ interface ReadinessScore {
   interview: number;
   lastUpdated: Date;
   trend: "up" | "down" | "stable";
+  weeklyChange: number;
 }
 
+/**
+ * CareerDashboard - The Heart of PathWise
+ * 
+ * HARD RULE: ONE PRIMARY ACTION PER DAY
+ * 
+ * Dashboard shows:
+ * - Today's Mission (45-90 minutes)
+ * - Why it matters
+ * - Time estimate
+ * - ONE big "Start" button
+ * 
+ * Everything else is secondary.
+ */
 export default function CareerDashboard() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -54,9 +75,9 @@ export default function CareerDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
   const [authError, setAuthError] = useState(false);
+  const [skippedTasks, setSkippedTasks] = useState(0);
 
   useEffect(() => {
-    // Only fetch when session is ready
     if (status === "authenticated" && accessToken) {
       fetchDashboardData();
     } else if (status === "unauthenticated") {
@@ -81,7 +102,6 @@ export default function CareerDashboard() {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
-      // Check for auth errors
       if (roadmapsResponse.status === 401 || roadmapsResponse.status === 403) {
         setAuthError(true);
         setIsLoading(false);
@@ -90,11 +110,9 @@ export default function CareerDashboard() {
 
       if (roadmapsResponse.ok) {
         const roadmapsData = await roadmapsResponse.json();
-        console.log("📊 Dashboard roadmaps data:", roadmapsData);
-        const activeRoadmap = roadmapsData.data?.[0]; // Get primary roadmap
+        const activeRoadmap = roadmapsData.data?.[0];
         
         if (activeRoadmap) {
-          console.log("✅ Active roadmap found:", activeRoadmap.job_title);
           setTargetRole(activeRoadmap.job_title);
           
           // Find today's mission from roadmap skills
@@ -106,47 +124,57 @@ export default function CareerDashboard() {
               status: skill.progress?.status || skill.status || "not_started",
               phaseTitle: phase.title || phase.name,
               roadmapId: activeRoadmap.id,
-              difficulty: skill.difficulty,
-              estimated_hours: skill.estimated_hours,
-              resources: skill.resources,
+              difficulty: skill.difficulty || "medium",
+              estimated_hours: skill.estimated_hours || 2,
+              importance: skill.importance || "important",
+              interview_frequency: skill.interview_frequency || Math.floor(Math.random() * 30 + 50),
             })) || []
           ) || [];
 
-          console.log("🎯 All skills:", allSkills.length);
-
-          // Get first incomplete skill
-          const nextSkill = allSkills.find((skill: any) => skill.status !== "completed");
+          // Get first incomplete skill - prioritized by importance
+          const nextSkill = allSkills
+            .filter((s: any) => s.status !== "completed")
+            .sort((a: any, b: any) => {
+              const importanceOrder = { critical: 0, important: 1, optional: 2 };
+              return (importanceOrder[a.importance as keyof typeof importanceOrder] || 1) - 
+                     (importanceOrder[b.importance as keyof typeof importanceOrder] || 1);
+            })[0];
           
           if (nextSkill) {
-            console.log("✅ Next skill for today's mission:", nextSkill.name);
             setTodaysMission({
               id: nextSkill.id,
               title: nextSkill.name,
-              description: nextSkill.description || `Master ${nextSkill.name} in ${nextSkill.phaseTitle}`,
-              whyItMatters: `This skill appears in ${Math.floor(Math.random() * 30 + 60)}% of job postings for ${activeRoadmap.job_title}`,
-              estimatedMinutes: (nextSkill.estimated_hours || 1) * 60,
+              description: nextSkill.description || `Master ${nextSkill.name} - a critical skill for ${activeRoadmap.job_title} roles.`,
+              whyItMatters: `This skill appears in ${nextSkill.interview_frequency}% of ${activeRoadmap.job_title} job interviews.`,
+              whatHappensIfSkipped: "Skipping core skills leads to rejection in technical interviews. Your readiness score will decrease.",
+              estimatedMinutes: Math.min(90, Math.max(45, (nextSkill.estimated_hours || 1) * 60)),
               type: "learn",
               roadmapId: nextSkill.roadmapId,
               taskId: nextSkill.id,
-              difficulty: nextSkill.difficulty || "medium",
+              difficulty: nextSkill.difficulty,
+              interviewFrequency: nextSkill.interview_frequency,
             });
-          } else {
-            console.log("⚠️ No incomplete skills found");
           }
 
-          // Calculate readiness score
+          // Calculate readiness score - HONEST & PAINFUL
           const completedSkills = allSkills.filter((s: any) => s.status === "completed").length;
           const totalSkills = allSkills.length;
-          const overallScore = totalSkills > 0 ? Math.round((completedSkills / totalSkills) * 100) : 0;
-          console.log("📈 Progress:", completedSkills, "/", totalSkills, "=", overallScore + "%");
+          const baseScore = totalSkills > 0 ? Math.round((completedSkills / totalSkills) * 100) : 0;
+          
+          // Penalize for skipped tasks (stored in local storage for demo)
+          const storedSkipped = parseInt(localStorage.getItem("pathwise_skipped") || "0");
+          setSkippedTasks(storedSkipped);
+          const penalty = storedSkipped * 3; // -3% per skipped task
+          const adjustedScore = Math.max(0, baseScore - penalty);
 
           setReadinessScore({
-            overall: overallScore,
-            technical: Math.min(overallScore + 5, 100),
-            projects: Math.max(overallScore - 10, 0),
-            interview: Math.max(overallScore - 15, 0),
+            overall: adjustedScore,
+            technical: Math.min(adjustedScore + 5, 100),
+            projects: Math.max(adjustedScore - 15, 0),
+            interview: Math.max(adjustedScore - 20, 0),
             lastUpdated: new Date(),
-            trend: completedSkills > 0 ? "up" : "stable",
+            trend: storedSkipped > 0 ? "down" : completedSkills > 0 ? "up" : "stable",
+            weeklyChange: storedSkipped > 0 ? -storedSkipped * 3 : completedSkills > 0 ? 5 : 0,
           });
         }
       }
@@ -170,15 +198,30 @@ export default function CareerDashboard() {
   const handleStartMission = () => {
     if (!todaysMission) return;
     setIsStarting(true);
-    // Navigate to the specific task/learning content
     router.push(`/roadmap/${todaysMission.roadmapId}`);
+  };
+
+  const handleSkipMission = () => {
+    // PENALTY: Readiness score goes down
+    const newSkipped = skippedTasks + 1;
+    localStorage.setItem("pathwise_skipped", newSkipped.toString());
+    setSkippedTasks(newSkipped);
+    
+    if (readinessScore) {
+      setReadinessScore({
+        ...readinessScore,
+        overall: Math.max(0, readinessScore.overall - 3),
+        trend: "down",
+        weeklyChange: readinessScore.weeklyChange - 3,
+      });
+    }
   };
 
   const getMissionIcon = (type: string) => {
     switch (type) {
       case "learn": return BookOpen;
       case "practice": return Code;
-      case "project": return FileText;
+      case "test": return Brain;
       case "interview_prep": return Target;
       default: return BookOpen;
     }
@@ -186,19 +229,19 @@ export default function CareerDashboard() {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "easy": return "bg-green-100 text-green-700 border-green-200";
+      case "easy": return "bg-emerald-100 text-emerald-700 border-emerald-200";
       case "medium": return "bg-amber-100 text-amber-700 border-amber-200";
       case "hard": return "bg-red-100 text-red-700 border-red-200";
-      default: return "bg-neutral-100 text-neutral-700 border-neutral-200";
+      default: return "bg-slate-100 text-slate-700 border-slate-200";
     }
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[60vh]" data-testid="loading-state">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-neutral-600">Loading your career progress...</p>
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-600">Preparing your mission...</p>
         </div>
       </div>
     );
@@ -206,22 +249,22 @@ export default function CareerDashboard() {
 
   if (authError) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card text-center py-12"
+          className="bg-white rounded-2xl border border-slate-200 p-12 text-center"
         >
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="heading-3 mb-2">Session Expired</h2>
-          <p className="text-neutral-600 mb-6">
-            Your session has expired. Please refresh the page to sign in again.
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Session Expired</h2>
+          <p className="text-slate-600 mb-6">
+            Your session has expired. Please sign in again.
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="btn-primary mx-auto"
+            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
           >
-            Refresh Page
+            Sign In Again
           </button>
         </motion.div>
       </div>
@@ -230,22 +273,23 @@ export default function CareerDashboard() {
 
   if (!todaysMission) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card p-12 text-center"
+          className="bg-white rounded-2xl border border-slate-200 p-12 text-center"
         >
-          <Target className="w-16 h-16 text-neutral-400 mx-auto mb-6" />
-          <h2 className="text-2xl font-bold text-neutral-900 mb-3">
+          <Target className="w-16 h-16 text-slate-300 mx-auto mb-6" />
+          <h2 className="text-2xl font-bold text-slate-900 mb-3">
             No Active Roadmap
           </h2>
-          <p className="text-neutral-600 mb-6">
-            You need a roadmap to get started. Let's create one based on your career goals.
+          <p className="text-slate-600 mb-8 max-w-md mx-auto">
+            You need a roadmap to start your journey. Let's create one based on your career goals.
           </p>
           <button
             onClick={() => router.push("/roadmap/new")}
-            className="btn-primary"
+            className="px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
+            data-testid="create-roadmap-btn"
           >
             Create Your Roadmap
             <ArrowRight className="w-5 h-5" />
@@ -258,161 +302,190 @@ export default function CareerDashboard() {
   const MissionIcon = getMissionIcon(todaysMission.type);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Greeting */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-2"
+      >
+        <h1 className="text-2xl font-bold text-slate-900">
+          Welcome back{session?.user?.name ? `, ${session.user.name.split(" ")[0]}` : ""}
+        </h1>
+        <p className="text-slate-600">
+          Your path to {targetRole} continues today.
+        </p>
+      </motion.div>
+
       {/* PRIMARY ACTION - Today's Mission */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
         className="relative"
+        data-testid="todays-mission"
       >
-        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-20" />
-        <div className="relative card p-8 border-2 border-blue-200">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-20" />
+        <div className="relative bg-white rounded-2xl border-2 border-blue-100 p-8">
           {/* Header */}
           <div className="flex items-start justify-between mb-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Target className="w-5 h-5 text-blue-600" />
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Target className="w-5 h-5 text-blue-600" />
+                </div>
                 <span className="text-sm font-semibold text-blue-600 uppercase tracking-wide">
                   Today's Mission
                 </span>
               </div>
-              <h1 className="text-3xl font-bold text-neutral-900 mb-1">
+              <h2 className="text-3xl font-bold text-slate-900 mb-2">
                 {todaysMission.title}
-              </h1>
-              <p className="text-neutral-600">
+              </h2>
+              <p className="text-slate-600 max-w-xl">
                 {todaysMission.description}
               </p>
             </div>
-            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getDifficultyColor(todaysMission.difficulty)}`}>
+            <span className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${getDifficultyColor(todaysMission.difficulty)}`}>
               {todaysMission.difficulty}
             </span>
           </div>
 
-          {/* Why It Matters */}
-          <div className="bg-blue-50 border-l-4 border-blue-600 p-4 mb-6">
+          {/* Why It Matters - Critical */}
+          <div className="bg-blue-50 border-l-4 border-blue-600 p-4 mb-6 rounded-r-lg">
             <div className="flex items-start gap-3">
               <Zap className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-neutral-900 mb-1">Why this matters:</p>
-                <p className="text-neutral-700">{todaysMission.whyItMatters}</p>
+                <p className="font-semibold text-slate-900 mb-1">Why this matters:</p>
+                <p className="text-slate-700">{todaysMission.whyItMatters}</p>
               </div>
             </div>
           </div>
 
-          {/* Time Estimate */}
-          <div className="flex items-center gap-6 mb-6">
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-neutral-500" />
-              <span className="text-neutral-700">
-                <span className="font-semibold">{todaysMission.estimatedMinutes}</span> minutes
-              </span>
+          {/* Time & Type */}
+          <div className="flex flex-wrap items-center gap-6 mb-6">
+            <div className="flex items-center gap-2 text-slate-700">
+              <Clock className="w-5 h-5 text-slate-500" />
+              <span className="font-medium">{todaysMission.estimatedMinutes} minutes</span>
             </div>
-            <div className="flex items-center gap-2">
-              <MissionIcon className="w-5 h-5 text-neutral-500" />
-              <span className="text-neutral-700 capitalize">
-                {todaysMission.type.replace("_", " ")}
-              </span>
+            <div className="flex items-center gap-2 text-slate-700">
+              <MissionIcon className="w-5 h-5 text-slate-500" />
+              <span className="capitalize font-medium">{todaysMission.type.replace("_", " ")}</span>
+            </div>
+            <div className="flex items-center gap-2 text-slate-700">
+              <Flame className="w-5 h-5 text-orange-500" />
+              <span className="font-medium">{todaysMission.interviewFrequency}% interview frequency</span>
             </div>
           </div>
 
-          {/* CTA */}
+          {/* CTA - ONE BIG BUTTON */}
           <button
             onClick={handleStartMission}
             disabled={isStarting}
-            className="w-full btn-primary text-lg py-4 justify-center"
+            className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+            data-testid="start-mission-btn"
           >
             {isStarting ? (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 Starting...
               </>
             ) : (
               <>
-                <Play className="w-6 h-6" />
-                Start Mission
+                <Play className="w-6 h-6 fill-white" />
+                Start Today's Mission
               </>
             )}
+          </button>
+
+          {/* Skip Warning */}
+          <button
+            onClick={handleSkipMission}
+            className="w-full mt-3 py-2 text-slate-500 text-sm hover:text-slate-700 transition-colors flex items-center justify-center gap-2"
+          >
+            <AlertTriangle className="w-4 h-4" />
+            Skip (your readiness score will decrease)
           </button>
         </div>
       </motion.div>
 
-      {/* SECONDARY INFO - Readiness & Streak */}
+      {/* SECONDARY - Readiness Score & Streak */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Readiness Score */}
+        {/* Readiness Score - HONEST & PAINFUL */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="card p-6"
+          transition={{ delay: 0.2 }}
+          className="bg-white rounded-2xl border border-slate-200 p-6"
+          data-testid="readiness-score"
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-neutral-900">
-              Job Readiness
-            </h3>
-            <Trophy className="w-5 h-5 text-neutral-400" />
+            <h3 className="text-lg font-semibold text-slate-900">Job Readiness</h3>
+            {readinessScore?.trend === "down" && (
+              <span className="flex items-center gap-1 text-red-600 text-sm font-medium">
+                <TrendingDown className="w-4 h-4" />
+                {readinessScore.weeklyChange}%
+              </span>
+            )}
+            {readinessScore?.trend === "up" && (
+              <span className="flex items-center gap-1 text-emerald-600 text-sm font-medium">
+                <TrendingUp className="w-4 h-4" />
+                +{readinessScore.weeklyChange}%
+              </span>
+            )}
           </div>
 
           {readinessScore && (
             <>
-              <div className="mb-4">
-                <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-4xl font-bold text-neutral-900">
+              <div className="mb-6">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-5xl font-bold text-slate-900">
                     {readinessScore.overall}%
                   </span>
-                  <span className="text-neutral-600">overall</span>
-                  {readinessScore.trend === "up" && (
-                    <TrendingUp className="w-5 h-5 text-green-600" />
-                  )}
                 </div>
-                <p className="text-sm text-neutral-600">
-                  for {targetRole} positions
-                </p>
+                <p className="text-sm text-slate-600">ready for {targetRole}</p>
               </div>
 
+              {/* Breakdown */}
               <div className="space-y-3">
-                <div>
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-neutral-700">Technical Skills</span>
-                    <span className="font-medium text-neutral-900">{readinessScore.technical}%</span>
+                {[
+                  { label: "Technical Skills", value: readinessScore.technical, color: "bg-blue-600" },
+                  { label: "Portfolio Projects", value: readinessScore.projects, color: "bg-emerald-600" },
+                  { label: "Interview Ready", value: readinessScore.interview, color: "bg-purple-600" },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="text-slate-700">{item.label}</span>
+                      <span className="font-medium text-slate-900">{item.value}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-2">
+                      <div
+                        className={`${item.color} h-2 rounded-full transition-all duration-500`}
+                        style={{ width: `${item.value}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full bg-neutral-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all"
-                      style={{ width: `${readinessScore.technical}%` }}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-neutral-700">Portfolio Projects</span>
-                    <span className="font-medium text-neutral-900">{readinessScore.projects}%</span>
-                  </div>
-                  <div className="w-full bg-neutral-200 rounded-full h-2">
-                    <div
-                      className="bg-green-600 h-2 rounded-full transition-all"
-                      style={{ width: `${readinessScore.projects}%` }}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-neutral-700">Interview Ready</span>
-                    <span className="font-medium text-neutral-900">{readinessScore.interview}%</span>
-                  </div>
-                  <div className="w-full bg-neutral-200 rounded-full h-2">
-                    <div
-                      className="bg-purple-600 h-2 rounded-full transition-all"
-                      style={{ width: `${readinessScore.interview}%` }}
-                    />
-                  </div>
-                </div>
+                ))}
               </div>
 
+              {/* Warning if low */}
               {readinessScore.overall < 60 && (
-                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-800">
-                    Keep going. You need 60%+ to start applying with confidence.
+                    {readinessScore.overall < 30 
+                      ? "You're not ready for interviews yet. Focus on daily missions."
+                      : "Keep going! You need 60%+ to start applying with confidence."}
+                  </p>
+                </div>
+              )}
+
+              {/* Penalty warning */}
+              {skippedTasks > 0 && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-red-800">
+                    You've skipped {skippedTasks} task{skippedTasks > 1 ? "s" : ""}. 
+                    This costs you {skippedTasks * 3}% on your readiness score.
                   </p>
                 </div>
               )}
@@ -420,45 +493,44 @@ export default function CareerDashboard() {
           )}
         </motion.div>
 
-        {/* Current Streak */}
+        {/* Streak */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="card p-6"
+          transition={{ delay: 0.3 }}
+          className="bg-white rounded-2xl border border-slate-200 p-6"
+          data-testid="streak-card"
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-neutral-900">
-              Current Streak
-            </h3>
-            <Calendar className="w-5 h-5 text-neutral-400" />
+            <h3 className="text-lg font-semibold text-slate-900">Current Streak</h3>
+            <Calendar className="w-5 h-5 text-slate-400" />
           </div>
 
-          <div className="text-center py-6">
+          <div className="text-center py-4">
             <div className="relative inline-block">
-              <div className="text-6xl font-bold text-neutral-900 mb-2">
-                {currentStreak}
-              </div>
-              <Zap className="absolute -top-2 -right-6 w-8 h-8 text-orange-500" />
+              <span className="text-6xl font-bold text-slate-900">{currentStreak}</span>
+              {currentStreak > 0 && (
+                <Flame className="absolute -top-2 -right-8 w-8 h-8 text-orange-500 animate-pulse" />
+              )}
             </div>
-            <p className="text-neutral-600 mb-4">
+            <p className="text-slate-600 mt-2">
               {currentStreak === 0
                 ? "Start your streak today!"
                 : `${currentStreak} day${currentStreak !== 1 ? "s" : ""} of consistent progress`}
             </p>
 
             {currentStreak > 0 && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                <p className="text-sm text-green-800">
-                  <CheckCircle2 className="w-4 h-4 inline mr-1" />
-                  Keep it up! Consistency beats intensity.
+              <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                <p className="text-sm text-emerald-800 flex items-center justify-center gap-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Consistency beats intensity. Keep it up!
                 </p>
               </div>
             )}
 
             {currentStreak === 0 && (
-              <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3">
-                <p className="text-sm text-neutral-700">
+              <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <p className="text-sm text-slate-700">
                   Complete today's mission to start your streak
                 </p>
               </div>
@@ -467,45 +539,33 @@ export default function CareerDashboard() {
         </motion.div>
       </div>
 
-      {/* Quick Links - Tertiary */}
+      {/* Quick Actions - Tertiary */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="card p-6"
+        transition={{ delay: 0.4 }}
+        className="bg-white rounded-2xl border border-slate-200 p-6"
       >
-        <h3 className="text-lg font-semibold text-neutral-900 mb-4">
-          Quick Actions
-        </h3>
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <button
-            onClick={() => router.push("/roadmap")}
-            className="p-4 border-2 border-neutral-200 rounded-xl hover:border-neutral-300 transition-all text-left"
-          >
-            <Target className="w-6 h-6 text-neutral-700 mb-2" />
-            <p className="font-medium text-neutral-900 text-sm">View Roadmap</p>
-          </button>
-          <button
-            onClick={() => router.push("/projects")}
-            className="p-4 border-2 border-neutral-200 rounded-xl hover:border-neutral-300 transition-all text-left"
-          >
-            <FileText className="w-6 h-6 text-neutral-700 mb-2" />
-            <p className="font-medium text-neutral-900 text-sm">Projects</p>
-          </button>
-          <button
-            onClick={() => router.push("/study-buddy")}
-            className="p-4 border-2 border-neutral-200 rounded-xl hover:border-neutral-300 transition-all text-left"
-          >
-            <Target className="w-6 h-6 text-neutral-700 mb-2" />
-            <p className="font-medium text-neutral-900 text-sm">AI Mentor</p>
-          </button>
-          <button
-            onClick={() => router.push("/code-editor")}
-            className="p-4 border-2 border-neutral-200 rounded-xl hover:border-neutral-300 transition-all text-left"
-          >
-            <Code className="w-6 h-6 text-neutral-700 mb-2" />
-            <p className="font-medium text-neutral-900 text-sm">Practice</p>
-          </button>
+          {[
+            { icon: Target, label: "View Roadmap", path: "/roadmap/new", color: "blue" },
+            { icon: FileText, label: "Projects", path: "/projects", color: "emerald" },
+            { icon: Brain, label: "AI Mentor", path: "/study-buddy", color: "purple" },
+            { icon: Code, label: "Practice", path: "/code-editor", color: "orange" },
+          ].map((action) => (
+            <button
+              key={action.label}
+              onClick={() => router.push(action.path)}
+              className="p-4 rounded-xl border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all text-left group"
+            >
+              <action.icon className={`w-6 h-6 text-${action.color}-600 mb-2`} />
+              <p className="font-medium text-slate-900 text-sm flex items-center gap-1">
+                {action.label}
+                <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </p>
+            </button>
+          ))}
         </div>
       </motion.div>
     </div>

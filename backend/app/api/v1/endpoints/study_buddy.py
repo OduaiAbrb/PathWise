@@ -1,4 +1,4 @@
-"""AI Study Buddy API endpoints."""
+"""Personal AI Mentor API endpoints (renamed from Study Buddy)."""
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
@@ -8,6 +8,7 @@ from app.db.database import get_db
 from app.core.security import get_current_user_id
 from app.services.study_buddy_service import (
     chat_with_study_buddy,
+    chat_interview_mode,
     explain_concept,
     debug_code,
     generate_quiz,
@@ -27,6 +28,8 @@ class StudyBuddyChatRequest(BaseModel):
     message: str
     conversation_history: List[ChatMessage] = []
     user_context: Optional[dict] = None
+    context: Optional[str] = None  # Additional system context
+    mode: str = "mentor"  # "mentor" or "interview"
 
 
 class ExplainConceptRequest(BaseModel):
@@ -64,16 +67,26 @@ async def chat_endpoint(
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db)
 ):
-    """Chat with AI Study Buddy."""
+    """Chat with Personal AI Mentor (supports interview mode)."""
     try:
-        response = await chat_with_study_buddy(
-            request.message,
-            [{"role": msg.role, "content": msg.content} for msg in request.conversation_history],
-            request.user_context
-        )
+        # Choose handler based on mode
+        if request.mode == "interview":
+            response = await chat_interview_mode(
+                request.message,
+                [{"role": msg.role, "content": msg.content} for msg in request.conversation_history],
+                request.context
+            )
+        else:
+            response = await chat_with_study_buddy(
+                request.message,
+                [{"role": msg.role, "content": msg.content} for msg in request.conversation_history],
+                request.user_context,
+                request.context
+            )
         
         return {
             "success": True,
+            "response": response,
             "data": {
                 "response": response,
                 "timestamp": "now"

@@ -1,59 +1,133 @@
-"""AI Study Buddy service for voice chat and learning assistance."""
+"""Personal AI Mentor service (renamed from Study Buddy) for learning assistance and interview preparation."""
 from typing import List, Optional
-from openai import AsyncOpenAI
+import uuid
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 from app.core.config import settings
 
-client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+# Use Emergent LLM key if available
+API_KEY = settings.EMERGENT_LLM_KEY or settings.OPENAI_API_KEY
+MODEL_NAME = "gpt-4o"
 
-STUDY_BUDDY_SYSTEM_PROMPT = """You are PathWise AI Study Buddy, a friendly and encouraging learning companion. Your role is to:
+# Personal AI Mentor System Prompt (world-class)
+STUDY_BUDDY_SYSTEM_PROMPT = """You are PathWise Personal AI Mentor, the world's most effective career guidance AI. Your role is to:
 
-1. **Explain concepts** - Break down complex topics into simple, digestible explanations
-2. **Answer questions** - Provide clear, accurate answers to learning questions
-3. **Provide encouragement** - Motivate and support learners through their journey
-4. **Suggest resources** - Recommend learning materials when appropriate
-5. **Quiz understanding** - Ask questions to test comprehension
-6. **Debug code** - Help identify and fix coding issues
-7. **Review work** - Provide constructive feedback on projects
+1. **Explain concepts contextually** - Know the user's roadmap and explain how each topic connects to their goal
+2. **Quiz on current roadmap step** - Test understanding with progressively harder questions
+3. **Give strict, honest feedback** - No sugar-coating, no participation trophies
+4. **Track repeated mistakes** - Notice patterns and call them out
+5. **Recommend next actions** - Always end with what to do next
+6. **Debug code** - Help identify and fix coding issues with clear explanations
+7. **Review projects** - Provide constructive but direct feedback
 
-Be conversational, patient, and adapt your explanations to the user's level. Use analogies and examples to make concepts clear."""
+You MUST always know:
+- User's target role
+- Current position in roadmap
+- Weakest skills that need attention
+- Interview readiness level
+
+Be direct, professional, and focused on outcomes. Use examples and analogies, but keep responses efficient and actionable."""
+
+# Interview Pressure Mode System Prompt
+INTERVIEW_MODE_SYSTEM_PROMPT = """You are a strict, senior tech interviewer at a top company (think Google/Meta level). 
+
+Your role:
+1. **Ask probing technical questions** - Go deep, ask follow-ups
+2. **Give harsh, honest feedback** - Real interviewers don't coddle
+3. **Score responses 1-10** with specific reasons
+4. **Simulate rejection** if answer is poor (e.g., "Unfortunately, we won't be moving forward with your application because...")
+5. **Time pressure awareness** - Remind candidate when they're taking too long
+6. **Follow-up questions** - Dig into weak spots
+
+Interview topics:
+- System Design
+- Data Structures & Algorithms
+- Behavioral (STAR method expected)
+- Technical Problem Solving
+- Code Review
+
+BE STRICT. This is training for real interviews where rejection is the default outcome."""
 
 
 async def chat_with_study_buddy(
     message: str,
     conversation_history: List[dict],
-    user_context: Optional[dict] = None
+    user_context: Optional[dict] = None,
+    additional_context: Optional[str] = None
 ) -> str:
-    """Have a conversation with the AI Study Buddy."""
+    """Have a conversation with the Personal AI Mentor."""
     
-    messages = [{"role": "system", "content": STUDY_BUDDY_SYSTEM_PROMPT}]
+    system_msg = STUDY_BUDDY_SYSTEM_PROMPT
+    
+    # Add additional context if provided (from frontend)
+    if additional_context:
+        system_msg += f"\n\n{additional_context}"
     
     # Add user context if available
     if user_context:
-        context_msg = f"""User Context:
+        system_msg += f"""
+
+User Context:
 - Current Learning: {user_context.get('current_skill', 'Not specified')}
 - Skill Level: {user_context.get('skill_level', 'beginner')}
 - Recent Topics: {', '.join(user_context.get('recent_topics', []))}"""
-        messages.append({"role": "system", "content": context_msg})
-    
-    # Add conversation history
-    for msg in conversation_history[-20:]:  # Last 20 messages
-        messages.append({"role": msg["role"], "content": msg["content"]})
-    
-    # Add current message
-    messages.append({"role": "user", "content": message})
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=messages,
-            temperature=0.7,
-            max_tokens=1500,
-        )
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"mentor-{uuid.uuid4()}",
+            system_message=system_msg
+        ).with_model("openai", MODEL_NAME)
         
-        return response.choices[0].message.content
+        # Add conversation history as messages
+        for msg in conversation_history[-20:]:
+            chat.messages.append({"role": msg["role"], "content": msg["content"]})
+        
+        user_message = UserMessage(text=message)
+        response = await chat.send_message(user_message)
+        
+        return response
         
     except Exception as e:
-        print(f"Study Buddy error: {e}")
+        print(f"Personal AI Mentor error: {e}")
+        raise
+
+
+async def chat_interview_mode(
+    message: str,
+    conversation_history: List[dict],
+    user_context: Optional[str] = None
+) -> str:
+    """Interview Pressure Mode - strict interviewer simulation."""
+    
+    system_msg = INTERVIEW_MODE_SYSTEM_PROMPT
+    
+    # Add user context if provided
+    if user_context:
+        system_msg += f"\n\n{user_context}"
+    
+    try:
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"interview-{uuid.uuid4()}",
+            system_message=system_msg
+        ).with_model("openai", MODEL_NAME)
+        
+        # Add conversation history
+        for msg in conversation_history[-10:]:
+            chat.messages.append({"role": msg["role"], "content": msg["content"]})
+        
+        user_message = UserMessage(text=message)
+        response = await chat.send_message(user_message)
+        
+        return response
+        
+    except Exception as e:
+        print(f"Interview mode error: {e}")
         raise
 
 
@@ -72,17 +146,16 @@ Include:
 Keep it clear and engaging."""
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": STUDY_BUDDY_SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=1000,
-        )
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"explain-{uuid.uuid4()}",
+            system_message=STUDY_BUDDY_SYSTEM_PROMPT
+        ).with_model("openai", MODEL_NAME)
         
-        return response.choices[0].message.content
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
+        
+        return response
         
     except Exception as e:
         print(f"Concept explanation error: {e}")
@@ -108,20 +181,17 @@ Provide:
 4. Best practices to avoid this in the future"""
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": STUDY_BUDDY_SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.5,
-            max_tokens=1500,
-        )
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"debug-{uuid.uuid4()}",
+            system_message=STUDY_BUDDY_SYSTEM_PROMPT
+        ).with_model("openai", MODEL_NAME)
         
-        content = response.choices[0].message.content
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
         
         return {
-            "explanation": content,
+            "explanation": response,
             "language": language,
         }
         
@@ -145,22 +215,28 @@ Format as JSON:
       "explanation": "Why this is correct"
     }}
   ]
-}}"""
+}}
+
+Output ONLY valid JSON, nothing else."""
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": "You are a quiz generator. Output valid JSON only."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=2000,
-            response_format={"type": "json_object"}
-        )
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"quiz-{uuid.uuid4()}",
+            system_message="You are a quiz generator. Output valid JSON only."
+        ).with_model("openai", MODEL_NAME)
+        
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
         
         import json
-        return json.loads(response.choices[0].message.content)
+        # Parse JSON from response
+        if "```json" in response:
+            response = response.split("```json")[1].split("```")[0]
+        elif "```" in response:
+            response = response.split("```")[1].split("```")[0]
+            
+        return json.loads(response.strip())
         
     except Exception as e:
         print(f"Quiz generation error: {e}")
@@ -194,22 +270,26 @@ Provide:
 4. Specific suggestions
 5. Next steps
 
-Format as JSON."""
+Format as JSON only."""
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": STUDY_BUDDY_SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.6,
-            max_tokens=2000,
-            response_format={"type": "json_object"}
-        )
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"review-{uuid.uuid4()}",
+            system_message=STUDY_BUDDY_SYSTEM_PROMPT
+        ).with_model("openai", MODEL_NAME)
+        
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
         
         import json
-        return json.loads(response.choices[0].message.content)
+        # Parse JSON from response
+        if "```json" in response:
+            response = response.split("```json")[1].split("```")[0]
+        elif "```" in response:
+            response = response.split("```")[1].split("```")[0]
+            
+        return json.loads(response.strip())
         
     except Exception as e:
         print(f"Project review error: {e}")
@@ -236,22 +316,26 @@ Provide a structured learning plan with:
 3. Recommended resources
 4. Milestones to track progress
 
-Format as JSON."""
+Format as JSON only."""
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": STUDY_BUDDY_SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=2500,
-            response_format={"type": "json_object"}
-        )
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"path-{uuid.uuid4()}",
+            system_message=STUDY_BUDDY_SYSTEM_PROMPT
+        ).with_model("openai", MODEL_NAME)
+        
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
         
         import json
-        return json.loads(response.choices[0].message.content)
+        # Parse JSON from response
+        if "```json" in response:
+            response = response.split("```json")[1].split("```")[0]
+        elif "```" in response:
+            response = response.split("```")[1].split("```")[0]
+            
+        return json.loads(response.strip())
         
     except Exception as e:
         print(f"Learning path error: {e}")

@@ -127,6 +127,22 @@ export default function NewRoadmapPage() {
       console.log("🔑 Token present:", !!accessToken);
       console.log("📝 Payload:", { job_description: jobDescription.substring(0, 50) + "...", skill_level: skillLevel, industry });
 
+      // Test token first
+      console.log("🧪 Testing token validity...");
+      const tokenTest = await fetch(getApiUrl("/api/v1/auth/verify-token"), {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      console.log("🧪 Token test response:", tokenTest.status);
+      if (!tokenTest.ok) {
+        const errorData = await tokenTest.json().catch(() => ({}));
+        console.error("❌ Token test failed:", errorData);
+        setError("Authentication token is invalid. Please sign out and sign in again.");
+        return;
+      }
+      console.log("✅ Token is valid, proceeding with roadmap generation...");
+
       const response = await fetch(getApiUrl("/api/v1/roadmaps/generate"), {
         method: "POST",
         headers: {

@@ -195,3 +195,17 @@ async def get_current_user(
             "created_at": user.created_at.isoformat(),
         }
     }
+
+
+@router.get("/verify-token", response_model=dict)
+async def verify_token_endpoint(
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Debug endpoint to verify token is working."""
+    print(f"✅ Token verification successful for user: {user_id}")
+    return {
+        "success": True,
+        "message": "Token is valid",
+        "user_id": user_id,
+    }

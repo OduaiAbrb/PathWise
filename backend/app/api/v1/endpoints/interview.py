@@ -6,7 +6,7 @@ from typing import List, Optional
 import uuid
 from datetime import datetime
 
-from app.db.session import get_db
+from app.db.database import get_db
 from app.core.security import get_current_user_id
 from app.models.portfolio import InterviewSession
 from app.services.ai_service import generate_interview_questions, evaluate_interview_response

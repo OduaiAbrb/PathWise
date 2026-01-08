@@ -4,10 +4,10 @@ from sqlalchemy import select
 from typing import Optional
 import uuid
 
-from app.db.session import get_db
+from app.db.database import get_db
 from app.core.security import get_current_user_id
 from app.models.portfolio import Portfolio
-from app.models.roadmap import Roadmap
+from app.db.models import Roadmap
 from app.services.ai_service import generate_portfolio_content
 
 router = APIRouter()

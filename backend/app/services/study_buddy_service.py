@@ -83,12 +83,9 @@ User Context:
             system_message=system_msg
         ).with_model("openai", MODEL_NAME)
         
-        # Add conversation history
+        # Add conversation history as messages
         for msg in conversation_history[-20:]:
-            if msg["role"] == "user":
-                chat.messages.append(UserMessage(text=msg["content"]))
-            else:
-                chat.messages.append(AssistantMessage(text=msg["content"]))
+            chat.messages.append({"role": msg["role"], "content": msg["content"]})
         
         user_message = UserMessage(text=message)
         response = await chat.send_message(user_message)
@@ -122,10 +119,7 @@ async def chat_interview_mode(
         
         # Add conversation history
         for msg in conversation_history[-10:]:
-            if msg["role"] == "user":
-                chat.messages.append(UserMessage(text=msg["content"]))
-            else:
-                chat.messages.append(AssistantMessage(text=msg["content"]))
+            chat.messages.append({"role": msg["role"], "content": msg["content"]})
         
         user_message = UserMessage(text=message)
         response = await chat.send_message(user_message)

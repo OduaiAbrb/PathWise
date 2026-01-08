@@ -34,7 +34,7 @@ const industries = [
 
 export default function NewRoadmapPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const accessToken = (session as { accessToken?: string })?.accessToken;
 
   const [jobDescription, setJobDescription] = useState("");
@@ -89,8 +89,14 @@ export default function NewRoadmapPage() {
       return;
     }
 
-    if (!accessToken) {
-      setError("Please sign in to generate a roadmap");
+    // Better session validation
+    if (status === "loading") {
+      setError("Loading session... please wait a moment and try again.");
+      return;
+    }
+
+    if (status === "unauthenticated" || !session || !accessToken) {
+      setError("Authentication required. Please refresh the page and sign in again.");
       return;
     }
 
@@ -134,7 +140,7 @@ export default function NewRoadmapPage() {
         const data = await response.json();
         router.push(`/roadmap/${data.data?.id || data.id}`);
       } else if (response.status === 401 || response.status === 403) {
-        setError("Please sign in to generate roadmaps. If you're already signed in, try refreshing the page.");
+        setError("Session expired. Please refresh the page and sign in again.");
       } else if (response.status === 429) {
         setError("Free accounts are limited to 3 roadmaps. Upgrade to create more.");
       } else {
@@ -288,10 +294,15 @@ export default function NewRoadmapPage() {
         {/* Generate Button */}
         <button
           onClick={handleGenerate}
-          disabled={isGenerating || !jobDescription.trim()}
+          disabled={isGenerating || !jobDescription.trim() || status === "loading"}
           className="btn-primary w-full justify-center"
         >
-          {isGenerating ? (
+          {status === "loading" ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Loading session...
+            </>
+          ) : isGenerating ? (
             <>
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               {generationSteps[generationStep]}

@@ -61,36 +61,39 @@ async def chat_with_study_buddy(
 ) -> str:
     """Have a conversation with the Personal AI Mentor."""
     
-    messages = [{"role": "system", "content": STUDY_BUDDY_SYSTEM_PROMPT}]
+    system_msg = STUDY_BUDDY_SYSTEM_PROMPT
     
     # Add additional context if provided (from frontend)
     if additional_context:
-        messages.append({"role": "system", "content": additional_context})
+        system_msg += f"\n\n{additional_context}"
     
     # Add user context if available
     if user_context:
-        context_msg = f"""User Context:
+        system_msg += f"""
+
+User Context:
 - Current Learning: {user_context.get('current_skill', 'Not specified')}
 - Skill Level: {user_context.get('skill_level', 'beginner')}
 - Recent Topics: {', '.join(user_context.get('recent_topics', []))}"""
-        messages.append({"role": "system", "content": context_msg})
-    
-    # Add conversation history
-    for msg in conversation_history[-20:]:  # Last 20 messages
-        messages.append({"role": msg["role"], "content": msg["content"]})
-    
-    # Add current message
-    messages.append({"role": "user", "content": message})
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=messages,
-            temperature=0.7,
-            max_tokens=1500,
-        )
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"mentor-{uuid.uuid4()}",
+            system_message=system_msg
+        ).with_model("openai", MODEL_NAME)
         
-        return response.choices[0].message.content
+        # Add conversation history
+        for msg in conversation_history[-20:]:
+            if msg["role"] == "user":
+                chat.messages.append(UserMessage(text=msg["content"]))
+            else:
+                chat.messages.append(AssistantMessage(text=msg["content"]))
+        
+        user_message = UserMessage(text=message)
+        response = await chat.send_message(user_message)
+        
+        return response
         
     except Exception as e:
         print(f"Personal AI Mentor error: {e}")
@@ -104,28 +107,30 @@ async def chat_interview_mode(
 ) -> str:
     """Interview Pressure Mode - strict interviewer simulation."""
     
-    messages = [{"role": "system", "content": INTERVIEW_MODE_SYSTEM_PROMPT}]
+    system_msg = INTERVIEW_MODE_SYSTEM_PROMPT
     
     # Add user context if provided
     if user_context:
-        messages.append({"role": "system", "content": user_context})
-    
-    # Add conversation history
-    for msg in conversation_history[-10:]:  # Last 10 messages for interview
-        messages.append({"role": msg["role"], "content": msg["content"]})
-    
-    # Add current message
-    messages.append({"role": "user", "content": message})
+        system_msg += f"\n\n{user_context}"
     
     try:
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=messages,
-            temperature=0.8,  # Slightly higher for variety in questions
-            max_tokens=1000,
-        )
+        chat = LlmChat(
+            api_key=API_KEY,
+            session_id=f"interview-{uuid.uuid4()}",
+            system_message=system_msg
+        ).with_model("openai", MODEL_NAME)
         
-        return response.choices[0].message.content
+        # Add conversation history
+        for msg in conversation_history[-10:]:
+            if msg["role"] == "user":
+                chat.messages.append(UserMessage(text=msg["content"]))
+            else:
+                chat.messages.append(AssistantMessage(text=msg["content"]))
+        
+        user_message = UserMessage(text=message)
+        response = await chat.send_message(user_message)
+        
+        return response
         
     except Exception as e:
         print(f"Interview mode error: {e}")

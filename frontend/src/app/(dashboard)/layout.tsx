@@ -19,6 +19,10 @@ import {
   Bell,
   Brain,
   Users,
+  Briefcase,
+  MessageSquare,
+  Zap,
+  Award,
 } from "lucide-react";
 import NotificationSystem from "@/components/NotificationSystem";
 
@@ -43,13 +47,16 @@ import NotificationSystem from "@/components/NotificationSystem";
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, description: "Today's Mission" },
   { href: "/roadmap/new", label: "Roadmap", icon: Map, description: "Your learning path" },
-  { href: "/projects", label: "Projects", icon: Lightbulb, description: "Build proof of skills" },
+  { href: "/interview", label: "Interview Prep", icon: MessageSquare, description: "Practice interviews" },
+  { href: "/portfolio", label: "Portfolio", icon: Briefcase, description: "Showcase your work" },
   { href: "/study-buddy", label: "AI Mentor", icon: Brain, description: "Personal guidance" },
 ];
 
 // Secondary items (collapsed by default)
 const secondaryItems = [
-  { href: "/groups", label: "Study Groups", icon: Users },
+  { href: "/partners", label: "Find Partner", icon: Users, description: "Accountability buddy" },
+  { href: "/projects", label: "Projects", icon: Lightbulb, description: "Build proof" },
+  { href: "/groups", label: "Study Groups", icon: Users, description: "Community" },
 ];
 
 export default function DashboardLayout({

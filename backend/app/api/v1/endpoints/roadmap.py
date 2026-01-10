@@ -17,7 +17,7 @@ from app.schemas.roadmap import (
 )
 from app.core.security import get_current_user_id
 from app.services.ai_service import generate_roadmap
-from app.services.resource_service import enrich_roadmap_with_resources, get_resources_for_skill
+from app.services.resource_service_v2 import enrich_roadmap_with_resources, get_resources_for_skill
 
 router = APIRouter()
 

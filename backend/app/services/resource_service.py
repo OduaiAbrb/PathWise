@@ -1,9 +1,19 @@
 """
-Resource Service - Curated Learning Resources
+Resource Service - Curated Learning Resources with Health Checking
 Maintainable approach for fetching resources based on skills and user tier
+
+Features:
+- Curated, verified resources with fallbacks
+- Automated health checking
+- User report handling
+- Dynamic version-agnostic URLs for official docs
+- Tier-based access control
 """
 
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
+import asyncio
+import aiohttp
+from datetime import datetime, timedelta
 import json
 
 # Curated resource database - organized by skill category

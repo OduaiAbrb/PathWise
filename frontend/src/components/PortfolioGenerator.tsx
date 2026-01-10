@@ -35,15 +35,55 @@ export default function PortfolioGenerator() {
     setError("");
 
     try {
-      const response = await fetch(getApiUrl("/api/v1/portfolio/generate"), {
-        method: "POST",
+      // First, fetch user's roadmap progress and skills
+      const roadmapResponse = await fetch(getApiUrl("/api/v1/roadmaps?limit=1"), {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
 
+      if (!roadmapResponse.ok) {
+        throw new Error("Please create a roadmap first before generating your portfolio");
+      }
+
+      const roadmapData = await roadmapResponse.json();
+      const roadmap = roadmapData.data?.[0];
+
+      if (!roadmap) {
+        throw new Error("No roadmap found. Create a roadmap to generate your portfolio");
+      }
+
+      // Extract completed skills and progress
+      const completedSkills = roadmap.phases
+        ?.flatMap((phase: any) => phase.skills || [])
+        .filter((skill: any) => skill.status === "completed")
+        .map((skill: any) => skill.name) || [];
+
+      const inProgressSkills = roadmap.phases
+        ?.flatMap((phase: any) => phase.skills || [])
+        .filter((skill: any) => skill.status === "in_progress")
+        .map((skill: any) => skill.name) || [];
+
+      const overallProgress = roadmap.overall_progress || 0;
+
+      // Generate portfolio with realistic context
+      const response = await fetch(getApiUrl("/api/v1/portfolio/generate"), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          target_role: roadmap.job_title,
+          completed_skills: completedSkills,
+          in_progress_skills: inProgressSkills,
+          overall_progress: overallProgress,
+          experience_level: roadmap.experience_level || "beginner",
+        }),
+      });
+
       if (!response.ok) {
-        throw new Error("Failed to generate portfolio");
+        throw new Error("Failed to generate portfolio based on your progress");
       }
 
       const data = await response.json();

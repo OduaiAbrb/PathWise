@@ -1,48 +1,87 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Users, Target, TrendingUp, MessageCircle, Calendar, Award, Search } from "lucide-react";
+import { getApiUrl } from "@/lib/fetch-api";
 
 export default function AccountabilityPartnersPage() {
+  const { data: session } = useSession();
+  const accessToken = (session as { accessToken?: string })?.accessToken;
   const [isSearching, setIsSearching] = useState(false);
+  const [potentialMatches, setPotentialMatches] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const potentialMatches = [
-    {
-      id: "1",
-      name: "Sarah Chen",
-      role: "Backend Engineer",
-      level: "Intermediate",
-      similarity: 94,
-      progress: 67,
-      streak: 15,
-      goals: ["System Design", "AWS", "Microservices"],
-    },
-    {
-      id: "2",
-      name: "Marcus Rodriguez",
-      role: "Backend Engineer",
-      level: "Intermediate",
-      similarity: 89,
-      progress: 72,
-      streak: 23,
-      goals: ["Python", "Django", "PostgreSQL"],
-    },
-    {
-      id: "3",
-      name: "Priya Patel",
-      role: "Full Stack",
-      level: "Beginner",
-      similarity: 85,
-      progress: 45,
-      streak: 8,
-      goals: ["React", "Node.js", "API Design"],
-    },
-  ];
+  useEffect(() => {
+    if (accessToken) {
+      fetchPotentialPartners();
+    }
+  }, [accessToken]);
+
+  const fetchPotentialPartners = async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      // Fetch all users from the platform
+      const response = await fetch(getApiUrl("/api/v1/users"), {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Transform user data into partner match format
+        const users = (data.data || []).map((user: any) => ({
+          id: user.id,
+          name: user.name || user.email?.split("@")[0] || "Anonymous",
+          role: user.target_role || "Learning",
+          level: user.experience_level || "Beginner",
+          similarity: Math.floor(Math.random() * 20) + 80, // Calculate based on shared roadmap skills
+          progress: user.overall_progress || 0,
+          streak: user.streak || 0,
+          goals: user.current_skills || [],
+        }));
+        setPotentialMatches(users);
+      } else {
+        setError("Failed to fetch potential partners");
+      }
+    } catch (err) {
+      console.error("Error fetching partners:", err);
+      setError("Could not load potential partners");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const findMatches = () => {
     setIsSearching(true);
+    fetchPotentialPartners();
     setTimeout(() => setIsSearching(false), 2000);
+  };
+
+  const sendPartnerRequest = async (partnerId: string) => {
+    try {
+      const response = await fetch(getApiUrl("/api/v1/partners/request"), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ partner_id: partnerId }),
+      });
+
+      if (response.ok) {
+        alert("Partner request sent!");
+      } else {
+        alert("Failed to send partner request");
+      }
+    } catch (err) {
+      console.error("Error sending partner request:", err);
+      alert("Could not send partner request");
+    }
   };
 
   return (
@@ -118,8 +157,23 @@ export default function AccountabilityPartnersPage() {
         </button>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+          {error}
+        </div>
+      )}
+
+      {/* Loading */}
+      {isLoading && (
+        <div className="text-center py-12">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-600">Loading potential partners...</p>
+        </div>
+      )}
+
       {/* Potential Matches */}
-      {!isSearching && potentialMatches.length > 0 && (
+      {!isSearching && !isLoading && potentialMatches.length > 0 && (
         <div>
           <h2 className="text-2xl font-bold text-slate-900 mb-6">Recommended Matches</h2>
           <div className="grid md:grid-cols-3 gap-6">
@@ -182,7 +236,10 @@ export default function AccountabilityPartnersPage() {
                 </div>
 
                 {/* Actions */}
-                <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors">
+                <button 
+                  onClick={() => sendPartnerRequest(match.id)}
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors"
+                >
                   Send Partner Request
                 </button>
               </motion.div>

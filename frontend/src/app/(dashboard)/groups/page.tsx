@@ -59,7 +59,8 @@ export default function GroupsPage() {
   const fetchGroups = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(getApiUrl("/api/v1/social/groups"), {
+      // Fetch ALL groups globally (including groups created by other users)
+      const response = await fetch(getApiUrl("/api/v1/social/groups?scope=all"), {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -67,12 +68,29 @@ export default function GroupsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setGroups(data.data || []);
+        const allGroups = data.data || [];
+        
+        // Transform backend data to match our interface
+        const formattedGroups = allGroups.map((group: any) => ({
+          id: group.id,
+          name: group.name,
+          description: group.description || "No description provided",
+          members: group.member_count || 0,
+          maxMembers: group.max_members || 50,
+          topic: group.topic || "General",
+          isPrivate: group.is_private || false,
+          nextSession: group.next_session || null,
+          joined: group.is_member || false,
+        }));
+        
+        setGroups(formattedGroups);
       } else {
-        // Use suggested groups based on user's roadmap
+        console.error("Failed to fetch groups");
+        // Still try to show suggested groups if API fails
         setGroups(getSuggestedGroups());
       }
     } catch (error) {
+      console.error("Error fetching groups:", error);
       setGroups(getSuggestedGroups());
     } finally {
       setIsLoading(false);

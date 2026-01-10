@@ -17,6 +17,7 @@ from app.schemas.roadmap import (
 )
 from app.core.security import get_current_user_id
 from app.services.ai_service import generate_roadmap
+from app.services.resource_service import enrich_roadmap_with_resources, get_resources_for_skill
 
 router = APIRouter()
 
@@ -166,13 +167,19 @@ async def get_roadmap(
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db)
 ):
-    """Get a specific roadmap with full details."""
+    """Get a specific roadmap with full details and curated resources."""
     # Convert IDs to UUID
     try:
         user_uuid = uuid.UUID(user_id)
         roadmap_uuid = uuid.UUID(roadmap_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid ID format")
+    
+    # Get user tier for resource filtering
+    user_result = await db.execute(select(User).where(User.id == user_uuid))
+    user = user_result.scalar_one_or_none()
+    user_tier = user.tier if user else "free"
+    
     result = await db.execute(
         select(Roadmap)
         .where(Roadmap.id == roadmap_uuid, Roadmap.user_id == user_uuid)
@@ -190,13 +197,15 @@ async def get_roadmap(
     
     progress_map = {p.skill_id: p for p in progress_items}
     
-    # Merge progress into phases
+    # Merge progress into phases and enrich with curated resources
     phases_with_progress = []
     for phase in roadmap.phases or []:
         phase_copy = phase.copy()
         skills_with_progress = []
         for skill in phase.get("skills", []):
             skill_copy = skill.copy()
+            
+            # Add progress
             progress = progress_map.get(skill["id"])
             if progress:
                 skill_copy["progress"] = {
@@ -206,6 +215,16 @@ async def get_roadmap(
                 }
             else:
                 skill_copy["progress"] = {"status": "not_started", "time_spent_minutes": 0}
+            
+            # Enrich with curated resources based on user tier
+            curated_resources = get_resources_for_skill(
+                skill.get("name", ""),
+                user_tier=user_tier,
+                difficulty=skill.get("difficulty")
+            )
+            if curated_resources:
+                skill_copy["resources"] = curated_resources
+            
             skills_with_progress.append(skill_copy)
         phase_copy["skills"] = skills_with_progress
         phases_with_progress.append(phase_copy)
@@ -224,6 +243,7 @@ async def get_roadmap(
             "completion_percentage": roadmap.completion_percentage,
             "status": roadmap.status,
             "generated_at": roadmap.generated_at.isoformat(),
+            "user_tier": user_tier,
         }
     }
 
@@ -336,6 +356,38 @@ async def log_time(
         }
     
     raise HTTPException(status_code=404, detail="Skill not found in roadmap")
+
+
+@router.get("/{roadmap_id}/resources/{skill_name}", response_model=dict)
+async def get_skill_resources(
+    roadmap_id: str,
+    skill_name: str,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get curated resources for a specific skill based on user tier."""
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid user ID format")
+    
+    # Get user tier
+    user_result = await db.execute(select(User).where(User.id == user_uuid))
+    user = user_result.scalar_one_or_none()
+    user_tier = user.tier if user else "free"
+    
+    # Get resources for the skill
+    resources = get_resources_for_skill(skill_name, user_tier=user_tier)
+    
+    return {
+        "success": True,
+        "data": {
+            "skill_name": skill_name,
+            "user_tier": user_tier,
+            "resources": resources,
+            "resource_count": len(resources),
+        }
+    }
 
 
 @router.delete("/{roadmap_id}", response_model=dict)

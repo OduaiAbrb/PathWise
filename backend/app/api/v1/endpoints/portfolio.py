@@ -7,7 +7,7 @@ import uuid
 from app.db.database import get_db
 from app.core.security import get_current_user_id
 from app.models.portfolio import Portfolio
-from app.db.models import Roadmap
+from app.db.models import Roadmap, User
 from app.services.ai_service import generate_portfolio_content
 
 router = APIRouter()
@@ -21,6 +21,13 @@ async def generate_portfolio(
 ):
     """Generate a portfolio from roadmap progress"""
     print(f"📁 Generating portfolio for user: {user_id}")
+    
+    # Get user info
+    user_result = await db.execute(
+        select(User).where(User.id == uuid.UUID(user_id))
+    )
+    user = user_result.scalar_one_or_none()
+    user_name = user.full_name if user and user.full_name else "User"
     
     # Get user's roadmap
     roadmap = None
@@ -37,7 +44,7 @@ async def generate_portfolio(
         result = await db.execute(
             select(Roadmap)
             .where(Roadmap.user_id == uuid.UUID(user_id))
-            .order_by(Roadmap.created_at.desc())
+            .order_by(Roadmap.generated_at.desc())
         )
         roadmap = result.scalars().first()
     
@@ -59,7 +66,7 @@ async def generate_portfolio(
     new_portfolio = Portfolio(
         user_id=uuid.UUID(user_id),
         roadmap_id=roadmap.id,
-        title=f"{roadmap.job_title} Portfolio",
+        title=f"{user_name}'s {roadmap.job_title} Portfolio",
         tagline=portfolio_data.get("tagline"),
         bio=portfolio_data.get("bio"),
         resume_bullets=portfolio_data.get("resume_bullets", []),

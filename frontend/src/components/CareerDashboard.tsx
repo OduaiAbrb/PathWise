@@ -25,6 +25,9 @@ import {
   Brain,
   Flame,
 } from "lucide-react";
+import ReadinessConfidenceMeter from "./ReadinessConfidenceMeter";
+import TimeToJobEstimator from "./TimeToJobEstimator";
+import RegretPreview from "./RegretPreview";
 
 interface TodaysMission {
   id: string;
@@ -549,12 +552,53 @@ export default function CareerDashboard() {
         </motion.div>
       </div>
 
+      {/* Premium Features Grid */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Readiness vs Confidence */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <ReadinessConfidenceMeter
+            technicalReadiness={readinessScore?.technical || 0}
+            interviewConfidence={readinessScore?.interview || 0}
+            targetRole={targetRole}
+          />
+        </motion.div>
+
+        {/* Time to Job Estimator */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+        >
+          <TimeToJobEstimator
+            targetRole={targetRole}
+            currentProgress={readinessScore?.overall || 0}
+            weeklyHours={10}
+            consistencyScore={currentStreak > 0 ? Math.min(100, currentStreak * 10) : 50}
+          />
+        </motion.div>
+      </div>
+
+      {/* Regret Preview */}
+      {targetRole && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <RegretPreview targetRole={targetRole} />
+        </motion.div>
+      )}
+
       {/* My Roadmaps Section */}
       {roadmaps.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.55 }}
           className="bg-white rounded-2xl border border-slate-200 p-6"
         >
           <div className="flex items-center justify-between mb-6">

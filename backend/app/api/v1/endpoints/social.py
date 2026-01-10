@@ -180,6 +180,42 @@ async def get_messages(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/groups", response_model=dict)
+async def list_all_groups(
+    scope: Optional[str] = "all",
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """List all study groups (for discovery)."""
+    try:
+        # Get all public groups
+        groups = await search_study_groups(db, topic=None, query=None)
+        
+        # Get user's groups to mark which ones they're in
+        user_groups = await get_user_groups(db, user_id)
+        user_group_ids = {str(g["group"].id) for g in user_groups}
+        
+        return {
+            "success": True,
+            "data": [
+                {
+                    "id": str(g.id),
+                    "name": g.name,
+                    "description": g.description,
+                    "topic": g.topic,
+                    "member_count": g.member_count,
+                    "max_members": g.max_members,
+                    "is_private": g.is_private,
+                    "is_member": str(g.id) in user_group_ids,
+                }
+                for g in groups
+            ]
+        }
+    except Exception as e:
+        print(f"❌ Error fetching groups: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/groups/search", response_model=dict)
 async def search_groups(
     topic: Optional[str] = None,

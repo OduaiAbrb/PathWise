@@ -362,31 +362,72 @@ async def generate_interview_questions(
 ) -> list:
     """Generate interview questions for simulation"""
     
-    prompt = f"""Generate {session_type} interview questions for a {target_role} position.
+    print(f"🎯 Generating {session_type} questions for {target_role} ({difficulty})")
+    
+    # Build type-specific instructions
+    type_instructions = {
+        "coding": """Generate exactly 3 CODING interview questions.
+These must be algorithm/data structure problems like:
+- Array manipulation, string processing
+- Tree/graph traversal
+- Dynamic programming (for hard difficulty)
+- Time/space complexity analysis
+Each question should have example input/output.""",
+        
+        "system_design": """Generate exactly 3 SYSTEM DESIGN interview questions.
+These must be architecture/scalability problems like:
+- Design a URL shortener
+- Design a chat application
+- Design a rate limiter
+- Design a notification system
+Focus on scalability, trade-offs, and component design.""",
+        
+        "behavioral": """Generate exactly 5 BEHAVIORAL interview questions.
+These must be STAR method questions like:
+- Tell me about a time you faced a conflict
+- Describe a challenging project you led
+- How do you handle tight deadlines
+- Give an example of when you failed
+Focus on leadership, teamwork, problem-solving.""",
+        
+        "full_mock": """Generate a MIX of questions:
+- 2 coding problems
+- 2 system design questions  
+- 4 behavioral questions
+This simulates a full interview loop."""
+    }
+    
+    instructions = type_instructions.get(session_type, type_instructions["coding"])
+    
+    prompt = f"""You are interviewing a candidate for: {target_role}
+Difficulty level: {difficulty}
 
-Difficulty: {difficulty}
-Session type: {session_type}
+{instructions}
 
-Requirements:
-- For coding: Include 3 coding problems with examples
-- For system_design: Include 2 system design scenarios
-- For behavioral: Include 5 STAR method questions
-- For full_mock: Mix of all types (8 questions total)
+CRITICAL: Generate questions that match the TYPE specified above.
+- If system_design: NO coding problems, only architecture questions
+- If behavioral: NO technical problems, only STAR questions
+- If coding: Focus on algorithms and data structures
 
-Output as JSON array with format:
-[{{
-  "id": "unique_id",
-  "type": "coding|system_design|behavioral",
-  "question": "question text",
-  "hints": ["hint1", "hint2"],
-  "ideal_answer": "what a strong answer includes"
-}}]"""
+Output as JSON with this EXACT format:
+{{
+  "questions": [
+    {{
+      "id": "q1",
+      "type": "{session_type}",
+      "question": "Full question text here",
+      "hints": ["hint 1", "hint 2"],
+      "ideal_answer": "Key points a strong answer should include",
+      "time_limit_minutes": 15
+    }}
+  ]
+}}"""
 
     try:
         response = await client.chat.completions.create(
             model=settings.OPENAI_MODEL,
             messages=[
-                {"role": "system", "content": "You are an expert technical interviewer."},
+                {"role": "system", "content": f"You are an expert {session_type} interviewer at a top tech company. Generate ONLY {session_type} questions."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
@@ -395,10 +436,13 @@ Output as JSON array with format:
         )
         
         result = json.loads(response.choices[0].message.content)
-        return result.get("questions", [])
+        questions = result.get("questions", result if isinstance(result, list) else [])
+        
+        print(f"✅ Generated {len(questions)} {session_type} questions")
+        return questions
         
     except Exception as e:
-        print(f"Interview question generation error: {e}")
+        print(f"❌ Interview question generation error: {e}")
         raise
 
 

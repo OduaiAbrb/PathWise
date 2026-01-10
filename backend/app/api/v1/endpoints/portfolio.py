@@ -27,7 +27,7 @@ async def generate_portfolio(
         select(User).where(User.id == uuid.UUID(user_id))
     )
     user = user_result.scalar_one_or_none()
-    user_name = user.full_name if user and user.full_name else "User"
+    user_name = user.name if user and user.name else "User"
     
     # Get user's roadmap
     roadmap = None

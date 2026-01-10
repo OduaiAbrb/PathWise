@@ -4,7 +4,7 @@ from app.api.v1.endpoints import (
     auth, roadmap, chat, payments, gamification, study_buddy, 
     resume, projects, mentors, social, scheduler, income,
     readiness, jd_comparison, career, jd_aggregator,
-    portfolio, interview, challenges
+    portfolio, interview, challenges, users
 )
 
 api_router = APIRouter()
@@ -28,3 +28,4 @@ api_router.include_router(jd_aggregator.router, prefix="/jd-aggregator", tags=["
 api_router.include_router(portfolio.router, prefix="/portfolio", tags=["Portfolio Generator"])
 api_router.include_router(interview.router, prefix="/interview", tags=["Interview Simulation"])
 api_router.include_router(challenges.router, prefix="/challenges", tags=["Daily Challenges"])
+api_router.include_router(users.router, prefix="/users", tags=["Users"])

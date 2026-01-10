@@ -44,9 +44,9 @@ import NotificationSystem from "@/components/NotificationSystem";
  */
 
 // Streamlined navigation - only essential items
+// ROADMAP REMOVED: Now integrated into dashboard only (single roadmap per user)
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, description: "Today's Mission" },
-  { href: "/roadmap", label: "My Roadmaps", icon: Map, description: "View all roadmaps" },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, description: "Roadmap & Stats" },
   { href: "/interview", label: "Interview Prep", icon: MessageSquare, description: "Practice interviews" },
   { href: "/portfolio", label: "Portfolio", icon: Briefcase, description: "Showcase your work" },
   { href: "/study-buddy", label: "AI Mentor", icon: Brain, description: "Personal guidance" },

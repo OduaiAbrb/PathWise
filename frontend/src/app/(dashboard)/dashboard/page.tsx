@@ -1,11 +1,11 @@
 "use client";
 
-import CareerDashboard from "@/components/CareerDashboard";
+import BlackWhiteDashboard from "@/components/BlackWhiteDashboard";
 
-export default function DashboardPage() {
+export default function Dashboard() {
   return (
     <div className="max-w-7xl mx-auto">
-      <CareerDashboard />
+      <BlackWhiteDashboard />
     </div>
   );
 }

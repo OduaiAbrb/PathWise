@@ -166,38 +166,14 @@ export default function BlackWhiteDashboard() {
     );
   }
 
-  if (!roadmap) {
+  // MANDATORY ROADMAP: Redirect to creation if none exists
+  if (!roadmap && !isLoading) {
+    router.push("/roadmap/new");
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-6">
-        <div className="max-w-2xl w-full border-4 border-black p-12 text-center bg-white">
-          <Target className="w-20 h-20 text-black mx-auto mb-6" />
-          <h1 className="text-4xl font-bold text-black mb-4">
-            Create Your Roadmap
-          </h1>
-          <p className="text-lg text-gray-700 mb-8">
-            You don't have a roadmap yet. Let's create one to start your journey.
-          </p>
-          <button
-            onClick={() => router.push("/roadmap/new")}
-            className="px-8 py-4 bg-black text-white font-bold text-lg hover:bg-gray-800 transition-colors border-2 border-black inline-flex items-center gap-3"
-          >
-            Create Roadmap
-            <ArrowRight className="w-6 h-6" />
-          </button>
-
-          {/* Study Groups CTA for New Users */}
-          <div className="mt-12 pt-8 border-t-2 border-gray-300">
-            <h3 className="text-xl font-bold text-black mb-4">
-              While you're here, join the community
-            </h3>
-            <button
-              onClick={() => router.push("/study-groups")}
-              className="px-6 py-3 border-2 border-black text-black font-semibold hover:bg-black hover:text-white transition-all inline-flex items-center gap-2"
-            >
-              <Users className="w-5 h-5" />
-              Browse Study Groups
-            </button>
-          </div>
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-gray-300 border-t-black rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-black font-semibold">Redirecting to roadmap creation...</p>
         </div>
       </div>
     );

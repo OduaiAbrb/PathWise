@@ -192,13 +192,22 @@ export default function BlackWhiteDashboard() {
               {roadmap.job_title} · {timeRemaining.hours}h {timeRemaining.minutes}m left today
             </p>
           </div>
-          <button
-            onClick={() => router.push("/study-groups")}
-            className="px-4 py-2 bg-white text-black font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2"
-          >
-            <MessageSquare className="w-4 h-4" />
-            Study Groups
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push(`/roadmap/${roadmap.id}`)}
+              className="px-4 py-2 bg-white text-black font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2"
+            >
+              <Target className="w-4 h-4" />
+              View Roadmap
+            </button>
+            <button
+              onClick={() => router.push("/study-groups")}
+              className="px-4 py-2 border-2 border-white text-white font-semibold hover:bg-white hover:text-black transition-colors flex items-center gap-2"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Study Groups
+            </button>
+          </div>
         </div>
       </div>
 

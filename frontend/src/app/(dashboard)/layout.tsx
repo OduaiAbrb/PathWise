@@ -46,7 +46,7 @@ import NotificationSystem from "@/components/NotificationSystem";
 // Streamlined navigation - only essential items
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, description: "Today's Mission" },
-  { href: "/roadmap/new", label: "Roadmap", icon: Map, description: "Your learning path" },
+  { href: "/roadmap", label: "My Roadmaps", icon: Map, description: "View all roadmaps" },
   { href: "/interview", label: "Interview Prep", icon: MessageSquare, description: "Practice interviews" },
   { href: "/portfolio", label: "Portfolio", icon: Briefcase, description: "Showcase your work" },
   { href: "/study-buddy", label: "AI Mentor", icon: Brain, description: "Personal guidance" },

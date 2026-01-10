@@ -80,6 +80,27 @@ export default function CareerDashboard() {
   const [authError, setAuthError] = useState(false);
   const [skippedTasks, setSkippedTasks] = useState(0);
   const [roadmaps, setRoadmaps] = useState<any[]>([]);
+  const [timeRemaining, setTimeRemaining] = useState({ hours: 0, minutes: 0 });
+
+  // Countdown timer - updates every minute
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      const endOfDay = new Date(now);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      const diff = endOfDay.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      
+      setTimeRemaining({ hours, minutes });
+    };
+    
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 60000); // Update every minute
+    
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (status === "authenticated" && accessToken) {
@@ -343,13 +364,20 @@ export default function CareerDashboard() {
           {/* Header */}
           <div className="flex items-start justify-between mb-6">
             <div>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-3 mb-2">
                 <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                   <Target className="w-5 h-5 text-blue-600" />
                 </div>
                 <span className="text-sm font-semibold text-blue-600 uppercase tracking-wide">
                   Today's Mission
                 </span>
+                {/* Countdown Timer */}
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 border border-orange-200 rounded-full">
+                  <Clock className="w-3.5 h-3.5 text-orange-600" />
+                  <span className="text-xs font-bold text-orange-700">
+                    {timeRemaining.hours}h {timeRemaining.minutes}m left today
+                  </span>
+                </div>
               </div>
               <h2 className="text-3xl font-bold text-slate-900 mb-2">
                 {todaysMission.title}

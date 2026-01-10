@@ -110,9 +110,13 @@ RESOURCE QUALITY REQUIREMENTS:
 - Duration estimates must be realistic
 
 Guidelines:
-- Create 3-5 phases, progressing from foundational to advanced
-- Include 3-6 skills per phase
+- Create 4-6 phases, progressing from foundational to advanced (LONGER ROADMAPS)
+- Include 5-8 skills per phase (MORE COMPREHENSIVE)
 - Order skills by INTERVIEW FREQUENCY within phases
+- Each skill MUST have 5-8 high-quality resources (3x MORE RESOURCES)
+- Mix resource types: 2-3 videos, 1-2 documentation links, 1-2 interactive, 1-2 articles
+- Include time estimates for each skill (realistic hours)
+- Total roadmap should be 12-20 weeks for complete mastery
 - Suggest 2-4 quality resources per skill (prefer free resources)
 - Recommend 2-4 portfolio projects of increasing complexity
 - Adjust difficulty based on the user's stated skill level

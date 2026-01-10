@@ -23,6 +23,10 @@ import {
   MessageSquare,
   Zap,
   Award,
+  FileText,
+  ClipboardList,
+  BookOpen,
+  Crown,
 } from "lucide-react";
 import NotificationSystem from "@/components/NotificationSystem";
 
@@ -50,6 +54,8 @@ const navItems = [
   { href: "/interview", label: "Interview Prep", icon: MessageSquare, description: "Practice interviews" },
   { href: "/portfolio", label: "Portfolio", icon: Briefcase, description: "Showcase your work" },
   { href: "/study-buddy", label: "AI Mentor", icon: Brain, description: "Personal guidance" },
+  { href: "/resume-scanner", label: "Resume Scanner", icon: FileText, description: "ATS optimization" },
+  { href: "/job-tracker", label: "Job Tracker", icon: ClipboardList, description: "Track applications" },
 ];
 
 // Secondary items (collapsed by default)
@@ -57,6 +63,8 @@ const secondaryItems = [
   { href: "/partners", label: "Find Partner", icon: Users, description: "Accountability buddy" },
   { href: "/projects", label: "Projects", icon: Lightbulb, description: "Build proof" },
   { href: "/groups", label: "Study Groups", icon: Users, description: "Community" },
+  { href: "/resources", label: "Resources", icon: BookOpen, description: "Learning materials" },
+  { href: "/pricing", label: "Upgrade", icon: Crown, description: "Premium features" },
 ];
 
 export default function DashboardLayout({

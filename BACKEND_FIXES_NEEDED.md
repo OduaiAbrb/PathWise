@@ -240,3 +240,108 @@ Authorization: Bearer {token}
 ---
 
 **ALL OF THESE ARE CRITICAL BUGS AFFECTING USER EXPERIENCE!**
+
+---
+
+## **🤖 AI REQUIREMENTS - NO MOCK DATA ANYWHERE!**
+
+### **CRITICAL: Every Feature Must Use REAL AI**
+
+The frontend has been updated to REMOVE all mock data fallbacks. If backend APIs fail, the app will show clear errors instead of fake data. This forces us to have working AI for everything.
+
+### **AI Endpoint #1: Study Buddy / AI Mentor**
+```http
+POST /api/v1/study-buddy/chat
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "message": "How do I optimize SQL queries?",
+  "conversation_history": [
+    {"role": "user", "content": "previous message"},
+    {"role": "assistant", "content": "previous response"}
+  ],
+  "context": "USER CONTEXT:\n- Target Role: Backend Engineer\n- Current Skill: PostgreSQL\n- Progress: 45%\n- Weakest Skills: Redis, Docker\n- Interview Readiness: 30%\n\nINTERVIEW PRESSURE MODE ACTIVE: ... (if enabled)",
+  "mode": "mentor"  // or "interview"
+}
+```
+
+**MUST return REAL AI responses** (OpenAI GPT-4, Anthropic Claude, etc):
+- Context-aware answers based on user's actual progress
+- Interview mode should be strict and harsh
+- Must reference user's target role and current skill
+- NOT generic "I'm here to help" responses
+
+### **AI Endpoint #2: Roadmap Generation**
+```http
+POST /api/v1/roadmaps/generate
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "job_description": "I want to become a Backend Engineer",
+  "skill_level": "intermediate",
+  "industry": "technology"
+}
+```
+
+**MUST use AI to generate:**
+- Personalized roadmap phases based on job description
+- Skills ordered by interview frequency (real job market data)
+- Realistic time estimates
+- Difficulty ratings
+- "Why this matters" explanations for each skill
+
+### **AI Endpoint #3: Portfolio Generation**
+```http
+POST /api/v1/portfolio/generate
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "target_role": "Backend Engineer",
+  "completed_skills": ["Python", "Django", "PostgreSQL"],
+  "in_progress_skills": ["Redis", "Docker"],
+  "overall_progress": 45,
+  "experience_level": "intermediate"
+}
+```
+
+**MUST use AI to generate:**
+- Professional bio mentioning ONLY completed skills
+- Resume bullets based on actual achievements
+- LinkedIn post reflecting real progress
+- Project ideas matching skill level
+- NOT generic templates
+
+### **AI Endpoint #4: Interview Questions**
+```http
+POST /api/v1/interview/start
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "session_type": "system_design",
+  "target_role": "Backend Engineer",
+  "difficulty": "medium"
+}
+```
+
+**MUST use AI to generate:**
+- Questions matching `session_type` (coding, system_design, behavioral, full_mock)
+- Role-specific questions for `target_role`
+- Difficulty-appropriate questions
+- Realistic follow-up questions
+- Proper evaluation criteria
+
+---
+
+## **🚨 NO MORE FALLBACKS**
+
+Frontend changes made:
+- ✅ Partners page: Removed mock fallback, shows error if API fails
+- ✅ Study Groups: Removed mock fallback, shows error if API fails
+- ✅ Portfolio: Already fetches real user progress
+- ✅ AI Mentor: Already sends full user context
+
+**Everything must work with REAL AI or fail clearly. No fake data hiding backend issues!**

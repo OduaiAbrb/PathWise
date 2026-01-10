@@ -46,7 +46,8 @@ export default function AccountabilityPartnersPage() {
         }));
         setPotentialMatches(users);
       } else {
-        setError("Failed to fetch potential partners");
+        setError("Failed to load users from backend. Please try again.");
+        setPotentialMatches([]);
       }
     } catch (err) {
       console.error("Error fetching partners:", err);

@@ -85,13 +85,14 @@ export default function GroupsPage() {
         
         setGroups(formattedGroups);
       } else {
-        console.error("Failed to fetch groups");
-        // Still try to show suggested groups if API fails
-        setGroups(getSuggestedGroups());
+        console.error("Failed to fetch groups from backend");
+        setGroups([]);
+        alert("Could not load study groups. Backend connection failed.");
       }
     } catch (error) {
       console.error("Error fetching groups:", error);
-      setGroups(getSuggestedGroups());
+      setGroups([]);
+      alert("Could not connect to backend to load study groups.");
     } finally {
       setIsLoading(false);
     }

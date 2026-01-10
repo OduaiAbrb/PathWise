@@ -76,6 +76,7 @@ export default function CareerDashboard() {
   const [isStarting, setIsStarting] = useState(false);
   const [authError, setAuthError] = useState(false);
   const [skippedTasks, setSkippedTasks] = useState(0);
+  const [roadmaps, setRoadmaps] = useState<any[]>([]);
 
   useEffect(() => {
     if (status === "authenticated" && accessToken) {

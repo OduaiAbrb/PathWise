@@ -72,6 +72,9 @@ export default function InterviewSimulator() {
 
   const startInterview = async (type: string, role: string, difficulty: string) => {
     setIsLoading(true);
+    setEvaluation(null); // Clear any previous evaluation
+    setUserAnswer(""); // Clear previous answer
+    
     try {
       const response = await fetch(getApiUrl("/api/v1/interview/start"), {
         method: "POST",
@@ -88,14 +91,20 @@ export default function InterviewSimulator() {
 
       if (response.ok) {
         const data = await response.json();
-        setActiveSession(data.data);
-        setQuestions(data.data.questions);
+        console.log("Interview started:", data.data);
+        
+        // Set state in specific order to ensure proper rendering
+        setQuestions(data.data.questions || []);
         setCurrentQuestionIndex(0);
-        setUserAnswer("");
-        setEvaluation(null);
+        setActiveSession(data.data);
+        setShowHints(false);
+      } else {
+        console.error("Failed to start interview - bad response:", response.status);
+        alert("Failed to start interview. Please try again.");
       }
     } catch (err) {
       console.error("Failed to start interview:", err);
+      alert("Failed to start interview. Please check your connection.");
     } finally {
       setIsLoading(false);
     }
@@ -377,7 +386,18 @@ export default function InterviewSimulator() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-8 relative">
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 text-center">
+            <div className="w-16 h-16 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-slate-900 font-semibold">Starting Interview...</p>
+            <p className="text-slate-600 text-sm mt-2">Generating questions for you</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-slate-900 mb-2">Interview Simulator</h1>
@@ -394,7 +414,7 @@ export default function InterviewSimulator() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="bg-white rounded-2xl border-2 border-slate-200 hover:border-blue-300 p-6 cursor-pointer transition-all"
-            onClick={() => startInterview(type.type, "Software Engineer", "medium")}
+            onClick={() => !isLoading && startInterview(type.type, "Software Engineer", "medium")}
           >
             <div className={`p-3 bg-${type.color}-100 rounded-xl w-fit mb-4`}>
               <type.icon className={`w-8 h-8 text-${type.color}-600`} />

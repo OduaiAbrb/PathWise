@@ -180,6 +180,61 @@ async def get_messages(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Default seeded groups for new users
+DEFAULT_GROUPS = [
+    {
+        "id": "default-backend-basics",
+        "name": "Backend Basics",
+        "description": "Learn backend development fundamentals together. We meet twice weekly for coding practice and concept discussions.",
+        "topic": "Backend Development",
+        "member_count": 24,
+        "max_members": 50,
+        "is_private": False,
+        "meeting_schedule": "Tue & Thu 7PM UTC",
+    },
+    {
+        "id": "default-system-design",
+        "name": "System Design Talk",
+        "description": "Weekly system design discussions and mock interviews. Perfect for interview prep.",
+        "topic": "System Design",
+        "member_count": 18,
+        "max_members": 30,
+        "is_private": False,
+        "meeting_schedule": "Sat 3PM UTC",
+    },
+    {
+        "id": "default-dsa-grind",
+        "name": "DSA Grind",
+        "description": "Daily LeetCode problems and algorithm discussions. We solve problems together and explain solutions.",
+        "topic": "Data Structures & Algorithms",
+        "member_count": 42,
+        "max_members": 100,
+        "is_private": False,
+        "meeting_schedule": "Daily 6PM UTC",
+    },
+    {
+        "id": "default-frontend-masters",
+        "name": "Frontend Masters",
+        "description": "React, TypeScript, and modern frontend development. Code reviews and project showcases.",
+        "topic": "Frontend Development",
+        "member_count": 31,
+        "max_members": 50,
+        "is_private": False,
+        "meeting_schedule": "Mon & Wed 8PM UTC",
+    },
+    {
+        "id": "default-job-hunters",
+        "name": "Job Hunters Support",
+        "description": "Share job leads, review resumes, and support each other through the job search process.",
+        "topic": "Career",
+        "member_count": 56,
+        "max_members": 100,
+        "is_private": False,
+        "meeting_schedule": "Fri 5PM UTC",
+    },
+]
+
+
 @router.get("/groups", response_model=dict)
 async def list_all_groups(
     scope: Optional[str] = "all",
@@ -194,6 +249,16 @@ async def list_all_groups(
         # Get user's groups to mark which ones they're in
         user_groups = await get_user_groups(db, user_id)
         user_group_ids = {str(g["group"].id) for g in user_groups}
+        
+        # If no groups exist, return seeded default groups
+        if not groups:
+            return {
+                "success": True,
+                "data": [
+                    {**g, "is_member": False, "is_seeded": True}
+                    for g in DEFAULT_GROUPS
+                ]
+            }
         
         return {
             "success": True,

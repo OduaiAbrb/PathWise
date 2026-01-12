@@ -35,8 +35,19 @@ interface RoadmapData {
       progress?: number;
       estimated_hours?: number;
       interview_frequency?: number;
+      resources?: Array<{ title: string; url: string; type: string }>;
     }>;
   }>;
+}
+
+interface NextTask {
+  skillName: string;
+  skillId: string;
+  phaseTitle: string;
+  estimatedMinutes: number;
+  interviewFrequency: number;
+  resourceUrl?: string;
+  resourceTitle?: string;
 }
 
 /**
@@ -50,12 +61,16 @@ export default function BlackWhiteDashboard() {
   const accessToken = (session as { accessToken?: string })?.accessToken;
 
   const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
+  const [nextTask, setNextTask] = useState<NextTask | null>(null);
   const [stats, setStats] = useState({
     readiness: 0,
     streak: 0,
     skillsCompleted: 0,
     totalSkills: 0,
     hoursInvested: 0,
+    technicalScore: 0,
+    projectsScore: 0,
+    interviewScore: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState({ hours: 0, minutes: 0 });
@@ -128,14 +143,42 @@ export default function BlackWhiteDashboard() {
           const allSkills = transformedRoadmap.phases.flatMap(p => p.skills);
           const completedSkills = allSkills.filter(s => s.status === "completed").length;
           const totalHours = allSkills.reduce((sum, s) => sum + (s.estimated_hours || 0), 0);
+          
+          // Calculate readiness breakdown
+          const technicalScore = Math.round((completedSkills / Math.max(allSkills.length, 1)) * 100);
+          const projectsScore = Math.min(100, technicalScore * 0.8); // Projects lag behind skills
+          const interviewScore = Math.min(100, technicalScore * 0.6); // Interview readiness lags more
 
           setStats({
             readiness: transformedRoadmap.completion_percentage,
-            streak: 0, // Will be fetched separately
+            streak: 0,
             skillsCompleted: completedSkills,
             totalSkills: allSkills.length,
-            hoursInvested: Math.floor(completedSkills * (totalHours / allSkills.length)),
+            hoursInvested: Math.floor(completedSkills * (totalHours / Math.max(allSkills.length, 1))),
+            technicalScore,
+            projectsScore: Math.round(projectsScore),
+            interviewScore: Math.round(interviewScore),
           });
+
+          // Find next task (first incomplete skill)
+          for (const phase of transformedRoadmap.phases) {
+            for (const skill of phase.skills) {
+              if (skill.status !== "completed") {
+                const firstResource = skill.resources?.[0];
+                setNextTask({
+                  skillName: skill.name,
+                  skillId: skill.id,
+                  phaseTitle: phase.title,
+                  estimatedMinutes: (skill.estimated_hours || 1) * 60,
+                  interviewFrequency: skill.interview_frequency || 65,
+                  resourceUrl: firstResource?.url,
+                  resourceTitle: firstResource?.title,
+                });
+                break;
+              }
+            }
+            if (nextTask) break;
+          }
         }
       }
 
@@ -281,6 +324,110 @@ export default function BlackWhiteDashboard() {
             </div>
           </motion.div>
         </div>
+
+        {/* NEXT BEST ACTION - Single Focused Task */}
+        {nextTask && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="border-4 border-black p-6 bg-black text-white"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">
+                  Today's Focus
+                </div>
+                <h2 className="text-2xl font-bold mb-2">
+                  {nextTask.skillName}
+                </h2>
+                <p className="text-gray-300 mb-4">
+                  {nextTask.phaseTitle} · ~{Math.round(nextTask.estimatedMinutes / 60)}h estimated
+                </p>
+                <div className="flex items-center gap-4 text-sm">
+                  <span className="flex items-center gap-1">
+                    <Zap className="w-4 h-4 text-yellow-400" />
+                    Asked in {nextTask.interviewFrequency}% of interviews
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                {nextTask.resourceUrl ? (
+                  <a
+                    href={nextTask.resourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-6 py-3 bg-white text-black font-bold hover:bg-gray-100 transition-colors flex items-center gap-2"
+                  >
+                    <Play className="w-5 h-5" />
+                    Start Now
+                  </a>
+                ) : (
+                  <button
+                    onClick={() => router.push("/study-buddy")}
+                    className="px-6 py-3 bg-white text-black font-bold hover:bg-gray-100 transition-colors flex items-center gap-2"
+                  >
+                    <Play className="w-5 h-5" />
+                    Learn with AI
+                  </button>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Readiness Breakdown */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.38 }}
+          className="border-2 border-black p-6 bg-white"
+        >
+          <h3 className="text-lg font-bold text-black mb-4">Readiness Breakdown</h3>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-gray-600">Technical Skills</span>
+                <span className="font-bold">{stats.technicalScore}%</span>
+              </div>
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-black transition-all duration-500"
+                  style={{ width: `${stats.technicalScore}%` }}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-gray-600">Projects</span>
+                <span className="font-bold">{stats.projectsScore}%</span>
+              </div>
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-black transition-all duration-500"
+                  style={{ width: `${stats.projectsScore}%` }}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-gray-600">Interview Ready</span>
+                <span className="font-bold">{stats.interviewScore}%</span>
+              </div>
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-black transition-all duration-500"
+                  style={{ width: `${stats.interviewScore}%` }}
+                />
+              </div>
+            </div>
+          </div>
+          {stats.readiness < 60 && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm">
+              <strong>Keep going!</strong> You need 60%+ readiness before applying to jobs. Focus on {nextTask?.skillName || "your next skill"} to increase your score.
+            </div>
+          )}
+        </motion.div>
 
         {/* Roadmap Flowchart - Full Width */}
         <motion.div

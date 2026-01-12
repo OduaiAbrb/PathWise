@@ -239,6 +239,32 @@ function RoadmapNewContent() {
             </div>
           </div>
 
+          {/* Weekly Hours & Timeline */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Hours per week you can dedicate
+            </label>
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { hours: 5, label: "5 hrs", timeline: "16 weeks" },
+                { hours: 10, label: "10 hrs", timeline: "8 weeks" },
+                { hours: 15, label: "15 hrs", timeline: "6 weeks" },
+                { hours: 20, label: "20+ hrs", timeline: "4 weeks" },
+              ].map((option) => (
+                <button
+                  key={option.hours}
+                  onClick={() => {
+                    localStorage.setItem("pathwise_weekly_hours", String(option.hours));
+                  }}
+                  className="py-3 px-2 rounded-xl border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-sm font-medium transition-all text-center"
+                >
+                  <div className="text-slate-900">{option.label}</div>
+                  <div className="text-xs text-slate-500">~{option.timeline}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Generate Button */}
           <button
             onClick={generateRoadmap}

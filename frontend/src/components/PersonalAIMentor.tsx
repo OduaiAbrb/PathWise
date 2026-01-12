@@ -294,19 +294,38 @@ export default function PersonalAIMentor() {
     setMessages(prev => [...prev, exitMessage]);
   };
 
-  const startMode = (mode: "explain" | "quiz" | "review") => {
+  const startMode = (mode: "explain" | "quiz" | "review" | "flashcards") => {
     setShowModes(false);
     let message = "";
     
+    const roleContext = userContext?.targetRole ? ` for a ${userContext.targetRole} role` : "";
+    const skillContext = userContext?.currentSkill || "the current topic";
+    
     switch (mode) {
       case "explain":
-        message = `Help me understand ${userContext?.currentSkill || "the current topic"} better. Can you explain it with examples?`;
+        message = `Explain ${skillContext} at a beginner level with practical examples${roleContext}. Include:
+1. What it is and why it matters
+2. A real-world analogy
+3. A simple code example if applicable
+4. Common interview questions about this topic`;
         break;
       case "quiz":
-        message = `Quiz me on ${userContext?.currentSkill || "what I'm learning"}. Start with easy questions and increase difficulty.`;
+        message = `Quiz me on ${skillContext}${roleContext}. Give me 5 multiple-choice questions, starting easy and getting harder. After each answer, tell me if I'm right and explain why. Track my score.`;
         break;
       case "review":
-        message = "I want you to review my progress and tell me honestly where I'm weak and what I need to focus on.";
+        message = `Review my progress honestly${roleContext}. I've completed ${userContext?.roadmapProgress || 0}% of my roadmap. My weak areas are: ${userContext?.weakestSkills?.join(", ") || "unknown"}. Tell me:
+1. What I'm doing well
+2. What gaps will hurt me in interviews
+3. What I should focus on this week
+4. Am I ready to apply for jobs?`;
+        break;
+      case "flashcards":
+        message = `Create 5 flashcards for ${skillContext}${roleContext}. Format each as:
+**Card [N]:**
+**Front:** [Question or concept]
+**Back:** [Answer or explanation]
+
+Make them interview-focused and progressively harder.`;
         break;
     }
     
@@ -395,7 +414,7 @@ export default function PersonalAIMentor() {
               </p>
 
               {/* Mode Selection */}
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-3xl mx-auto">
+              <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4 max-w-4xl mx-auto">
                 <button
                   onClick={() => startMode("explain")}
                   className="p-4 rounded-xl border-2 border-slate-200 hover:border-purple-500 hover:bg-purple-50 transition-all text-left group"
@@ -421,6 +440,15 @@ export default function PersonalAIMentor() {
                   <Target className="w-8 h-8 text-emerald-600 mb-2" />
                   <h3 className="font-semibold text-slate-900">Review Progress</h3>
                   <p className="text-sm text-slate-600 mt-1">Honest feedback on gaps</p>
+                </button>
+
+                <button
+                  onClick={() => startMode("flashcards")}
+                  className="p-4 rounded-xl border-2 border-slate-200 hover:border-amber-500 hover:bg-amber-50 transition-all text-left group"
+                >
+                  <Zap className="w-8 h-8 text-amber-600 mb-2" />
+                  <h3 className="font-semibold text-slate-900">Flashcards</h3>
+                  <p className="text-sm text-slate-600 mt-1">Quick memory drill</p>
                 </button>
 
                 <button

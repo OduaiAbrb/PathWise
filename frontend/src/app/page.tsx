@@ -50,17 +50,21 @@ export default function LandingPage() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-sm text-white font-medium mb-8 border border-white/20">
               <Sparkles className="w-4 h-4" />
-              Career Outcome Engine
+              From Job Description to Job Offer
             </div>
             
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-              Know <span className="underline">exactly</span> what to learn,<br />
-              <span className="underline">when you're ready</span> for jobs
+              Your Dream Job,<br />
+              <span className="underline decoration-4">Mapped Out.</span>
             </h1>
             
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-12">
-              PathWise turns confusion into clarity, learning into readiness, and effort into confidence. 
-              Get a personalized roadmap, track real progress, and know your actual job readiness.
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-8">
+              Stop drowning in tutorials. Paste any job description and get a personalized learning roadmap 
+              with exactly what to learn, in what order, and how long it takes.
+            </p>
+
+            <p className="text-lg text-white/80 max-w-2xl mx-auto mb-12 font-medium">
+              No more confusion. No more overwhelm. Just clarity.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
@@ -68,7 +72,7 @@ export default function LandingPage() {
                 href="/login"
                 className="px-8 py-4 bg-white text-black rounded-xl font-bold text-lg hover:bg-gray-200 transition-all hover:scale-105 flex items-center gap-2"
               >
-                Start Your Journey
+                Paste a Job Description
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <a
@@ -79,19 +83,19 @@ export default function LandingPage() {
               </a>
             </div>
 
-            {/* Social Proof */}
-            <div className="flex items-center justify-center gap-8 text-gray-400 text-sm">
+            {/* Value Props - Not Fake Stats */}
+            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10 text-gray-400 text-sm">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-white" />
-                <span>No guessing what to learn</span>
+                <span>Know exactly what to learn next</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-white" />
-                <span>Real readiness scores</span>
+                <span>See your real job readiness %</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-white" />
-                <span>Interview-focused</span>
+                <span>Practice with AI interviews</span>
               </div>
             </div>
           </motion.div>

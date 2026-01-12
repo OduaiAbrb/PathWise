@@ -77,22 +77,81 @@ export default function RoadmapDetailPage() {
     fetchRoadmap();
   }, [params.id, accessToken]);
 
-  // Handle skill click - navigate to AI mentor or resource
+  // Handle skill click - navigate to AI mentor with skill context
   const handleSkillClick = (skill: any, phaseId: string) => {
-    console.log("Skill clicked:", skill.name, "in phase:", phaseId);
-    // Could navigate to AI mentor with skill context
+    // Store skill context for AI mentor
+    if (typeof window !== "undefined") {
+      localStorage.setItem("currentSkill", skill.name);
+      localStorage.setItem("currentPhase", phaseId);
+    }
+    // Navigate to AI mentor
+    window.location.href = "/study-buddy";
   };
 
-  // Handle checkpoint answer
+  // Handle checkpoint answer - send to backend for validation
   const handleCheckpointAnswer = async (phaseId: string, checkpointId: string, answer: string | number) => {
-    console.log("Checkpoint answered:", phaseId, checkpointId, answer);
-    // TODO: Send to backend for validation
+    if (!accessToken || !roadmap) return;
+    
+    try {
+      const response = await fetch(getApiUrl("/api/v1/exams/checkpoint/answer"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          roadmap_id: roadmap.id,
+          phase_id: phaseId,
+          checkpoint_id: checkpointId,
+          answer,
+          question_type: typeof answer === "number" ? "mcq" : "open",
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Checkpoint result:", data);
+        // Could update local state with understanding score delta
+      }
+    } catch (error) {
+      console.error("Failed to submit checkpoint answer:", error);
+    }
   };
 
-  // Handle exam submission
+  // Handle exam submission - send to backend for AI evaluation
   const handleExamSubmit = async (phaseId: string, answers: Record<string, string | number>) => {
-    console.log("Exam submitted for phase:", phaseId, answers);
-    // TODO: Send to backend for AI evaluation
+    if (!accessToken || !roadmap) return;
+    
+    try {
+      const response = await fetch(getApiUrl("/api/v1/exams/exam/submit"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          roadmap_id: roadmap.id,
+          phase_id: phaseId,
+          answers,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Exam result:", data);
+        
+        if (data.data?.passed) {
+          alert(`🎉 Congratulations! You passed with ${data.data.score}%! Next phase unlocked.`);
+          // Refresh roadmap to show unlocked phase
+          window.location.reload();
+        } else {
+          alert(`Score: ${data.data?.score}%. You need 70% to pass. Keep practicing!`);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to submit exam:", error);
+      alert("Failed to submit exam. Please try again.");
+    }
   };
 
   if (isLoading) {

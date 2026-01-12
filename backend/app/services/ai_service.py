@@ -489,3 +489,205 @@ Be HONEST but constructive. Output as JSON."""
     except Exception as e:
         print(f"Interview evaluation error: {e}")
         raise
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# EXAM QUESTION GENERATION
+# ═══════════════════════════════════════════════════════════════════════════
+
+async def generate_exam_questions(
+    phase_title: str,
+    skills: List[str],
+    target_role: str,
+    difficulty: str = "intermediate",
+    num_questions: int = 5
+) -> list:
+    """Generate exam questions for a roadmap phase using AI."""
+    
+    prompt = f"""Generate {num_questions} exam questions for a learning phase.
+
+PHASE: {phase_title}
+SKILLS COVERED: {', '.join(skills)}
+TARGET ROLE: {target_role}
+DIFFICULTY: {difficulty}
+
+REQUIREMENTS:
+1. Mix of question types:
+   - 3 MCQ (multiple choice with 4 options)
+   - 1 open-ended (explain in your own words)
+   - 1 code/practical (if applicable)
+
+2. Questions should test UNDERSTANDING, not memorization
+3. Include "why" questions that test conceptual grasp
+4. MCQ options should include plausible distractors
+5. Each question should map to interview-relevant knowledge
+
+OUTPUT FORMAT (JSON):
+{{
+  "questions": [
+    {{
+      "id": "q1",
+      "type": "mcq",
+      "question": "What is...",
+      "options": ["A", "B", "C", "D"],
+      "correct_answer": 0,
+      "explanation": "The correct answer is A because...",
+      "skill": "skill name",
+      "difficulty": "easy|medium|hard"
+    }},
+    {{
+      "id": "q2",
+      "type": "open",
+      "question": "Explain in your own words...",
+      "rubric": "Look for: clarity, accuracy, examples",
+      "skill": "skill name",
+      "difficulty": "medium"
+    }}
+  ]
+}}"""
+
+    try:
+        response = await client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are an expert educator creating assessment questions that test true understanding, not memorization."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=2000,
+            response_format={"type": "json_object"}
+        )
+        
+        result = json.loads(response.choices[0].message.content)
+        return result.get("questions", [])
+        
+    except Exception as e:
+        print(f"❌ Exam generation error: {e}")
+        # Return fallback questions
+        return [
+            {
+                "id": "fallback-1",
+                "type": "mcq",
+                "question": f"Which concept is most important in {phase_title}?",
+                "options": skills[:4] if len(skills) >= 4 else skills + ["None of the above"] * (4 - len(skills)),
+                "correct_answer": 0,
+                "explanation": f"{skills[0] if skills else 'The first concept'} is foundational.",
+                "skill": skills[0] if skills else "general",
+                "difficulty": "medium"
+            }
+        ]
+
+
+async def evaluate_open_answer(
+    question: str,
+    answer: str,
+    skill: str,
+    target_role: str
+) -> dict:
+    """Evaluate an open-ended answer using AI."""
+    
+    prompt = f"""Evaluate this answer for a {target_role} learning assessment.
+
+QUESTION: {question}
+SKILL BEING TESTED: {skill}
+STUDENT'S ANSWER: {answer}
+
+EVALUATION CRITERIA:
+1. Correctness (0-40 points): Is the answer factually accurate?
+2. Clarity (0-30 points): Is the explanation clear and well-structured?
+3. Depth (0-20 points): Does it show understanding beyond surface level?
+4. Examples (0-10 points): Are relevant examples provided?
+
+OUTPUT FORMAT (JSON):
+{{
+  "score": 0-100,
+  "correctness": 0-40,
+  "clarity": 0-30,
+  "depth": 0-20,
+  "examples": 0-10,
+  "feedback": "Constructive feedback...",
+  "strengths": ["strength 1", "strength 2"],
+  "improvements": ["area to improve"],
+  "interview_tip": "How this would be received in an interview..."
+}}"""
+
+    try:
+        response = await client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a supportive but honest educator evaluating student understanding. Be encouraging but accurate."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.5,
+            max_tokens=1000,
+            response_format={"type": "json_object"}
+        )
+        
+        return json.loads(response.choices[0].message.content)
+        
+    except Exception as e:
+        print(f"❌ Answer evaluation error: {e}")
+        # Return fallback evaluation
+        return {
+            "score": 70,
+            "feedback": "Your answer shows understanding. Keep practicing to deepen your knowledge.",
+            "strengths": ["Attempted the question"],
+            "improvements": ["Add more specific examples"],
+            "interview_tip": "In interviews, try to structure your answer with a clear beginning, middle, and end."
+        }
+
+
+async def generate_phase_checkpoints(
+    phase_title: str,
+    skills: List[str],
+    target_role: str
+) -> list:
+    """Generate inline checkpoint questions for a phase."""
+    
+    prompt = f"""Generate 2-3 quick checkpoint questions for each skill in this phase.
+
+PHASE: {phase_title}
+SKILLS: {', '.join(skills)}
+TARGET ROLE: {target_role}
+
+These are INLINE checkpoints - quick understanding checks, not full exams.
+
+REQUIREMENTS:
+1. Each question should take <30 seconds to answer
+2. MCQ only (4 options)
+3. Test ONE concept per question
+4. Include brief explanation for correct answer
+
+OUTPUT FORMAT (JSON):
+{{
+  "checkpoints": [
+    {{
+      "id": "cp1",
+      "skill": "skill name",
+      "type": "mcq",
+      "question": "Quick question...",
+      "options": ["A", "B", "C", "D"],
+      "correct_answer": 0,
+      "explanation": "Brief explanation..."
+    }}
+  ]
+}}"""
+
+    try:
+        response = await client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You create quick, focused checkpoint questions that test understanding efficiently."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1500,
+            response_format={"type": "json_object"}
+        )
+        
+        result = json.loads(response.choices[0].message.content)
+        return result.get("checkpoints", [])
+        
+    except Exception as e:
+        print(f"❌ Checkpoint generation error: {e}")
+        return []

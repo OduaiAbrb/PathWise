@@ -5,7 +5,7 @@ from app.api.v1.endpoints import (
     resume, projects, mentors, social, scheduler, income,
     readiness, jd_comparison, career, jd_aggregator,
     portfolio, interview, challenges, users,
-    resume_scanner, job_tracker, resources
+    resume_scanner, job_tracker, resources, exams
 )
 
 api_router = APIRouter()
@@ -33,3 +33,4 @@ api_router.include_router(users.router, prefix="/users", tags=["Users"])
 api_router.include_router(resume_scanner.router, prefix="/resume-scanner", tags=["Resume Scanner"])
 api_router.include_router(job_tracker.router, prefix="/job-tracker", tags=["Job Application Tracker"])
 api_router.include_router(resources.router, prefix="/resources", tags=["Learning Resources"])
+api_router.include_router(exams.router, prefix="/exams", tags=["Exams & Checkpoints"])

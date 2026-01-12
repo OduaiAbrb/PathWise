@@ -131,13 +131,59 @@ export default function AccountabilityPartnersPage() {
         </div>
       </div>
 
+      {/* Matching Preferences */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <h3 className="font-bold text-slate-900 mb-4">Your Matching Preferences</h3>
+        <div className="grid md:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-2">Target Role</label>
+            <select className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-blue-500 outline-none">
+              <option>Any Role</option>
+              <option>Backend Engineer</option>
+              <option>Frontend Engineer</option>
+              <option>Full Stack Developer</option>
+              <option>Data Scientist</option>
+              <option>DevOps Engineer</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-2">Experience Level</label>
+            <select className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-blue-500 outline-none">
+              <option>Any Level</option>
+              <option>Beginner</option>
+              <option>Intermediate</option>
+              <option>Advanced</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-2">Time Zone</label>
+            <select className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-blue-500 outline-none">
+              <option>Any Time Zone</option>
+              <option>UTC-8 to UTC-5 (Americas)</option>
+              <option>UTC-1 to UTC+3 (Europe/Africa)</option>
+              <option>UTC+4 to UTC+8 (Asia)</option>
+              <option>UTC+9 to UTC+12 (Pacific)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-2">Study Pace</label>
+            <select className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-blue-500 outline-none">
+              <option>Any Pace</option>
+              <option>Casual (5 hrs/week)</option>
+              <option>Moderate (10 hrs/week)</option>
+              <option>Intensive (20+ hrs/week)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       {/* Find Match Button */}
       <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-200 p-8 text-center">
         <Users className="w-16 h-16 text-blue-600 mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-slate-900 mb-3">Ready to Find Your Match?</h2>
         <p className="text-slate-600 mb-6 max-w-lg mx-auto">
           We'll match you with learners on similar roadmaps based on target role, experience
-          level, and learning pace.
+          level, time zone, and learning pace.
         </p>
         <button
           onClick={findMatches}
@@ -156,6 +202,35 @@ export default function AccountabilityPartnersPage() {
             </>
           )}
         </button>
+      </div>
+
+      {/* Weekly Check-in Template */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Calendar className="w-6 h-6 text-green-600" />
+          <h3 className="font-bold text-slate-900">Weekly Check-in Template</h3>
+        </div>
+        <p className="text-slate-600 mb-4 text-sm">
+          Once matched, you'll have weekly check-ins with these prompts:
+        </p>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="p-4 bg-slate-50 rounded-lg">
+            <p className="font-medium text-slate-900 mb-2">📝 What did you complete this week?</p>
+            <p className="text-sm text-slate-500">Share your wins, no matter how small</p>
+          </div>
+          <div className="p-4 bg-slate-50 rounded-lg">
+            <p className="font-medium text-slate-900 mb-2">🎯 What's your goal for next week?</p>
+            <p className="text-sm text-slate-500">Set one specific, achievable goal</p>
+          </div>
+          <div className="p-4 bg-slate-50 rounded-lg">
+            <p className="font-medium text-slate-900 mb-2">🚧 What's blocking you?</p>
+            <p className="text-sm text-slate-500">Identify obstacles so your partner can help</p>
+          </div>
+          <div className="p-4 bg-slate-50 rounded-lg">
+            <p className="font-medium text-slate-900 mb-2">💡 How can I help you?</p>
+            <p className="text-sm text-slate-500">Offer specific support to your partner</p>
+          </div>
+        </div>
       </div>
 
       {/* Error Message */}

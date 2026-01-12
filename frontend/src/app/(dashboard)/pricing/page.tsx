@@ -96,6 +96,27 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-white py-12 px-4">
       <div className="max-w-6xl mx-auto">
+        {/* 7-Day Trial Banner */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl p-4 mb-8 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <Shield className="w-6 h-6" />
+            <div>
+              <p className="font-bold">Try Premium Free for 7 Days</p>
+              <p className="text-sm text-white/80">Full access to all features. Cancel anytime.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => handleUpgrade("premium")}
+            className="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+          >
+            Start Free Trial
+          </button>
+        </motion.div>
+
         {/* Header */}
         <div className="text-center mb-12">
           <motion.h1
@@ -113,6 +134,27 @@ export default function PricingPage() {
           >
             Invest in your career. Get the tools and resources you need to land your dream job.
           </motion.p>
+
+          {/* Key Differences Highlight */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.15 }}
+            className="mt-6 flex flex-wrap justify-center gap-4 text-sm"
+          >
+            <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full">
+              <Target className="w-4 h-4 text-gray-600" />
+              <span><strong>Free:</strong> 1 roadmap, 10 AI messages/day</span>
+            </div>
+            <div className="flex items-center gap-2 bg-blue-100 px-3 py-1.5 rounded-full text-blue-700">
+              <Zap className="w-4 h-4" />
+              <span><strong>Standard:</strong> 3 roadmaps, 50 AI messages/day</span>
+            </div>
+            <div className="flex items-center gap-2 bg-purple-100 px-3 py-1.5 rounded-full text-purple-700">
+              <Crown className="w-4 h-4" />
+              <span><strong>Premium:</strong> Unlimited everything</span>
+            </div>
+          </motion.div>
 
           {/* Billing Toggle */}
           <motion.div

@@ -275,6 +275,44 @@ export default function JobTrackerPage() {
           </div>
         )}
 
+        {/* Conversion Funnel */}
+        {stats && stats.applied > 0 && (
+          <div className="mb-8 p-4 border-2 border-gray-200 rounded-lg">
+            <h3 className="font-bold text-black mb-4">Your Conversion Funnel</h3>
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm text-gray-600">Applied → Response</span>
+                  <span className="font-bold">{stats.applied > 0 ? Math.round(((stats.interviewing + stats.offers + stats.rejected) / stats.applied) * 100) : 0}%</span>
+                </div>
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-blue-500 transition-all"
+                    style={{ width: `${stats.applied > 0 ? ((stats.interviewing + stats.offers + stats.rejected) / stats.applied) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm text-gray-600">Interview → Offer</span>
+                  <span className="font-bold">{stats.interviewing > 0 ? Math.round((stats.offers / (stats.interviewing + stats.offers)) * 100) : 0}%</span>
+                </div>
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-green-500 transition-all"
+                    style={{ width: `${stats.interviewing > 0 ? (stats.offers / (stats.interviewing + stats.offers)) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+            {stats.applied >= 5 && stats.interviewing === 0 && (
+              <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                <strong>Tip:</strong> You've applied to {stats.applied} jobs without interviews. Consider reviewing your resume with our Resume Scanner.
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Filters */}
         <div className="flex flex-wrap gap-4 mb-6">
           <div className="relative flex-1 min-w-[200px]">

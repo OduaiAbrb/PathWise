@@ -244,7 +244,7 @@ async def list_all_groups(
     """List all study groups (for discovery)."""
     try:
         # Get all public groups
-        groups = await search_study_groups(db, topic=None, query=None)
+        groups = await search_study_groups(db, topic=None, search_query=None)
         
         # Get user's groups to mark which ones they're in
         user_groups = await get_user_groups(db, user_id)
@@ -289,7 +289,7 @@ async def search_groups(
 ):
     """Search for study groups."""
     try:
-        groups = await search_study_groups(db, topic, query)
+        groups = await search_study_groups(db, topic, search_query=query)
         
         return {
             "success": True,

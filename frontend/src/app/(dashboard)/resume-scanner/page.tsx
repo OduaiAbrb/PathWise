@@ -39,6 +39,27 @@ export default function ResumeScannerPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const accessToken = (session as { accessToken?: string })?.accessToken;
 
+  // Sample resume data for demo
+  const loadSampleResume = () => {
+    // Create a mock file object for demo
+    const sampleContent = "Sample Resume - John Doe, Software Engineer";
+    const blob = new Blob([sampleContent], { type: "application/pdf" });
+    const sampleFile = new File([blob], "sample_resume.pdf", { type: "application/pdf" });
+    setFile(sampleFile);
+    setJobDescription(`We are looking for a Backend Developer with:
+- 3+ years of experience with Python and JavaScript
+- Experience with REST APIs and databases (PostgreSQL, MongoDB)
+- Knowledge of Docker and cloud services (AWS/GCP)
+- Familiarity with CI/CD pipelines and Git
+- Strong problem-solving skills
+
+Nice to have:
+- Experience with Kubernetes
+- Knowledge of TypeScript
+- Experience with microservices architecture`);
+    setResult(null);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
@@ -205,6 +226,17 @@ export default function ResumeScannerPage() {
                 </>
               )}
             </div>
+
+            {/* Try Sample Button */}
+            {!file && (
+              <button
+                onClick={loadSampleResume}
+                className="w-full mt-3 py-2 text-sm text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                Try with sample resume
+              </button>
+            )}
 
             {/* Job Description */}
             <div className="mt-6">

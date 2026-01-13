@@ -23,8 +23,8 @@ def upgrade():
     # Create roadmap_phase_states table (track unlock + understanding per phase)
     op.create_table(
         'roadmap_phase_states',
-        sa.Column('id', sa.String(36), primary_key=True),
-        sa.Column('roadmap_id', sa.String(36), sa.ForeignKey('roadmaps.id', ondelete='CASCADE'), nullable=False),
+        sa.Column('id', postgresql.UUID(as_uuid=True), primary_key=True),
+        sa.Column('roadmap_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('roadmaps.id', ondelete='CASCADE'), nullable=False),
         sa.Column('phase_id', sa.String(100), nullable=False),
         sa.Column('status', sa.String(50), default='locked'),  # locked, unlocked, in_progress, completed
         sa.Column('understanding_score', sa.Integer(), default=0),
@@ -39,9 +39,9 @@ def upgrade():
     # Create checkpoint_attempts table
     op.create_table(
         'checkpoint_attempts',
-        sa.Column('id', sa.String(36), primary_key=True),
-        sa.Column('user_id', sa.String(36), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
-        sa.Column('roadmap_id', sa.String(36), sa.ForeignKey('roadmaps.id', ondelete='CASCADE'), nullable=False),
+        sa.Column('id', postgresql.UUID(as_uuid=True), primary_key=True),
+        sa.Column('user_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
+        sa.Column('roadmap_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('roadmaps.id', ondelete='CASCADE'), nullable=False),
         sa.Column('phase_id', sa.String(100), nullable=False),
         sa.Column('checkpoint_id', sa.String(100), nullable=False),
         sa.Column('question_type', sa.String(20), nullable=False),  # mcq, open, code
@@ -57,9 +57,9 @@ def upgrade():
     # Create phase_exam_attempts table
     op.create_table(
         'phase_exam_attempts',
-        sa.Column('id', sa.String(36), primary_key=True),
-        sa.Column('user_id', sa.String(36), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
-        sa.Column('roadmap_id', sa.String(36), sa.ForeignKey('roadmaps.id', ondelete='CASCADE'), nullable=False),
+        sa.Column('id', postgresql.UUID(as_uuid=True), primary_key=True),
+        sa.Column('user_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
+        sa.Column('roadmap_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('roadmaps.id', ondelete='CASCADE'), nullable=False),
         sa.Column('phase_id', sa.String(100), nullable=False),
         sa.Column('answers', sa.JSON(), nullable=False),  # {question_id: answer}
         sa.Column('scores', sa.JSON(), nullable=True),  # {question_id: score}
@@ -75,9 +75,9 @@ def upgrade():
     # Create user_resource_bookmarks table
     op.create_table(
         'user_resource_bookmarks',
-        sa.Column('id', sa.String(36), primary_key=True),
-        sa.Column('user_id', sa.String(36), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
-        sa.Column('roadmap_id', sa.String(36), sa.ForeignKey('roadmaps.id', ondelete='CASCADE'), nullable=True),
+        sa.Column('id', postgresql.UUID(as_uuid=True), primary_key=True),
+        sa.Column('user_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
+        sa.Column('roadmap_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('roadmaps.id', ondelete='CASCADE'), nullable=True),
         sa.Column('skill_id', sa.String(100), nullable=True),
         sa.Column('resource_url', sa.String(1000), nullable=False),
         sa.Column('resource_title', sa.String(500), nullable=False),

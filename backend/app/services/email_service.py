@@ -210,6 +210,129 @@ async def send_password_reset_email(email: str, reset_token: str) -> dict:
     )
 
 
+async def send_skill_decay_warning_email(
+    email: str,
+    name: str,
+    skill_name: str,
+    days_inactive: int,
+    suggested_action: str,
+) -> dict:
+    """Send warning when a skill hasn't been practiced recently."""
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #171717; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 40px 20px; }}
+            .header {{ text-align: center; margin-bottom: 32px; }}
+            .logo {{ font-size: 24px; font-weight: bold; color: #171717; }}
+            .warning {{ background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 20px; margin: 24px 0; }}
+            .cta {{ display: inline-block; background: #171717; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 24px 0; }}
+            .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e5e5; font-size: 14px; color: #737373; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">PathWise</div>
+            </div>
+            
+            <h1>Don't Let Your Skills Fade! ⚠️</h1>
+            
+            <p>Hey {name},</p>
+            
+            <div class="warning">
+                <strong>⏰ Skill Decay Alert:</strong><br>
+                You haven't practiced <strong>{skill_name}</strong> in <strong>{days_inactive} days</strong>.
+            </div>
+            
+            <p>Research shows that technical skills start to fade after 2 weeks of inactivity. A quick 15-minute review can help keep this skill sharp.</p>
+            
+            <p><strong>Suggested action:</strong> {suggested_action}</p>
+            
+            <a href="https://frontend-production-752a.up.railway.app/study-buddy" class="cta">Quick Review with AI Mentor</a>
+            
+            <div class="footer">
+                <p>© 2026 PathWise. All rights reserved.</p>
+                <p><a href="#">Unsubscribe from skill decay alerts</a></p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return await send_email(
+        to=email,
+        subject=f"⚠️ Your {skill_name} skill needs practice!",
+        html=html,
+    )
+
+
+async def send_streak_reminder_email(
+    email: str,
+    name: str,
+    current_streak: int,
+    hours_until_break: int,
+) -> dict:
+    """Send reminder to maintain learning streak."""
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #171717; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 40px 20px; }}
+            .header {{ text-align: center; margin-bottom: 32px; }}
+            .logo {{ font-size: 24px; font-weight: bold; color: #171717; }}
+            .streak {{ background: linear-gradient(135deg, #f97316, #ea580c); color: white; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0; }}
+            .streak-number {{ font-size: 48px; font-weight: bold; }}
+            .cta {{ display: inline-block; background: #171717; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 24px 0; }}
+            .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e5e5; font-size: 14px; color: #737373; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">PathWise</div>
+            </div>
+            
+            <h1>🔥 Keep Your Streak Alive!</h1>
+            
+            <p>Hey {name},</p>
+            
+            <div class="streak">
+                <div class="streak-number">{current_streak}</div>
+                <div>day streak</div>
+            </div>
+            
+            <p>You have <strong>{hours_until_break} hours</strong> left to maintain your streak. Don't let it break!</p>
+            
+            <p>Even 15 minutes of learning counts. Quick options:</p>
+            <ul>
+                <li>📝 Review one concept with AI Mentor</li>
+                <li>❓ Take a quick quiz</li>
+                <li>📖 Read through one resource</li>
+            </ul>
+            
+            <a href="https://frontend-production-752a.up.railway.app/dashboard" class="cta">Continue Learning (5 min)</a>
+            
+            <div class="footer">
+                <p>© 2026 PathWise. All rights reserved.</p>
+                <p><a href="#">Unsubscribe from streak reminders</a></p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return await send_email(
+        to=email,
+        subject=f"🔥 {current_streak}-day streak at risk! {hours_until_break}h left",
+        html=html,
+    )
+
+
 async def send_roadmap_complete_email(
     email: str,
     name: str,

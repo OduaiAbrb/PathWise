@@ -27,6 +27,10 @@ import {
   ClipboardList,
   BookOpen,
   Crown,
+  Trophy,
+  Video,
+  Building2,
+  Shield,
 } from "lucide-react";
 import NotificationSystem from "@/components/NotificationSystem";
 
@@ -51,11 +55,12 @@ import NotificationSystem from "@/components/NotificationSystem";
 // ROADMAP REMOVED: Now integrated into dashboard only (single roadmap per user)
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, description: "Roadmap & Stats" },
+  { href: "/achievements", label: "Achievements", icon: Trophy, description: "Badges & XP" },
   { href: "/interview", label: "Interview Prep", icon: MessageSquare, description: "Practice interviews" },
-  { href: "/portfolio", label: "Portfolio", icon: Briefcase, description: "Showcase your work" },
+  { href: "/interview/video", label: "Mock Interview", icon: Video, description: "Video practice" },
+  { href: "/interview/company-prep", label: "Company Prep", icon: Building2, description: "FAANG prep" },
   { href: "/study-buddy", label: "AI Mentor", icon: Brain, description: "Personal guidance" },
-  { href: "/resume-scanner", label: "Resume Scanner", icon: FileText, description: "ATS optimization" },
-  { href: "/job-tracker", label: "Job Tracker", icon: ClipboardList, description: "Track applications" },
+  { href: "/resume-scanner", label: "Resume Tools", icon: FileText, description: "ATS optimization" },
 ];
 
 // Secondary items (collapsed by default)

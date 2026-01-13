@@ -27,6 +27,8 @@ class GenerateProjectRequest(BaseModel):
     interests: Optional[List[str]] = None
     time_available: Optional[str] = None
     roadmap_id: Optional[str] = None
+    custom_prompt: Optional[str] = None  # User's custom project description
+    exclude_titles: Optional[List[str]] = None  # Titles to avoid for variety
 
 
 class ImplementationGuideRequest(BaseModel):
@@ -63,12 +65,14 @@ async def generate_project(
 ):
     """Generate a custom project idea."""
     try:
-        # Generate project
+        # Generate project with variety and custom prompt support
         project_data = await generate_project_idea(
-            request.skills,
-            request.difficulty,
-            request.interests,
-            request.time_available
+            skills=request.skills,
+            difficulty=request.difficulty,
+            interests=request.interests,
+            time_available=request.time_available,
+            custom_prompt=request.custom_prompt,
+            exclude_titles=request.exclude_titles
         )
         
         user_uuid = uuid.UUID(user_id)

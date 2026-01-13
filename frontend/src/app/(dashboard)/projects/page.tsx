@@ -48,6 +48,8 @@ export default function ProjectsPage() {
   const [filter, setFilter] = useState<"all" | "not_started" | "in_progress" | "completed">("all");
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [customPrompt, setCustomPrompt] = useState("");
+  const [showPromptInput, setShowPromptInput] = useState(false);
   const accessToken = (session as { accessToken?: string })?.accessToken;
 
   useEffect(() => {
@@ -351,19 +353,29 @@ A performant product catalog with search and cart.
   const generateProject = async () => {
     setIsGenerating(true);
     try {
+      // Get existing project titles to avoid repetition
+      const existingTitles = projects.map(p => p.title);
+      
       const response = await fetch(getApiUrl("/api/v1/projects/generate"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({
+          skills: ["JavaScript", "React", "Node.js"], // Default skills
+          difficulty: "intermediate",
+          custom_prompt: customPrompt || null,
+          exclude_titles: existingTitles,
+        }),
       });
 
       if (response.ok) {
         const data = await response.json();
         if (data.data) {
           setProjects((prev) => [data.data, ...prev]);
+          setCustomPrompt(""); // Clear the prompt
+          setShowPromptInput(false);
         }
       } else {
         // Generate a random unique project
@@ -467,24 +479,57 @@ A performant product catalog with search and cart.
               Build projects that get you hired. Each includes resume bullets, talking points, and interview prep.
             </p>
           </div>
-          <button
-            onClick={generateProject}
-            disabled={isGenerating}
-            className="btn-primary"
-          >
-            {isGenerating ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5" />
-                Generate Project
-              </>
-            )}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowPromptInput(!showPromptInput)}
+              className="btn-secondary"
+            >
+              <Lightbulb className="w-5 h-5" />
+              {showPromptInput ? "Hide" : "Custom Idea"}
+            </button>
+            <button
+              onClick={generateProject}
+              disabled={isGenerating}
+              className="btn-primary"
+            >
+              {isGenerating ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  Generate Project
+                </>
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* Custom Project Prompt Input */}
+        {showPromptInput && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-4 p-4 bg-violet-50 rounded-xl border border-violet-200"
+          >
+            <label className="block text-sm font-medium text-violet-800 mb-2">
+              Describe the project you want to build:
+            </label>
+            <textarea
+              value={customPrompt}
+              onChange={(e) => setCustomPrompt(e.target.value)}
+              placeholder="E.g., I want to build a fitness tracking app that helps users log workouts and track calories..."
+              className="w-full px-4 py-3 rounded-lg border border-violet-300 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 resize-none"
+              rows={3}
+            />
+            <p className="text-xs text-violet-600 mt-2">
+              💡 Be specific about features, tech stack preferences, or the problem you want to solve
+            </p>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Filters */}

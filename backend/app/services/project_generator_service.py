@@ -2,52 +2,119 @@
 from typing import List, Optional
 from openai import AsyncOpenAI
 import uuid
+import random
 
 from app.core.config import settings
 
 client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+
+# Project categories for variety
+PROJECT_CATEGORIES = [
+    "CLI Tool", "Web App", "API Service", "Data Pipeline", "Automation Script",
+    "Browser Extension", "Mobile App", "Desktop App", "Game", "Library/Package",
+    "Testing Framework", "DevOps Tool", "Monitoring Dashboard", "Chat Bot",
+    "E-commerce", "Social Platform", "Content Management", "Analytics Tool"
+]
+
+# Unique themes for variety
+PROJECT_THEMES = [
+    "fitness tracking", "recipe management", "budget tracking", "habit tracker",
+    "inventory system", "booking system", "quiz platform", "job board",
+    "social media scheduler", "note-taking app", "weather dashboard",
+    "portfolio builder", "event planner", "music player", "podcast manager",
+    "file organizer", "password manager", "URL shortener", "blog platform",
+    "email newsletter", "survey creator", "feedback collector", "time tracker"
+]
 
 
 async def generate_project_idea(
     skills: List[str],
     difficulty: str,
     interests: Optional[List[str]] = None,
-    time_available: Optional[str] = None
+    time_available: Optional[str] = None,
+    custom_prompt: Optional[str] = None,
+    exclude_titles: Optional[List[str]] = None
 ) -> dict:
     """Generate a custom project idea based on skills and interests."""
     
     skills_text = ", ".join(skills)
     interests_text = ", ".join(interests) if interests else "general"
     
-    prompt = f"""Create a unique project idea for someone learning:
+    # Add randomness for variety
+    random_category = random.choice(PROJECT_CATEGORIES)
+    random_theme = random.choice(PROJECT_THEMES)
+    random_seed = random.randint(1000, 9999)
+    
+    # Build exclusion list to avoid repetition
+    exclusion_text = ""
+    if exclude_titles:
+        exclusion_text = f"\n\n⚠️ DO NOT generate these projects (already exists): {', '.join(exclude_titles)}"
+    
+    # Custom prompt support
+    custom_guidance = ""
+    if custom_prompt:
+        custom_guidance = f"\n\n🎯 USER'S SPECIFIC REQUEST: {custom_prompt}\nBuild the project around this request."
+    
+    prompt = f"""Create a UNIQUE and CREATIVE project idea (seed: {random_seed}).
 
 **Skills to practice:** {skills_text}
 **Difficulty level:** {difficulty}
 **Interests:** {interests_text}
+**Suggested category:** {random_category}
+**Theme inspiration:** {random_theme}
 {f"**Time available:** {time_available}" if time_available else ""}
+{custom_guidance}
+{exclusion_text}
+
+IMPORTANT REQUIREMENTS:
+1. Be CREATIVE - don't use generic names like "Task Manager" or "Todo App"
+2. Give it a memorable, branded name (e.g., "TaskForge", "NoteNinja", "BudgetBuddy")
+3. Make it something the user would be PROUD to show in an interview
+4. Include SPECIFIC features that demonstrate the skills listed
+5. Provide CLEAR step-by-step instructions that a beginner can follow
 
 Generate a detailed project in JSON format:
 {{
-  "title": "Project title",
-  "description": "Detailed description",
+  "title": "Creative branded project name",
+  "tagline": "One-line catchy description",
+  "description": "Detailed 2-3 sentence description of what it does and why it's useful",
   "difficulty": "{difficulty}",
   "estimated_hours": 0,
   "tech_stack": ["tech1", "tech2"],
-  "learning_objectives": ["objective1", "objective2"],
+  "learning_objectives": ["What you'll learn 1", "What you'll learn 2"],
   "features": [
     {{"name": "Feature name", "description": "What it does", "priority": "must-have|nice-to-have"}}
   ],
   "requirements": [
-    {{"id": "req-1", "description": "Requirement description", "type": "functional|technical"}}
+    {{"id": "req-1", "description": "Clear requirement", "type": "functional|technical"}}
   ],
+  "getting_started": {{
+    "prerequisites": ["What you need installed"],
+    "setup_commands": ["npm init -y", "npm install express"],
+    "first_steps": ["Step 1: Create project folder", "Step 2: Initialize package.json"]
+  }},
   "implementation_steps": [
-    {{"step": 1, "title": "Step title", "description": "What to do", "estimated_hours": 0, "skills_used": []}}
+    {{
+      "step": 1,
+      "title": "Step title",
+      "description": "Detailed what to do",
+      "estimated_hours": 0,
+      "skills_used": [],
+      "code_hint": "Brief code example or file to create",
+      "success_criteria": "How to know you completed this step"
+    }}
   ],
   "test_cases": [
     {{"id": "test-1", "description": "What to test", "expected_result": "Expected outcome"}}
   ],
   "bonus_challenges": ["challenge1", "challenge2"],
-  "real_world_applications": ["application1", "application2"]
+  "resume_bullet": "Impressive resume bullet point for this project",
+  "interview_talking_points": ["Point 1", "Point 2", "Point 3"],
+  "deployment_guide": {{
+    "recommended_platform": "Vercel|Railway|Heroku|etc",
+    "deployment_steps": ["Step 1", "Step 2"],
+    "demo_tips": "How to demo this project effectively"
+  }}
 }}"""
     
     try:

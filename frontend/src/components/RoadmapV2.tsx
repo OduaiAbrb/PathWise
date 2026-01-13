@@ -753,7 +753,7 @@ export default function RoadmapV2({
                           >
                             <Rocket className="w-6 h-6" />
                             {showExam === phase.id ? "Hide Exam" : "Take Exam"}
-                          </button>
+                          </motion.button>
                         )}
                       </div>
 
@@ -779,7 +779,7 @@ export default function RoadmapV2({
                       </AnimatePresence>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Locked Overlay */}
                 {isLocked && (

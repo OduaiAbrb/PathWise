@@ -220,18 +220,18 @@ export default function RoadmapV2({
 
     if (phase.status === "completed") {
       return {
-        bg: "bg-emerald-500",
-        border: "border-emerald-500",
+        bg: "bg-black",
+        border: "border-black",
         text: "text-white",
-        glow: isActive ? "ring-4 ring-emerald-300" : "",
+        glow: isActive ? "ring-3 ring-slate-300" : "",
       };
     }
     if (isCurrent || phase.status === "in_progress") {
       return {
-        bg: "bg-gradient-to-br from-violet-500 to-fuchsia-500",
-        border: "border-violet-500",
+        bg: "bg-slate-900",
+        border: "border-slate-900",
         text: "text-white",
-        glow: "shadow-xl shadow-violet-500/40 " + (isActive ? "ring-4 ring-violet-300" : ""),
+        glow: "shadow-lg shadow-slate-900/30 " + (isActive ? "ring-3 ring-slate-400" : ""),
       };
     }
     if (phase.status === "locked") {
@@ -246,16 +246,16 @@ export default function RoadmapV2({
       bg: "bg-white",
       border: "border-slate-300",
       text: "text-slate-600",
-      glow: isActive ? "ring-4 ring-slate-300" : "",
+      glow: isActive ? "ring-3 ring-slate-300" : "",
     };
   };
 
   const getImportanceBadge = (importance: string) => {
     switch (importance) {
       case "critical":
-        return { bg: "bg-rose-100", text: "text-rose-700", label: "🔥 Critical Foundation" };
+        return { bg: "bg-black", text: "text-white", label: " Critical Foundation" };
       case "important":
-        return { bg: "bg-amber-100", text: "text-amber-700", label: "⭐ Important" };
+        return { bg: "bg-slate-800", text: "text-white", label: " Important" };
       default:
         return { bg: "bg-slate-100", text: "text-slate-600", label: "Optional" };
     }
@@ -373,10 +373,10 @@ export default function RoadmapV2({
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* HORIZONTAL TIMELINE - FULL WIDTH WITH ZOOM */}
+      {/* HORIZONTAL TIMELINE - COMPACT */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
-        <div className="py-6 px-4">
+      <div className="bg-white border-b border-slate-200">
+        <div className="py-4 px-4">
           <div className="max-w-7xl mx-auto">
             {/* Zoom Controls */}
             <div className="flex items-center justify-between mb-4">
@@ -400,25 +400,19 @@ export default function RoadmapV2({
                 </button>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button onClick={() => setZoomLevel(Math.max(0.7, zoomLevel - 0.1))} className="p-1.5 rounded bg-slate-100 hover:bg-slate-200">
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="text-xs text-slate-500 w-12 text-center">{Math.round(zoomLevel * 100)}%</span>
-                <button onClick={() => setZoomLevel(Math.min(1.3, zoomLevel + 0.1))} className="p-1.5 rounded bg-slate-100 hover:bg-slate-200">
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
+              {/* Removed zoom controls for cleaner UI */}
             </div>
 
             {/* Timeline */}
-            <div className="overflow-x-auto pb-2" style={{ transform: `scale(${zoomLevel})`, transformOrigin: "left center" }}>
-              <div className="relative flex items-center justify-between min-w-[900px] py-4">
+            <div className="overflow-x-auto pb-2">
+              <div className="relative flex items-center justify-between min-w-[800px] py-3">
                 {/* Timeline Line */}
-                <div className="absolute top-1/2 left-0 right-0 h-3 bg-slate-200 -translate-y-1/2 rounded-full" />
-                <div
-                  className="absolute top-1/2 left-0 h-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 -translate-y-1/2 rounded-full transition-all duration-700"
-                  style={{ width: `${((Math.max(0, currentPhaseIndex) + 0.5) / roadmap.phases.length) * 100}%` }}
+                <div className="absolute top-1/2 left-0 right-0 h-2 bg-slate-200 -translate-y-1/2 rounded-full" />
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${((Math.max(0, currentPhaseIndex) + 0.5) / roadmap.phases.length) * 100}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  className="absolute top-1/2 left-0 h-2 bg-black -translate-y-1/2 rounded-full"
                 />
 
                 {/* Phase Nodes - BIGGER */}
@@ -434,21 +428,22 @@ export default function RoadmapV2({
                       whileHover={{ scale: 1.08 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      {/* Node Circle - LARGER */}
-                      <div
-                        className={`w-16 h-16 md:w-20 md:h-20 rounded-full ${style.bg} ${style.border} border-4 
+                      {/* Node Circle - COMPACT */}
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        className={`w-12 h-12 md:w-14 md:h-14 rounded-full ${style.bg} ${style.border} border-3 
                           flex items-center justify-center ${style.glow} transition-all duration-300`}
                       >
                         {phase.status === "completed" ? (
-                          <CheckCircle2 className={`w-8 h-8 md:w-10 md:h-10 ${style.text}`} />
+                          <CheckCircle2 className={`w-6 h-6 md:w-7 md:h-7 ${style.text}`} />
                         ) : phase.status === "locked" ? (
-                          <Lock className={`w-7 h-7 md:w-8 md:h-8 ${style.text}`} />
+                          <Lock className={`w-5 h-5 md:w-6 md:h-6 ${style.text}`} />
                         ) : (
-                          <span className={`text-2xl md:text-3xl font-black ${style.text}`}>
+                          <span className={`text-lg md:text-xl font-black ${style.text}`}>
                             {index + 1}
                           </span>
                         )}
-                      </div>
+                      </motion.div>
 
                       {/* Phase Label */}
                       <div className="mt-3 text-center max-w-[120px]">
@@ -496,28 +491,39 @@ export default function RoadmapV2({
                 className={`relative scroll-mt-48 ${isLocked ? "opacity-40 blur-[2px] pointer-events-none select-none" : ""}`}
               >
                 {/* Phase Card - MUCH BIGGER */}
-                <div
+                <motion.div
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.3 }}
                   className={`bg-white rounded-3xl overflow-hidden transition-all duration-500
-                    ${isActive ? "ring-4 ring-violet-500 shadow-2xl shadow-violet-500/10" : "shadow-xl border border-slate-200"}`}
-                  style={{ minHeight: "600px" }}
+                    ${isActive ? "ring-4 ring-black shadow-2xl" : "shadow-xl border border-slate-200"}`}
+                  style={{ minHeight: "560px" }}
                 >
-                  {/* Phase Header - BIGGER */}
-                  <div className={`p-10 ${isActive ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white" : "bg-slate-50"}`}>
+                  {/* Phase Header */}
+                  <div className={`p-8 ${isActive ? "bg-black text-white" : "bg-slate-50"}`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-4">
-                          <span className={`px-4 py-1.5 rounded-full text-sm font-bold ${isActive ? "bg-white/20 text-white" : `${importanceBadge.bg} ${importanceBadge.text}`}`}>
+                          <motion.span
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.2, type: "spring" }}
+                            className={`px-4 py-1.5 rounded-full text-sm font-bold ${isActive ? "bg-white/20 text-white" : `${importanceBadge.bg} ${importanceBadge.text}`}`}
+                          >
                             {importanceBadge.label}
-                          </span>
+                          </motion.span>
                           {phase.status === "completed" && (
                             <span className="px-4 py-1.5 rounded-full text-sm font-bold bg-emerald-100 text-emerald-700 flex items-center gap-1">
                               <Trophy className="w-4 h-4" /> Completed
                             </span>
                           )}
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-black mb-3">
+                        <motion.h2
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.1 }}
+                          className="text-3xl md:text-4xl font-black mb-3">
                           {phase.title}
-                        </h2>
+                        </motion.h2>
                         {phase.description && (
                           <p className={`text-lg ${isActive ? "text-white/80" : "text-slate-600"} max-w-3xl`}>
                             {phase.description}
@@ -550,10 +556,15 @@ export default function RoadmapV2({
                   {/* Phase Content */}
                   <div className="p-10 space-y-10">
                     {/* Why It Matters */}
-                    <div className="p-8 bg-gradient-to-r from-violet-50 to-fuchsia-50 rounded-2xl border border-violet-100">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.2 }}
+                      className="p-8 bg-slate-50 rounded-2xl border border-slate-200">
                       <div className="flex items-start gap-5">
-                        <div className="w-14 h-14 bg-violet-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                          <Zap className="w-7 h-7 text-violet-600" />
+                        <div className="w-14 h-14 bg-black rounded-2xl flex items-center justify-center flex-shrink-0">
+                          <Zap className="w-7 h-7 text-white" />
                         </div>
                         <div>
                           <h3 className="font-bold text-xl text-slate-900 mb-2">Why This Phase Matters</h3>
@@ -568,10 +579,15 @@ export default function RoadmapV2({
                     {/* Deliverables & Benchmarks Row */}
                     <div className="grid md:grid-cols-2 gap-6">
                       {/* Deliverables */}
-                      <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-100">
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.1 }}
+                        className="p-6 bg-slate-50 rounded-2xl border border-slate-200">
                         <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
-                            <ListChecks className="w-5 h-5 text-emerald-600" />
+                          <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center">
+                            <ListChecks className="w-5 h-5 text-white" />
                           </div>
                           <h4 className="font-bold text-lg text-slate-900">After This Phase, You Can:</h4>
                         </div>
@@ -582,7 +598,7 @@ export default function RoadmapV2({
                             "Debug common issues confidently",
                           ]).map((item, i) => (
                             <li key={i} className="flex items-start gap-3 text-slate-700">
-                              <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                              <CheckCircle2 className="w-5 h-5 text-black flex-shrink-0 mt-0.5" />
                               <span>{item}</span>
                             </li>
                           ))}
@@ -590,10 +606,15 @@ export default function RoadmapV2({
                       </div>
 
                       {/* Benchmarks */}
-                      <div className="p-6 bg-amber-50 rounded-2xl border border-amber-100">
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.2 }}
+                        className="p-6 bg-slate-50 rounded-2xl border border-slate-200">
                         <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
-                            <Award className="w-5 h-5 text-amber-600" />
+                          <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center">
+                            <Award className="w-5 h-5 text-white" />
                           </div>
                           <h4 className="font-bold text-lg text-slate-900">Pass Criteria:</h4>
                         </div>
@@ -604,7 +625,7 @@ export default function RoadmapV2({
                             "Answer checkpoint questions correctly",
                           ]).map((item, i) => (
                             <li key={i} className="flex items-start gap-3 text-slate-700">
-                              <Target className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                              <Target className="w-5 h-5 text-slate-700 flex-shrink-0 mt-0.5" />
                               <span>{item}</span>
                             </li>
                           ))}
@@ -614,10 +635,15 @@ export default function RoadmapV2({
 
                     {/* Phase Project */}
                     {(phase.phase_project || index === 0) && (
-                      <div className="p-8 bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl text-white">
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.3 }}
+                        className="p-8 bg-black rounded-2xl text-white">
                         <div className="flex items-start gap-5">
-                          <div className="w-14 h-14 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-2xl flex items-center justify-center flex-shrink-0">
-                            <Hammer className="w-7 h-7 text-white" />
+                          <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <Hammer className="w-7 h-7 text-black" />
                           </div>
                           <div className="flex-1">
                             <h4 className="text-2xl font-bold mb-2">
@@ -656,19 +682,23 @@ export default function RoadmapV2({
                             whileHover={{ scale: 1.02, y: -4 }}
                             className={`p-6 rounded-2xl border-2 text-left transition-all
                               ${skill.status === "completed"
-                                ? "border-emerald-500 bg-emerald-50 shadow-emerald-500/10 shadow-lg"
+                                ? "border-black bg-slate-50 shadow-lg"
                                 : skill.status === "in_progress"
-                                ? "border-violet-500 bg-violet-50 shadow-violet-500/10 shadow-lg"
+                                ? "border-slate-800 bg-slate-50 shadow-lg"
                                 : "border-slate-200 hover:border-slate-400 hover:shadow-lg bg-white"
                               }`}
                           >
                             <div className="flex items-center justify-between mb-3">
                               <span className="font-bold text-lg text-slate-900">{skill.name}</span>
                               {skill.status === "completed" ? (
-                                <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                                <CheckCircle2 className="w-6 h-6 text-black" />
                               ) : skill.status === "in_progress" ? (
-                                <div className="w-6 h-6 border-2 border-violet-500 rounded-full flex items-center justify-center">
-                                  <div className="w-3 h-3 bg-violet-500 rounded-full animate-pulse" />
+                                <div className="w-6 h-6 border-2 border-slate-800 rounded-full flex items-center justify-center">
+                                  <motion.div
+                                    animate={{ scale: [1, 1.2, 1] }}
+                                    transition={{ repeat: Infinity, duration: 1.5 }}
+                                    className="w-3 h-3 bg-slate-800 rounded-full"
+                                  />
                                 </div>
                               ) : (
                                 <Circle className="w-6 h-6 text-slate-300" />
@@ -676,7 +706,7 @@ export default function RoadmapV2({
                             </div>
                             <div className="flex items-center gap-4 text-sm">
                               {skill.interview_frequency && (
-                                <span className="text-violet-600 font-medium">
+                                <span className="text-black font-medium">
                                   🎯 {skill.interview_frequency}% interviews
                                 </span>
                               )}
@@ -715,9 +745,11 @@ export default function RoadmapV2({
                             <span className="font-bold text-lg">Passed ({phase.exam.user_score}%)</span>
                           </div>
                         ) : (
-                          <button
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
                             onClick={() => setShowExam(showExam === phase.id ? null : phase.id)}
-                            className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-2xl font-bold text-lg hover:opacity-90 transition-opacity shadow-lg shadow-violet-500/25"
+                            className="flex items-center gap-3 px-8 py-4 bg-black text-white rounded-2xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-lg"
                           >
                             <Rocket className="w-6 h-6" />
                             {showExam === phase.id ? "Hide Exam" : "Take Exam"}
@@ -734,15 +766,14 @@ export default function RoadmapV2({
                             exit={{ opacity: 0, height: 0 }}
                             className="bg-slate-50 rounded-2xl p-8 border-2 border-slate-200"
                           >
-                            <p className="text-center text-slate-500 py-8">
-                              Exam questions will be loaded from the backend...
-                            </p>
-                            <button
-                              onClick={() => onExamSubmit?.(phase.id, examAnswers)}
-                              className="w-full py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl font-bold text-lg hover:opacity-90 transition-opacity"
-                            >
-                              Submit Exam
-                            </button>
+                            <div className="text-center py-8">
+                              <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                className="w-12 h-12 border-4 border-slate-200 border-t-black rounded-full mx-auto mb-4"
+                              />
+                              <p className="text-slate-500">Loading AI-generated exam questions...</p>
+                            </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -857,7 +888,7 @@ export default function RoadmapV2({
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => toggleBookmark(resource, selectedSkill.skill.id)}
-                                  className={`p-2 rounded-lg transition-colors ${isBookmarked ? "bg-violet-100 text-violet-600" : "hover:bg-slate-100 text-slate-400"}`}
+                                  className={`p-2 rounded-lg transition-colors ${isBookmarked ? "bg-black text-white" : "hover:bg-slate-100 text-slate-400"}`}
                                 >
                                   {isBookmarked ? <BookmarkCheck className="w-5 h-5" /> : <Bookmark className="w-5 h-5" />}
                                 </button>
@@ -865,7 +896,7 @@ export default function RoadmapV2({
                                   href={resource.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="p-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors"
+                                  className="p-2 bg-black text-white rounded-lg hover:bg-slate-800 transition-colors"
                                 >
                                   <ExternalLink className="w-5 h-5" />
                                 </a>
@@ -885,15 +916,17 @@ export default function RoadmapV2({
                 </div>
 
                 {/* Action Button */}
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => {
                     onSkillClick?.(selectedSkill.skill, selectedSkill.phaseId);
                     setSelectedSkill(null);
                   }}
-                  className="w-full py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl font-bold text-lg hover:opacity-90 transition-opacity"
+                  className="w-full py-4 bg-black text-white rounded-xl font-bold text-lg hover:bg-slate-800 transition-colors"
                 >
                   Start Learning with AI Mentor
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           </>

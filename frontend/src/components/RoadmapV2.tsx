@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2,
@@ -167,6 +168,7 @@ export default function RoadmapV2({
   onExamSubmit,
   onBookmarkResource,
 }: RoadmapV2Props) {
+  const router = useRouter();
   const [activePhaseIndex, setActivePhaseIndex] = useState(0);
   const [checkpointAnswers, setCheckpointAnswers] = useState<Record<string, number | string>>({});
   const [showExam, setShowExam] = useState<string | null>(null);
@@ -846,158 +848,57 @@ export default function RoadmapV2({
                           </p>
                         </div>
 
-                        {phase.exam?.passed || examResults[phase.id]?.passed ? (
+                        {phase.exam?.passed ? (
                           <div className="flex items-center gap-3 px-6 py-3 bg-emerald-100 text-emerald-700 rounded-full">
                             <Trophy className="w-6 h-6" />
-                            <span className="font-bold text-lg">Passed ({phase.exam?.user_score || examResults[phase.id]?.score}%)</span>
+                            <span className="font-bold text-lg">Passed ({phase.exam?.user_score}%)</span>
                           </div>
                         ) : (
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => handleTakeExam(phase)}
+                            onClick={() => router.push(`/roadmap/${roadmap.id}/exam/${phase.id}`)}
                             className="flex items-center gap-3 px-8 py-4 bg-black text-white rounded-2xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-lg"
                           >
                             <Rocket className="w-6 h-6" />
-                            {showExam === phase.id ? "Hide Exam" : "Take Exam"}
+                            Take Certification Exam
                           </motion.button>
                         )}
                       </div>
 
-                      {/* Exam Questions */}
-                      <AnimatePresence>
-                        {showExam === phase.id && !phase.exam?.passed && !examResults[phase.id]?.passed && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="bg-slate-50 rounded-2xl p-8 border-2 border-slate-200"
-                          >
-                            {loadingExam === phase.id ? (
-                              <div className="text-center py-8">
-                                <motion.div
-                                  animate={{ rotate: 360 }}
-                                  transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                                  className="w-12 h-12 border-4 border-slate-200 border-t-black rounded-full mx-auto mb-4"
-                                />
-                                <p className="text-slate-500">Generating AI exam questions...</p>
-                              </div>
-                            ) : examQuestions[phase.id] ? (
-                              <div className="space-y-6">
-                                <h4 className="text-xl font-bold text-slate-900 mb-4">Phase Exam - {examQuestions[phase.id].length} Questions</h4>
-                                
-                                {examQuestions[phase.id].map((q, qIndex) => (
-                                  <motion.div
-                                    key={q.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: qIndex * 0.1 }}
-                                    className="bg-white rounded-xl p-6 border border-slate-200"
-                                  >
-                                    <div className="flex items-start gap-4">
-                                      <span className="flex-shrink-0 w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center font-bold">
-                                        {qIndex + 1}
-                                      </span>
-                                      <div className="flex-1">
-                                        <p className="font-medium text-slate-900 mb-4">{q.question}</p>
-                                        
-                                        {q.type === "mcq" && q.options && (
-                                          <div className="space-y-2">
-                                            {q.options.map((option, optIndex) => (
-                                              <button
-                                                key={optIndex}
-                                                onClick={() => handleExamAnswer(q.id, optIndex)}
-                                                className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
-                                                  examAnswers[q.id] === optIndex
-                                                    ? "border-black bg-black text-white"
-                                                    : "border-slate-200 hover:border-slate-400"
-                                                }`}
-                                              >
-                                                <span className="font-medium mr-2">{String.fromCharCode(65 + optIndex)}.</span>
-                                                {option}
-                                              </button>
-                                            ))}
-                                          </div>
-                                        )}
-                                        
-                                        {(q.type === "open" || q.type === "code") && (
-                                          <textarea
-                                            placeholder={q.type === "code" ? "Write your code here..." : "Type your answer..."}
-                                            value={(examAnswers[q.id] as string) || ""}
-                                            onChange={(e) => handleExamAnswer(q.id, e.target.value)}
-                                            className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-black focus:outline-none min-h-[120px] font-mono"
-                                          />
-                                        )}
-                                        
-                                        {q.skill && (
-                                          <p className="text-sm text-slate-500 mt-2">Tests: {q.skill}</p>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </motion.div>
+                      {/* Exam Info Card */}
+                      {!phase.exam?.passed && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="bg-slate-50 rounded-2xl p-6 border border-slate-200"
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                              <Brain className="w-6 h-6 text-violet-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-slate-900 mb-1">AI-Generated Exam</h4>
+                              <p className="text-sm text-slate-600 mb-3">
+                                10 questions testing your understanding of {phase.skills?.length || 0} skills in this phase.
+                                30-minute time limit. Need 70% to pass.
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {phase.skills?.slice(0, 4).map((skill, i) => (
+                                  <span key={i} className="px-2 py-1 bg-white text-slate-600 rounded text-xs border">
+                                    {skill.name}
+                                  </span>
                                 ))}
-                                
-                                {/* Submit Button */}
-                                <div className="flex justify-end pt-4">
-                                  <motion.button
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => handleSubmitExam(phase.id)}
-                                    disabled={examSubmitting || Object.keys(examAnswers).length < (examQuestions[phase.id]?.length || 0)}
-                                    className="flex items-center gap-3 px-8 py-4 bg-black text-white rounded-2xl font-bold text-lg hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                  >
-                                    {examSubmitting ? (
-                                      <>
-                                        <motion.div
-                                          animate={{ rotate: 360 }}
-                                          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                                          className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                                        />
-                                        Grading...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <CheckCheck className="w-6 h-6" />
-                                        Submit Exam
-                                      </>
-                                    )}
-                                  </motion.button>
-                                </div>
-                                
-                                {/* Exam Result */}
-                                {examResults[phase.id] && (
-                                  <motion.div
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className={`p-6 rounded-xl ${examResults[phase.id].passed ? "bg-emerald-50 border-2 border-emerald-200" : "bg-amber-50 border-2 border-amber-200"}`}
-                                  >
-                                    <div className="flex items-center gap-4">
-                                      {examResults[phase.id].passed ? (
-                                        <Trophy className="w-12 h-12 text-emerald-600" />
-                                      ) : (
-                                        <AlertCircle className="w-12 h-12 text-amber-600" />
-                                      )}
-                                      <div>
-                                        <h4 className={`text-2xl font-bold ${examResults[phase.id].passed ? "text-emerald-700" : "text-amber-700"}`}>
-                                          Score: {examResults[phase.id].score}%
-                                        </h4>
-                                        <p className={examResults[phase.id].passed ? "text-emerald-600" : "text-amber-600"}>
-                                          {examResults[phase.id].feedback}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </motion.div>
+                                {(phase.skills?.length || 0) > 4 && (
+                                  <span className="px-2 py-1 bg-slate-200 text-slate-600 rounded text-xs">
+                                    +{(phase.skills?.length || 0) - 4} more
+                                  </span>
                                 )}
                               </div>
-                            ) : (
-                              <div className="text-center py-8 text-slate-500">
-                                <AlertCircle className="w-12 h-12 mx-auto mb-4 text-slate-400" />
-                                <p>Failed to load exam questions. Please try again.</p>
-                              </div>
-                            )}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
                     </div>
                   </div>
                 </motion.div>

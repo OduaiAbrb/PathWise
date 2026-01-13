@@ -237,7 +237,13 @@ export default function BlackWhiteDashboard() {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => router.push(`/roadmap/${roadmap.id}`)}
+              onClick={() => {
+                if (roadmap?.id) {
+                  router.push(`/roadmap/${roadmap.id}`);
+                } else {
+                  router.push("/roadmap");
+                }
+              }}
               className="px-4 py-2 bg-white text-black font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2"
             >
               <Target className="w-4 h-4" />

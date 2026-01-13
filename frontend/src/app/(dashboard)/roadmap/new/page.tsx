@@ -128,19 +128,8 @@ function RoadmapNewContent() {
     }
   };
 
-  // Auto-generate if coming from onboarding with data
-  useEffect(() => {
-    const savedRole = localStorage.getItem("pathwise_target_role");
-    if (savedRole && accessToken && status === "authenticated") {
-      // Slight delay to ensure session is ready
-      const timer = setTimeout(() => {
-        if (!isGenerating) {
-          generateRoadmap();
-        }
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [accessToken, status]);
+  // Note: Auto-generate is disabled - users must select learning style first
+  // The learning style (resourcePreference) is now required before generation
 
   if (status === "loading" || isGenerating) {
     return (

@@ -13,6 +13,7 @@ export default function AccountabilityPartnersPage() {
   const [potentialMatches, setPotentialMatches] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     if (accessToken) {
@@ -75,18 +76,42 @@ export default function AccountabilityPartnersPage() {
       });
 
       if (response.ok) {
-        alert("Partner request sent!");
+        setToast({ message: "Partner request sent successfully!", type: "success" });
+        // Remove the user from potential matches
+        setPotentialMatches(prev => prev.filter(m => m.id !== partnerId));
       } else {
-        alert("Failed to send partner request");
+        setToast({ message: "Failed to send partner request. Please try again.", type: "error" });
       }
     } catch (err) {
       console.error("Error sending partner request:", err);
-      alert("Could not send partner request");
+      setToast({ message: "Could not connect to server. Please try again.", type: "error" });
     }
+    // Auto-hide toast after 4 seconds
+    setTimeout(() => setToast(null), 4000);
   };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
+      {/* Toast Notification */}
+      {toast && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-xl shadow-lg ${
+            toast.type === 'success' 
+              ? 'bg-green-50 border border-green-200 text-green-800' 
+              : 'bg-red-50 border border-red-200 text-red-800'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <span>{toast.type === 'success' ? '✓' : '✕'}</span>
+            <span className="font-medium">{toast.message}</span>
+            <button onClick={() => setToast(null)} className="ml-2 opacity-60 hover:opacity-100">×</button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold text-slate-900 mb-3">

@@ -83,16 +83,21 @@ export default function GroupsPage() {
           joined: group.is_member || false,
         }));
         
-        setGroups(formattedGroups);
+        // If no groups from backend, show suggested groups
+        if (formattedGroups.length === 0) {
+          setGroups(getSuggestedGroups());
+        } else {
+          setGroups(formattedGroups);
+        }
       } else {
+        // Silently fall back to suggested groups instead of showing error
         console.error("Failed to fetch groups from backend");
-        setGroups([]);
-        alert("Could not load study groups. Backend connection failed.");
+        setGroups(getSuggestedGroups());
       }
     } catch (error) {
+      // Silently fall back to suggested groups instead of showing error modal
       console.error("Error fetching groups:", error);
-      setGroups([]);
-      alert("Could not connect to backend to load study groups.");
+      setGroups(getSuggestedGroups());
     } finally {
       setIsLoading(false);
     }

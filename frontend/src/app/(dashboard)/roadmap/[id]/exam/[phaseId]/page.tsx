@@ -70,6 +70,7 @@ export default function ExamPage() {
   const [roadmapTitle, setRoadmapTitle] = useState("");
   const [timeRemaining, setTimeRemaining] = useState(30 * 60); // 30 minutes
   const [examStarted, setExamStarted] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   // Fetch roadmap and phase info
   useEffect(() => {
@@ -122,11 +123,17 @@ export default function ExamPage() {
     return () => clearInterval(timer);
   }, [examStarted, result]);
 
-  // Generate exam questions
+  // Generate exam questions with timeout
   const generateExam = async () => {
     if (!accessToken || !phaseInfo) return;
 
     setGenerating(true);
+    setGenerationError(null);
+    
+    // Create abort controller for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+    
     try {
       const response = await fetch(getApiUrl("/api/v1/exams/exam/generate"), {
         method: "POST",
@@ -141,7 +148,10 @@ export default function ExamPage() {
           difficulty: "intermediate",
           num_questions: 10, // Longer exam
         }),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error("Failed to generate exam");
 
@@ -149,10 +159,18 @@ export default function ExamPage() {
       if (data.success && data.data?.questions) {
         setQuestions(data.data.questions);
         setExamStarted(true);
+      } else {
+        throw new Error("Invalid exam data received");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating exam:", error);
+      if (error.name === 'AbortError') {
+        setGenerationError("Exam generation timed out. The AI is taking longer than expected. Please try again.");
+      } else {
+        setGenerationError("Failed to generate exam. Please check your connection and try again.");
+      }
     } finally {
+      clearTimeout(timeoutId);
       setGenerating(false);
     }
   };
@@ -369,6 +387,18 @@ export default function ExamPage() {
               </div>
             )}
 
+            {/* Error Display */}
+            {generationError && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-8">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-red-800">
+                    <strong>Error:</strong> {generationError}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8">
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -386,7 +416,13 @@ export default function ExamPage() {
               {generating ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Generating Your Exam...
+                  <span>Generating Your Exam...</span>
+                  <span className="text-sm opacity-70">(up to 60s)</span>
+                </>
+              ) : generationError ? (
+                <>
+                  <RefreshCw className="w-5 h-5" />
+                  Try Again
                 </>
               ) : (
                 <>

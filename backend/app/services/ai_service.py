@@ -134,6 +134,9 @@ RESOURCE FORMAT REQUIREMENTS:
 - Include "what_you_learn" field describing specific outcomes
 - Include "time_to_complete" in minutes (realistic estimates)
 - Mark resource type: "documentation", "video", "interactive", "article"
+- CRITICAL: Include "why_chosen" field explaining why THIS specific resource was picked
+  Example: "why_chosen": "Most comprehensive free tutorial covering all SQL join types with visual diagrams"
+  Example: "why_chosen": "This topic appears in 78% of backend interviews - official docs are the gold standard"
 
 Guidelines:
 - Create 4-6 phases, progressing from foundational to advanced (LONGER ROADMAPS)

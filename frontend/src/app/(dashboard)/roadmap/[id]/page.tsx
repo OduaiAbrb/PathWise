@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getApiUrl } from "@/lib/fetch-api";
 import RoadmapV2 from "@/components/RoadmapV2";
+import { SkeletonRoadmap } from "@/components/ui/Skeleton";
 
 interface RoadmapData {
   id: string;
@@ -156,10 +157,9 @@ export default function RoadmapDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading your roadmap...</p>
+      <div className="min-h-screen bg-white p-6">
+        <div className="max-w-7xl mx-auto">
+          <SkeletonRoadmap />
         </div>
       </div>
     );

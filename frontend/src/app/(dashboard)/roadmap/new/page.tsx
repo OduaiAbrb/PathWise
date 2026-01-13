@@ -21,6 +21,7 @@ import {
   FileText,
   Layers,
 } from "lucide-react";
+import { StepProgress } from "@/components/ui/Skeleton";
 
 /**
  * Roadmap Generation Page
@@ -44,6 +45,7 @@ function RoadmapNewContent() {
   const accessToken = (session as { accessToken?: string })?.accessToken;
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStep, setGenerationStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [jobDescription, setJobDescription] = useState("");
   const [targetRole, setTargetRole] = useState("");
@@ -82,7 +84,13 @@ function RoadmapNewContent() {
     if (!accessToken || (!jobDescription && !targetRole)) return;
 
     setIsGenerating(true);
+    setGenerationStep(0);
     setError(null);
+
+    // Simulate step progression for perceived performance
+    const stepInterval = setInterval(() => {
+      setGenerationStep((prev: number) => Math.min(prev + 1, 3));
+    }, 3000);
 
     try {
       const response = await fetch(getApiUrl("/api/v1/roadmaps/generate"), {
@@ -115,6 +123,9 @@ function RoadmapNewContent() {
 
       const data = await response.json();
       
+      clearInterval(stepInterval);
+      setGenerationStep(4); // All steps complete
+      
       // Clear localStorage
       localStorage.removeItem("pathwise_target_role");
       localStorage.removeItem("pathwise_jd");
@@ -123,6 +134,7 @@ function RoadmapNewContent() {
       // Redirect to the roadmap view
       router.push(`/roadmap/${data.data.id}`);
     } catch (err: any) {
+      clearInterval(stepInterval);
       setError(err.message || "Something went wrong");
       setIsGenerating(false);
     }

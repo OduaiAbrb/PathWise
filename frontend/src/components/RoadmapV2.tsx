@@ -574,7 +574,7 @@ export default function RoadmapV2({
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
 
                     {/* Deliverables & Benchmarks Row */}
                     <div className="grid md:grid-cols-2 gap-6">
@@ -603,7 +603,7 @@ export default function RoadmapV2({
                             </li>
                           ))}
                         </ul>
-                      </div>
+                      </motion.div>
 
                       {/* Benchmarks */}
                       <motion.div
@@ -630,7 +630,7 @@ export default function RoadmapV2({
                             </li>
                           ))}
                         </ul>
-                      </div>
+                      </motion.div>
                     </div>
 
                     {/* Phase Project */}
@@ -665,7 +665,7 @@ export default function RoadmapV2({
                             <p className="text-slate-400 text-sm">estimated</p>
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     )}
 
                     {/* Skills Grid - BIGGER */}

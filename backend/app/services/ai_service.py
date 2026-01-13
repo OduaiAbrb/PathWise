@@ -144,8 +144,32 @@ async def generate_roadmap(
     days_per_week = prefs.get("days_per_week", 5)
     depth = prefs.get("depth", "interview_ready")
     learning_style = prefs.get("learning_style", "mixed")
+    resource_preference = prefs.get("resource_preference", "hybrid")  # visual | reading | hybrid
     focus_areas = prefs.get("focus_areas", [])
     constraints = prefs.get("constraints", "")
+    
+    # Resource preference instructions
+    resource_instruction = ""
+    if resource_preference == "visual":
+        resource_instruction = """
+⚠️ CRITICAL - VISUAL LEARNER: User learns best through VIDEOS.
+- For EACH skill, provide 80%+ VIDEO resources (YouTube tutorials, video courses)
+- Prioritize: YouTube channels, video tutorials, screencasts, visual explainers
+- Include documentation ONLY as reference, not primary learning material
+- Every skill MUST have at least 3 video resources"""
+    elif resource_preference == "reading":
+        resource_instruction = """
+⚠️ CRITICAL - READING LEARNER: User learns best through TEXT/DOCUMENTATION.
+- For EACH skill, provide 80%+ TEXT resources (documentation, articles, books)
+- Prioritize: Official docs, MDN, Real Python, technical blogs, written tutorials
+- Minimize videos - include ONLY if essential and no good text alternative exists
+- Every skill MUST have at least 3 documentation/article resources"""
+    else:  # hybrid
+        resource_instruction = """
+⚠️ HYBRID LEARNER: User wants a MIX of videos AND documentation.
+- For EACH skill, provide balanced resources: ~50% videos, ~50% text
+- Include: Video tutorials for concepts, docs for reference
+- Every skill should have 2-3 videos AND 2-3 documentation links"""
     
     preferences_text = f"""
 USER PREFERENCES (adapt the roadmap accordingly):
@@ -153,6 +177,8 @@ USER PREFERENCES (adapt the roadmap accordingly):
 - Available time: {time_per_day} minutes/day, {days_per_week} days/week
 - Depth: {depth} (overview=surface level, deep=comprehensive, interview_ready=focused on what gets asked)
 - Learning style: {learning_style} (project_first=hands-on, theory_first=concepts, mixed=balanced)
+- RESOURCE TYPE PREFERENCE: {resource_preference.upper()}
+{resource_instruction}
 {f"- Focus areas: {', '.join(focus_areas)}" if focus_areas else ""}
 {f"- Constraints: {constraints}" if constraints else ""}
 """

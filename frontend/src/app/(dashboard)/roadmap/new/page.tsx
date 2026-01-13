@@ -17,6 +17,9 @@ import {
   BookOpen,
   Code,
   Brain,
+  Video,
+  FileText,
+  Layers,
 } from "lucide-react";
 
 /**
@@ -55,6 +58,9 @@ function RoadmapNewContent() {
   const [learningStyle, setLearningStyle] = useState("mixed");
   const [focusAreas, setFocusAreas] = useState<string[]>([]);
   const [constraints, setConstraints] = useState("");
+  
+  // REQUIRED: Resource Type Preference (visual/reading/hybrid)
+  const [resourcePreference, setResourcePreference] = useState<string | null>(null);
 
   // Load saved data from onboarding
   useEffect(() => {
@@ -95,6 +101,7 @@ function RoadmapNewContent() {
             days_per_week: daysPerWeek,
             depth,
             learning_style: learningStyle,
+            resource_preference: resourcePreference, // visual | reading | hybrid
             focus_areas: focusAreas,
             constraints: constraints || null,
           },
@@ -258,6 +265,77 @@ function RoadmapNewContent() {
             </div>
           </div>
 
+          {/* REQUIRED: How Do You Learn Best? */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border-2 border-blue-200">
+            <label className="block text-lg font-bold text-slate-900 mb-1">
+              How Do You Learn Best? <span className="text-red-500">*</span>
+            </label>
+            <p className="text-sm text-slate-600 mb-4">
+              This determines the type of resources in your roadmap
+            </p>
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { 
+                  id: "visual", 
+                  label: "Visual Learner", 
+                  desc: "Videos & tutorials",
+                  icon: Video,
+                  color: "rose"
+                },
+                { 
+                  id: "reading", 
+                  label: "Reading Learner", 
+                  desc: "Docs & articles",
+                  icon: FileText,
+                  color: "emerald"
+                },
+                { 
+                  id: "hybrid", 
+                  label: "Hybrid", 
+                  desc: "Mix of both",
+                  icon: Layers,
+                  color: "violet"
+                },
+              ].map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setResourcePreference(option.id)}
+                  className={`relative py-5 px-4 rounded-xl border-2 text-center transition-all ${
+                    resourcePreference === option.id
+                      ? `border-${option.color}-500 bg-white shadow-lg ring-2 ring-${option.color}-200`
+                      : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
+                  }`}
+                >
+                  <option.icon className={`w-8 h-8 mx-auto mb-2 ${
+                    resourcePreference === option.id 
+                      ? `text-${option.color}-600` 
+                      : "text-slate-400"
+                  }`} />
+                  <div className={`font-semibold ${
+                    resourcePreference === option.id 
+                      ? `text-${option.color}-700` 
+                      : "text-slate-700"
+                  }`}>
+                    {option.label}
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1">{option.desc}</div>
+                  {resourcePreference === option.id && (
+                    <div className={`absolute -top-2 -right-2 w-6 h-6 bg-${option.color}-500 rounded-full flex items-center justify-center`}>
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+            {!resourcePreference && (
+              <p className="text-sm text-amber-600 mt-3 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Please select your preferred learning style to continue
+              </p>
+            )}
+          </div>
+
           {/* Advanced Preferences Toggle */}
           <button
             type="button"
@@ -406,12 +484,17 @@ function RoadmapNewContent() {
           {/* Generate Button */}
           <button
             onClick={generateRoadmap}
-            disabled={!targetRole && !jobDescription}
+            disabled={(!targetRole && !jobDescription) || !resourcePreference}
             className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl font-semibold text-lg transition-colors flex items-center justify-center gap-2"
           >
             <Sparkles className="w-5 h-5" />
             Generate My Roadmap
           </button>
+          {!resourcePreference && (targetRole || jobDescription) && (
+            <p className="text-center text-sm text-amber-600 mt-2">
+              ↑ Select your learning style above to enable generation
+            </p>
+          )}
         </div>
 
         {/* What to expect */}

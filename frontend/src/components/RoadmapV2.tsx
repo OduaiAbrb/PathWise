@@ -148,6 +148,18 @@ const getResourceIcon = (type: string) => {
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════
 
+interface ExamQuestion {
+  id: string;
+  type: "mcq" | "open" | "code";
+  question: string;
+  options?: string[];
+  correct_answer?: number;
+  explanation?: string;
+  skill?: string;
+  difficulty?: string;
+  rubric?: string;
+}
+
 export default function RoadmapV2({
   roadmap,
   onSkillClick,
@@ -163,6 +175,10 @@ export default function RoadmapV2({
   const [zoomLevel, setZoomLevel] = useState(1);
   const [selectedSkill, setSelectedSkill] = useState<{ skill: Skill; phaseId: string } | null>(null);
   const [bookmarkedResources, setBookmarkedResources] = useState<Set<string>>(new Set());
+  const [examQuestions, setExamQuestions] = useState<Record<string, ExamQuestion[]>>({});
+  const [loadingExam, setLoadingExam] = useState<string | null>(null);
+  const [examSubmitting, setExamSubmitting] = useState(false);
+  const [examResults, setExamResults] = useState<Record<string, { score: number; passed: boolean; feedback: string }>>({});
   
   const containerRef = useRef<HTMLDivElement>(null);
   const phaseRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -211,6 +227,97 @@ export default function RoadmapV2({
       }
       return next;
     });
+  };
+
+  // Fetch exam questions from backend
+  const fetchExamQuestions = async (phase: Phase) => {
+    if (examQuestions[phase.id]) {
+      // Already loaded
+      return;
+    }
+    
+    setLoadingExam(phase.id);
+    try {
+      const skillNames = phase.skills?.map(s => s.name) || [];
+      const response = await fetch("/api/v1/exams/exam/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phase_title: phase.title,
+          skills: skillNames,
+          target_role: roadmap.job_title,
+          difficulty: "intermediate",
+          num_questions: 5,
+        }),
+      });
+      
+      if (!response.ok) throw new Error("Failed to generate exam");
+      
+      const data = await response.json();
+      if (data.success && data.data?.questions) {
+        setExamQuestions(prev => ({
+          ...prev,
+          [phase.id]: data.data.questions,
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching exam questions:", error);
+    } finally {
+      setLoadingExam(null);
+    }
+  };
+
+  // Handle taking exam - fetch questions when clicking "Take Exam"
+  const handleTakeExam = async (phase: Phase) => {
+    if (showExam === phase.id) {
+      setShowExam(null);
+      return;
+    }
+    setShowExam(phase.id);
+    await fetchExamQuestions(phase);
+  };
+
+  // Handle exam answer selection
+  const handleExamAnswer = (questionId: string, answer: string | number) => {
+    setExamAnswers(prev => ({
+      ...prev,
+      [questionId]: answer,
+    }));
+  };
+
+  // Submit exam for grading
+  const handleSubmitExam = async (phaseId: string) => {
+    setExamSubmitting(true);
+    try {
+      const response = await fetch("/api/v1/exams/exam/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roadmap_id: roadmap.id,
+          phase_id: phaseId,
+          answers: examAnswers,
+        }),
+      });
+      
+      if (!response.ok) throw new Error("Failed to submit exam");
+      
+      const data = await response.json();
+      if (data.success && data.data) {
+        setExamResults(prev => ({
+          ...prev,
+          [phaseId]: {
+            score: data.data.score,
+            passed: data.data.passed,
+            feedback: data.data.message,
+          },
+        }));
+        onExamSubmit?.(phaseId, examAnswers);
+      }
+    } catch (error) {
+      console.error("Error submitting exam:", error);
+    } finally {
+      setExamSubmitting(false);
+    }
   };
 
   // Get phase status styling
@@ -739,16 +846,16 @@ export default function RoadmapV2({
                           </p>
                         </div>
 
-                        {phase.exam?.passed ? (
+                        {phase.exam?.passed || examResults[phase.id]?.passed ? (
                           <div className="flex items-center gap-3 px-6 py-3 bg-emerald-100 text-emerald-700 rounded-full">
                             <Trophy className="w-6 h-6" />
-                            <span className="font-bold text-lg">Passed ({phase.exam.user_score}%)</span>
+                            <span className="font-bold text-lg">Passed ({phase.exam?.user_score || examResults[phase.id]?.score}%)</span>
                           </div>
                         ) : (
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => setShowExam(showExam === phase.id ? null : phase.id)}
+                            onClick={() => handleTakeExam(phase)}
                             className="flex items-center gap-3 px-8 py-4 bg-black text-white rounded-2xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-lg"
                           >
                             <Rocket className="w-6 h-6" />
@@ -757,23 +864,137 @@ export default function RoadmapV2({
                         )}
                       </div>
 
-                      {/* Exam content would go here */}
+                      {/* Exam Questions */}
                       <AnimatePresence>
-                        {showExam === phase.id && !phase.exam?.passed && (
+                        {showExam === phase.id && !phase.exam?.passed && !examResults[phase.id]?.passed && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
                             className="bg-slate-50 rounded-2xl p-8 border-2 border-slate-200"
                           >
-                            <div className="text-center py-8">
-                              <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                                className="w-12 h-12 border-4 border-slate-200 border-t-black rounded-full mx-auto mb-4"
-                              />
-                              <p className="text-slate-500">Loading AI-generated exam questions...</p>
-                            </div>
+                            {loadingExam === phase.id ? (
+                              <div className="text-center py-8">
+                                <motion.div
+                                  animate={{ rotate: 360 }}
+                                  transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                  className="w-12 h-12 border-4 border-slate-200 border-t-black rounded-full mx-auto mb-4"
+                                />
+                                <p className="text-slate-500">Generating AI exam questions...</p>
+                              </div>
+                            ) : examQuestions[phase.id] ? (
+                              <div className="space-y-6">
+                                <h4 className="text-xl font-bold text-slate-900 mb-4">Phase Exam - {examQuestions[phase.id].length} Questions</h4>
+                                
+                                {examQuestions[phase.id].map((q, qIndex) => (
+                                  <motion.div
+                                    key={q.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: qIndex * 0.1 }}
+                                    className="bg-white rounded-xl p-6 border border-slate-200"
+                                  >
+                                    <div className="flex items-start gap-4">
+                                      <span className="flex-shrink-0 w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center font-bold">
+                                        {qIndex + 1}
+                                      </span>
+                                      <div className="flex-1">
+                                        <p className="font-medium text-slate-900 mb-4">{q.question}</p>
+                                        
+                                        {q.type === "mcq" && q.options && (
+                                          <div className="space-y-2">
+                                            {q.options.map((option, optIndex) => (
+                                              <button
+                                                key={optIndex}
+                                                onClick={() => handleExamAnswer(q.id, optIndex)}
+                                                className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
+                                                  examAnswers[q.id] === optIndex
+                                                    ? "border-black bg-black text-white"
+                                                    : "border-slate-200 hover:border-slate-400"
+                                                }`}
+                                              >
+                                                <span className="font-medium mr-2">{String.fromCharCode(65 + optIndex)}.</span>
+                                                {option}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        )}
+                                        
+                                        {(q.type === "open" || q.type === "code") && (
+                                          <textarea
+                                            placeholder={q.type === "code" ? "Write your code here..." : "Type your answer..."}
+                                            value={(examAnswers[q.id] as string) || ""}
+                                            onChange={(e) => handleExamAnswer(q.id, e.target.value)}
+                                            className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-black focus:outline-none min-h-[120px] font-mono"
+                                          />
+                                        )}
+                                        
+                                        {q.skill && (
+                                          <p className="text-sm text-slate-500 mt-2">Tests: {q.skill}</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                ))}
+                                
+                                {/* Submit Button */}
+                                <div className="flex justify-end pt-4">
+                                  <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => handleSubmitExam(phase.id)}
+                                    disabled={examSubmitting || Object.keys(examAnswers).length < (examQuestions[phase.id]?.length || 0)}
+                                    className="flex items-center gap-3 px-8 py-4 bg-black text-white rounded-2xl font-bold text-lg hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {examSubmitting ? (
+                                      <>
+                                        <motion.div
+                                          animate={{ rotate: 360 }}
+                                          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                          className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                                        />
+                                        Grading...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CheckCheck className="w-6 h-6" />
+                                        Submit Exam
+                                      </>
+                                    )}
+                                  </motion.button>
+                                </div>
+                                
+                                {/* Exam Result */}
+                                {examResults[phase.id] && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className={`p-6 rounded-xl ${examResults[phase.id].passed ? "bg-emerald-50 border-2 border-emerald-200" : "bg-amber-50 border-2 border-amber-200"}`}
+                                  >
+                                    <div className="flex items-center gap-4">
+                                      {examResults[phase.id].passed ? (
+                                        <Trophy className="w-12 h-12 text-emerald-600" />
+                                      ) : (
+                                        <AlertCircle className="w-12 h-12 text-amber-600" />
+                                      )}
+                                      <div>
+                                        <h4 className={`text-2xl font-bold ${examResults[phase.id].passed ? "text-emerald-700" : "text-amber-700"}`}>
+                                          Score: {examResults[phase.id].score}%
+                                        </h4>
+                                        <p className={examResults[phase.id].passed ? "text-emerald-600" : "text-amber-600"}>
+                                          {examResults[phase.id].feedback}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="text-center py-8 text-slate-500">
+                                <AlertCircle className="w-12 h-12 mx-auto mb-4 text-slate-400" />
+                                <p>Failed to load exam questions. Please try again.</p>
+                              </div>
+                            )}
                           </motion.div>
                         )}
                       </AnimatePresence>

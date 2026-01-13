@@ -84,30 +84,56 @@ Output your response as valid JSON with this structure:
 }
 
 CRITICAL RESOURCE URL GUIDELINES - FOLLOW EXACTLY:
-✅ HIGH-QUALITY FREE RESOURCES ONLY:
-- YouTube: Use specific VIDEO IDs or PLAYLIST IDs from verified channels
-  * Web Dev: Traversy Media, freeCodeCamp, Net Ninja, Web Dev Simplified
-  * Python: Corey Schafer, Tech With Tim, mCoding
-  * Data Science: StatQuest, Krish Naik, freeCodeCamp
-  * DevOps: TechWorld with Nana, NetworkChuck, KodeKloud
-- Official Documentation: MDN, Python.org, React.dev, FastAPI.tiangolo.com, etc.
-- Free Platforms: freeCodeCamp.org, The Odin Project, Scrimba, W3Schools
-- Quality Blogs: Real Python, CSS-Tricks, Smashing Magazine
-- Interactive: Codecademy, Khan Academy, LeetCode, HackerRank
+✅ USE ONLY THESE VERIFIED SOURCES WITH EXACT URL FORMATS:
+
+DOCUMENTATION (Always include these first - most reliable):
+- MDN Web Docs: https://developer.mozilla.org/en-US/docs/[topic]
+- React Docs: https://react.dev/learn/[topic]
+- Python Docs: https://docs.python.org/3/[topic]
+- FastAPI Docs: https://fastapi.tiangolo.com/[topic]
+- Node.js Docs: https://nodejs.org/en/docs/[topic]
+- TypeScript Handbook: https://www.typescriptlang.org/docs/handbook/[topic]
+
+FREE LEARNING PLATFORMS (Direct course links):
+- freeCodeCamp: https://www.freecodecamp.org/learn/[course-path]
+- The Odin Project: https://www.theodinproject.com/lessons/[lesson-name]
+- W3Schools: https://www.w3schools.com/[topic]/default.asp
+- Khan Academy: https://www.khanacademy.org/computing/[path]
+- Scrimba: https://scrimba.com/learn/[course-name]
+
+YOUTUBE CHANNELS (Use channel URLs, NOT individual video URLs that may break):
+- freeCodeCamp: https://www.youtube.com/@freecodecamp
+- Traversy Media: https://www.youtube.com/@TraversyMedia  
+- Web Dev Simplified: https://www.youtube.com/@WebDevSimplified
+- Fireship: https://www.youtube.com/@Fireship
+- The Net Ninja: https://www.youtube.com/@NetNinja
+- Corey Schafer: https://www.youtube.com/@coreyms
+
+PRACTICE PLATFORMS:
+- LeetCode: https://leetcode.com/problemset/[topic]
+- HackerRank: https://www.hackerrank.com/domains/[domain]
+- Exercism: https://exercism.org/tracks/[language]
+- Codewars: https://www.codewars.com/kata/search/[language]
+
+QUALITY BLOGS/TUTORIALS:
+- Real Python: https://realpython.com/[topic]
+- CSS-Tricks: https://css-tricks.com/[topic]
+- DigitalOcean Tutorials: https://www.digitalocean.com/community/tutorials/[topic]
+- LogRocket Blog: https://blog.logrocket.com/[topic]
 
 ❌ NEVER USE:
-- Broken or placeholder URLs
-- Generic course marketplace URLs without specific course IDs
-- Paid-only content unless it's highly rated
-- Outdated resources (pre-2020 unless it's timeless content)
-- Low-quality tutorial sites
+- Individual YouTube video URLs (use channel URLs instead - videos get deleted)
+- Udemy, Coursera, Pluralsight (paid platforms)
+- Medium articles (often paywalled)
+- Random blog sites with unknown quality
+- Any URL you're not 100% sure exists
 
-RESOURCE QUALITY REQUIREMENTS:
-- quality_score must be 0.7-1.0 for all resources
-- Each resource MUST have a specific, working URL
-- Prefer beginner-friendly resources for beginner skills
-- Include mix of video, documentation, and interactive resources
-- Duration estimates must be realistic
+RESOURCE FORMAT REQUIREMENTS:
+- quality_score must be 0.8-1.0 for all resources
+- Each resource MUST use one of the verified URL patterns above
+- Include "what_you_learn" field describing specific outcomes
+- Include "time_to_complete" in minutes (realistic estimates)
+- Mark resource type: "documentation", "video", "interactive", "article"
 
 Guidelines:
 - Create 4-6 phases, progressing from foundational to advanced (LONGER ROADMAPS)

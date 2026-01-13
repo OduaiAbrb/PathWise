@@ -241,9 +241,9 @@ export default function Gamification() {
     ],
   });
 
-  const filteredBadges = stats?.badges.filter(
+  const filteredBadges = (stats?.badges || []).filter(
     (b) => selectedCategory === "all" || b.category === selectedCategory
-  ) || [];
+  );
 
   if (isLoading) {
     return (

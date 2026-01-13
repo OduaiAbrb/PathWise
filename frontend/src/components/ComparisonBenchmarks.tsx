@@ -148,10 +148,10 @@ export default function ComparisonBenchmarks({ targetRole }: ComparisonBenchmark
     );
   }
 
-  // Calculate overall percentile
-  const overallPercentile = Math.round(
-    benchmarks.reduce((sum, b) => sum + b.percentile, 0) / benchmarks.length
-  );
+  // Calculate overall percentile (with safety check)
+  const overallPercentile = benchmarks && benchmarks.length > 0
+    ? Math.round(benchmarks.reduce((sum, b) => sum + b.percentile, 0) / benchmarks.length)
+    : 50;
 
   return (
     <div className="bg-white border-2 border-neutral-200 rounded-2xl p-6">

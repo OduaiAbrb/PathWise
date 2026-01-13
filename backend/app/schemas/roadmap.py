@@ -46,10 +46,22 @@ class ProjectBase(BaseModel):
     steps: List[str]
 
 
+class RoadmapPreferences(BaseModel):
+    """User preferences for roadmap generation."""
+    pace: str = "standard"  # relaxed, standard, intense
+    time_per_day_minutes: int = 60
+    days_per_week: int = 5
+    depth: str = "interview_ready"  # overview, deep, interview_ready
+    learning_style: str = "mixed"  # project_first, theory_first, mixed
+    focus_areas: List[str] = []  # e.g. ["system design", "dsa", "backend api"]
+    constraints: Optional[str] = None  # e.g. "no paid courses", "prefer Python"
+
+
 class RoadmapGenerateRequest(BaseModel):
     job_description: str
     skill_level: str  # beginner, intermediate, advanced
     industry: Optional[str] = None
+    preferences: Optional[RoadmapPreferences] = None
 
 
 class RoadmapResponse(BaseModel):

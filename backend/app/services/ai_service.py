@@ -127,12 +127,35 @@ Guidelines:
 async def generate_roadmap(
     job_description: str,
     skill_level: str,
-    industry: Optional[str] = None
+    industry: Optional[str] = None,
+    preferences: Optional[dict] = None
 ) -> dict:
-    """Generate a learning roadmap using Emergent LLM."""
+    """Generate a learning roadmap using Emergent LLM with user preferences."""
     
     print(f"🎯 Generating roadmap for: {job_description[:100]}...")
     print(f"📊 Skill level: {skill_level}, Industry: {industry}")
+    if preferences:
+        print(f"⚙️ Preferences: {preferences}")
+    
+    # Build preferences section for prompt
+    prefs = preferences or {}
+    pace = prefs.get("pace", "standard")
+    time_per_day = prefs.get("time_per_day_minutes", 60)
+    days_per_week = prefs.get("days_per_week", 5)
+    depth = prefs.get("depth", "interview_ready")
+    learning_style = prefs.get("learning_style", "mixed")
+    focus_areas = prefs.get("focus_areas", [])
+    constraints = prefs.get("constraints", "")
+    
+    preferences_text = f"""
+USER PREFERENCES (adapt the roadmap accordingly):
+- Pace: {pace} (relaxed=more time per skill, intense=compressed timeline)
+- Available time: {time_per_day} minutes/day, {days_per_week} days/week
+- Depth: {depth} (overview=surface level, deep=comprehensive, interview_ready=focused on what gets asked)
+- Learning style: {learning_style} (project_first=hands-on, theory_first=concepts, mixed=balanced)
+{f"- Focus areas: {', '.join(focus_areas)}" if focus_areas else ""}
+{f"- Constraints: {constraints}" if constraints else ""}
+"""
     
     user_prompt = f"""Create a detailed learning roadmap for this job/career goal:
 
@@ -141,6 +164,7 @@ Description:
 
 User's Current Skill Level: {skill_level}
 {f"Industry: {industry}" if industry else ""}
+{preferences_text}
 
 IMPORTANT: 
 - Even if the description is brief, infer the role and create a comprehensive roadmap.
@@ -148,6 +172,11 @@ IMPORTANT:
 - Explain WHY each skill matters for getting hired
 - Explain WHAT HAPPENS if the user skips a skill
 - Generate portfolio projects with resume bullets and interview talking points
+- For EACH PHASE include:
+  * "deliverables": list of 3-5 concrete things user can do after completing this phase
+  * "benchmarks": list of 2-3 pass criteria (what proves mastery)
+  * "why_it_matters": 1-2 sentences on interview/job relevance
+  * "phase_project": a must-build project for this phase with title, description, requirements
 
 Generate a complete learning path with phases, skills, high-quality resources (with real URLs), and projects.
 Output as valid JSON."""

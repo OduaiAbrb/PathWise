@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getApiUrl } from "@/lib/fetch-api";
-import HorizontalTimelineRoadmap from "@/components/HorizontalTimelineRoadmap";
+import RoadmapV2 from "@/components/RoadmapV2";
 
 interface RoadmapData {
   id: string;
@@ -195,8 +195,8 @@ export default function RoadmapDetailPage() {
         </Link>
       </div>
 
-      {/* Horizontal Timeline Roadmap */}
-      <HorizontalTimelineRoadmap
+      {/* Roadmap V2 - Full-bleed premium UI */}
+      <RoadmapV2
         roadmap={roadmap}
         onSkillClick={handleSkillClick}
         onCheckpointAnswer={handleCheckpointAnswer}

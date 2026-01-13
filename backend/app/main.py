@@ -39,9 +39,12 @@ from app.models import portfolio  # Import new models
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Create database tables
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Startup: Create database tables (dev only)
+    # In production we rely on Alembic migrations.
+    auto_create = os.getenv("AUTO_CREATE_TABLES", "false").lower() in {"1", "true", "yes"}
+    if auto_create:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
     yield
     # Shutdown: Clean up resources
     await engine.dispose()

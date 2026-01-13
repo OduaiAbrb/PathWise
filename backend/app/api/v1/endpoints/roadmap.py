@@ -62,10 +62,15 @@ async def create_roadmap(
     try:
         print(f"🎯 Starting AI roadmap generation...")
         # Generate roadmap using AI with timeout protection
+        preferences_dict = None
+        if request.preferences:
+            preferences_dict = request.preferences.model_dump()
+        
         ai_result = await generate_roadmap(
             job_description=request.job_description,
             skill_level=request.skill_level,
-            industry=request.industry
+            industry=request.industry,
+            preferences=preferences_dict
         )
         print(f"✅ AI generation complete!")
         

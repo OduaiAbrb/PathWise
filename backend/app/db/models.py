@@ -171,3 +171,7 @@ from app.db.models_extended import (  # noqa: E402
     StudyGroup, StudyGroupMember, GroupMessage,
     IncomeEntry, GeneratedProject, Notification
 )
+
+from app.db.models_roadmap_v2 import (  # noqa: E402
+    RoadmapPhaseState, CheckpointAttempt, PhaseExamAttempt, UserResourceBookmark
+)

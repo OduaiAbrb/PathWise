@@ -10,7 +10,11 @@ from pydantic import BaseModel
 from datetime import datetime
 import uuid
 
+from sqlalchemy import select
+
 from app.db.database import get_db
+from app.db.models import User
+from app.db.models_roadmap_v2 import UserResourceBookmark
 from app.core.security import get_current_user_id
 from app.services.resource_service_v2 import (
     get_resources_for_skill,
@@ -39,6 +43,20 @@ class ResourceReportRequest(BaseModel):
 class ResourceSearchRequest(BaseModel):
     skill_name: str
     difficulty: Optional[str] = None
+
+
+class BookmarkRequest(BaseModel):
+    resource_url: str
+    resource_title: str
+    resource_type: Optional[str] = None
+    roadmap_id: Optional[str] = None
+    skill_id: Optional[str] = None
+
+
+class BookmarkUpdateRequest(BaseModel):
+    status: Optional[str] = None  # saved, in_progress, completed
+    notes: Optional[str] = None
+    rating: Optional[int] = None  # 1-5
 
 
 @router.get("/skill/{skill_name}", response_model=dict)
@@ -253,4 +271,176 @@ async def search_resources(
             "results": results[:20],  # Top 20 results
             "total_count": len(results),
         }
+    }
+
+
+# ============================================================
+# BOOKMARK ENDPOINTS
+# ============================================================
+
+@router.post("/bookmarks", response_model=dict)
+async def save_bookmark(
+    request: BookmarkRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Save a resource to user's bookmarks"""
+    
+    user_uuid = uuid.UUID(user_id)
+    roadmap_uuid = uuid.UUID(request.roadmap_id) if request.roadmap_id else None
+    
+    # Check if already bookmarked
+    existing = await db.execute(
+        select(UserResourceBookmark).where(
+            UserResourceBookmark.user_id == user_uuid,
+            UserResourceBookmark.resource_url == request.resource_url
+        )
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=400, detail="Resource already bookmarked")
+    
+    bookmark = UserResourceBookmark(
+        user_id=user_uuid,
+        roadmap_id=roadmap_uuid,
+        skill_id=request.skill_id,
+        resource_url=request.resource_url,
+        resource_title=request.resource_title,
+        resource_type=request.resource_type,
+        status="saved",
+    )
+    
+    db.add(bookmark)
+    await db.commit()
+    await db.refresh(bookmark)
+    
+    return {
+        "success": True,
+        "message": "Resource bookmarked",
+        "data": {
+            "id": str(bookmark.id),
+            "resource_url": bookmark.resource_url,
+            "resource_title": bookmark.resource_title,
+            "status": bookmark.status,
+        }
+    }
+
+
+@router.get("/bookmarks", response_model=dict)
+async def list_bookmarks(
+    roadmap_id: Optional[str] = None,
+    skill_id: Optional[str] = None,
+    status: Optional[str] = None,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """List user's bookmarked resources"""
+    
+    user_uuid = uuid.UUID(user_id)
+    
+    query = select(UserResourceBookmark).where(UserResourceBookmark.user_id == user_uuid)
+    
+    if roadmap_id:
+        query = query.where(UserResourceBookmark.roadmap_id == uuid.UUID(roadmap_id))
+    if skill_id:
+        query = query.where(UserResourceBookmark.skill_id == skill_id)
+    if status:
+        query = query.where(UserResourceBookmark.status == status)
+    
+    query = query.order_by(UserResourceBookmark.created_at.desc())
+    
+    result = await db.execute(query)
+    bookmarks = result.scalars().all()
+    
+    return {
+        "success": True,
+        "data": [
+            {
+                "id": str(b.id),
+                "resource_url": b.resource_url,
+                "resource_title": b.resource_title,
+                "resource_type": b.resource_type,
+                "skill_id": b.skill_id,
+                "status": b.status,
+                "notes": b.notes,
+                "rating": b.rating,
+                "created_at": b.created_at.isoformat() if b.created_at else None,
+            }
+            for b in bookmarks
+        ]
+    }
+
+
+@router.patch("/bookmarks/{bookmark_id}", response_model=dict)
+async def update_bookmark(
+    bookmark_id: str,
+    request: BookmarkUpdateRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Update bookmark status, notes, or rating"""
+    
+    user_uuid = uuid.UUID(user_id)
+    bookmark_uuid = uuid.UUID(bookmark_id)
+    
+    result = await db.execute(
+        select(UserResourceBookmark).where(
+            UserResourceBookmark.id == bookmark_uuid,
+            UserResourceBookmark.user_id == user_uuid
+        )
+    )
+    bookmark = result.scalar_one_or_none()
+    
+    if not bookmark:
+        raise HTTPException(status_code=404, detail="Bookmark not found")
+    
+    if request.status:
+        bookmark.status = request.status
+    if request.notes is not None:
+        bookmark.notes = request.notes
+    if request.rating is not None:
+        bookmark.rating = request.rating
+    
+    await db.commit()
+    await db.refresh(bookmark)
+    
+    return {
+        "success": True,
+        "message": "Bookmark updated",
+        "data": {
+            "id": str(bookmark.id),
+            "status": bookmark.status,
+            "notes": bookmark.notes,
+            "rating": bookmark.rating,
+        }
+    }
+
+
+@router.delete("/bookmarks/{bookmark_id}", response_model=dict)
+async def delete_bookmark(
+    bookmark_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Remove a bookmark"""
+    
+    user_uuid = uuid.UUID(user_id)
+    bookmark_uuid = uuid.UUID(bookmark_id)
+    
+    result = await db.execute(
+        select(UserResourceBookmark).where(
+            UserResourceBookmark.id == bookmark_uuid,
+            UserResourceBookmark.user_id == user_uuid
+        )
+    )
+    bookmark = result.scalar_one_or_none()
+    
+    if not bookmark:
+        raise HTTPException(status_code=404, detail="Bookmark not found")
+    
+    await db.delete(bookmark)
+    await db.commit()
+    
+    return {
+        "success": True,
+        "message": "Bookmark removed"
     }

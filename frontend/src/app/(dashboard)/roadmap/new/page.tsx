@@ -45,6 +45,16 @@ function RoadmapNewContent() {
   const [jobDescription, setJobDescription] = useState("");
   const [targetRole, setTargetRole] = useState("");
   const [experienceLevel, setExperienceLevel] = useState("beginner");
+  
+  // Roadmap V2 Preferences
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [pace, setPace] = useState("standard");
+  const [timePerDay, setTimePerDay] = useState(60);
+  const [daysPerWeek, setDaysPerWeek] = useState(5);
+  const [depth, setDepth] = useState("interview_ready");
+  const [learningStyle, setLearningStyle] = useState("mixed");
+  const [focusAreas, setFocusAreas] = useState<string[]>([]);
+  const [constraints, setConstraints] = useState("");
 
   // Load saved data from onboarding
   useEffect(() => {
@@ -79,6 +89,15 @@ function RoadmapNewContent() {
           job_description: jobDescription || `I want to become a ${targetRole}`,
           skill_level: experienceLevel,
           industry: "technology",
+          preferences: {
+            pace,
+            time_per_day_minutes: timePerDay,
+            days_per_week: daysPerWeek,
+            depth,
+            learning_style: learningStyle,
+            focus_areas: focusAreas,
+            constraints: constraints || null,
+          },
         }),
       });
 
@@ -239,31 +258,150 @@ function RoadmapNewContent() {
             </div>
           </div>
 
-          {/* Weekly Hours & Timeline */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Hours per week you can dedicate
-            </label>
-            <div className="grid grid-cols-4 gap-3">
-              {[
-                { hours: 5, label: "5 hrs", timeline: "16 weeks" },
-                { hours: 10, label: "10 hrs", timeline: "8 weeks" },
-                { hours: 15, label: "15 hrs", timeline: "6 weeks" },
-                { hours: 20, label: "20+ hrs", timeline: "4 weeks" },
-              ].map((option) => (
-                <button
-                  key={option.hours}
-                  onClick={() => {
-                    localStorage.setItem("pathwise_weekly_hours", String(option.hours));
-                  }}
-                  className="py-3 px-2 rounded-xl border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50 text-sm font-medium transition-all text-center"
-                >
-                  <div className="text-slate-900">{option.label}</div>
-                  <div className="text-xs text-slate-500">~{option.timeline}</div>
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Advanced Preferences Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="w-full py-3 text-sm font-medium text-violet-600 hover:text-violet-700 flex items-center justify-center gap-2"
+          >
+            <Brain className="w-4 h-4" />
+            {showAdvanced ? "Hide" : "Show"} Advanced Preferences
+          </button>
+
+          {showAdvanced && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="space-y-6 pt-2"
+            >
+              {/* Pace */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Learning Pace
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { id: "relaxed", label: "Relaxed", desc: "Take your time" },
+                    { id: "standard", label: "Standard", desc: "Balanced" },
+                    { id: "intense", label: "Intense", desc: "Fast-track" },
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setPace(option.id)}
+                      className={`py-3 px-4 rounded-xl border-2 text-sm font-medium transition-all ${pace === option.id ? "border-violet-500 bg-violet-50 text-violet-700" : "border-slate-200 hover:border-slate-300 text-slate-700"}`}
+                    >
+                      <div>{option.label}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">{option.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Time Per Day */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Time per day: <strong>{timePerDay} minutes</strong>
+                </label>
+                <input
+                  type="range"
+                  min="30"
+                  max="180"
+                  step="15"
+                  value={timePerDay}
+                  onChange={(e) => setTimePerDay(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
+                />
+                <div className="flex justify-between text-xs text-slate-500 mt-1">
+                  <span>30 min</span>
+                  <span>1 hr</span>
+                  <span>2 hrs</span>
+                  <span>3 hrs</span>
+                </div>
+              </div>
+
+              {/* Days Per Week */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Days per week
+                </label>
+                <div className="flex gap-2">
+                  {[3, 4, 5, 6, 7].map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setDaysPerWeek(d)}
+                      className={`flex-1 py-2 rounded-lg border-2 text-sm font-medium transition-all ${daysPerWeek === d ? "border-violet-500 bg-violet-50 text-violet-700" : "border-slate-200 hover:border-slate-300 text-slate-700"}`}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Depth */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Learning Depth
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { id: "overview", label: "Overview", desc: "Surface level" },
+                    { id: "interview_ready", label: "Interview Ready", desc: "Focused prep" },
+                    { id: "deep", label: "Deep Dive", desc: "Comprehensive" },
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setDepth(option.id)}
+                      className={`py-3 px-4 rounded-xl border-2 text-sm font-medium transition-all ${depth === option.id ? "border-violet-500 bg-violet-50 text-violet-700" : "border-slate-200 hover:border-slate-300 text-slate-700"}`}
+                    >
+                      <div>{option.label}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">{option.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Learning Style */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Learning Style
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { id: "theory_first", label: "Theory First", desc: "Concepts → Practice" },
+                    { id: "mixed", label: "Mixed", desc: "Balanced approach" },
+                    { id: "project_first", label: "Project First", desc: "Learn by building" },
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setLearningStyle(option.id)}
+                      className={`py-3 px-4 rounded-xl border-2 text-sm font-medium transition-all ${learningStyle === option.id ? "border-violet-500 bg-violet-50 text-violet-700" : "border-slate-200 hover:border-slate-300 text-slate-700"}`}
+                    >
+                      <div>{option.label}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">{option.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Constraints */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Constraints (optional)
+                </label>
+                <input
+                  type="text"
+                  value={constraints}
+                  onChange={(e) => setConstraints(e.target.value)}
+                  placeholder="e.g., No paid courses, prefer Python, avoid Java"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-violet-500 focus:ring-0"
+                />
+              </div>
+            </motion.div>
+          )}
 
           {/* Generate Button */}
           <button

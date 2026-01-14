@@ -17,6 +17,10 @@ import {
   Zap,
   Users,
   MessageSquare,
+  Briefcase,
+  Code,
+  Flame,
+  BookOpen,
 } from "lucide-react";
 import RoadmapFlowchart from "./RoadmapFlowchart";
 
@@ -71,6 +75,10 @@ export default function BlackWhiteDashboard() {
     technicalScore: 0,
     projectsScore: 0,
     interviewScore: 0,
+    readinessTrend: 0,
+    streakTrend: 0,
+    skillsTrend: 0,
+    hoursTrend: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState({ hours: 0, minutes: 0 });
@@ -149,6 +157,11 @@ export default function BlackWhiteDashboard() {
           const projectsScore = Math.min(100, technicalScore * 0.8); // Projects lag behind skills
           const interviewScore = Math.min(100, technicalScore * 0.6); // Interview readiness lags more
 
+          // Calculate trends (mock for now - would come from historical data)
+          const readinessTrend = completedSkills > 0 ? 5 : 0;
+          const skillsTrend = completedSkills > 0 ? 2 : 0;
+          const hoursTrend = completedSkills > 0 ? 3 : 0;
+
           setStats({
             readiness: transformedRoadmap.completion_percentage,
             streak: 0,
@@ -158,6 +171,10 @@ export default function BlackWhiteDashboard() {
             technicalScore,
             projectsScore: Math.round(projectsScore),
             interviewScore: Math.round(interviewScore),
+            readinessTrend,
+            streakTrend: 0,
+            skillsTrend,
+            hoursTrend,
           });
 
           // Find next task (first incomplete skill)
@@ -189,7 +206,9 @@ export default function BlackWhiteDashboard() {
 
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
-        setStats(prev => ({ ...prev, streak: statsData.data?.current_streak || 0 }));
+        const currentStreak = statsData.data?.current_streak || 0;
+        const streakTrend = currentStreak > 0 ? 1 : 0;
+        setStats(prev => ({ ...prev, streak: currentStreak, streakTrend }));
       }
     } catch (error) {
       console.error("Failed to fetch dashboard:", error);
@@ -261,39 +280,64 @@ export default function BlackWhiteDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto p-6 space-y-8">
-        {/* Stats Grid - Black & White */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {/* Readiness */}
+        {/* Consolidated Metrics - Single Row with Trend Indicators */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* Job Readiness */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="border-2 border-black p-6 bg-white"
+            className="border-2 border-black p-6 bg-white hover:shadow-lg transition-shadow"
           >
-            <div className="text-5xl font-bold text-black mb-2">
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-black text-white rounded">
+                <Briefcase className="w-5 h-5" />
+              </div>
+              {stats.readinessTrend !== 0 && (
+                <div className={`flex items-center gap-1 text-sm font-semibold ${
+                  stats.readinessTrend > 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {stats.readinessTrend > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                  {Math.abs(stats.readinessTrend)}%
+                </div>
+              )}
+            </div>
+            <div className="text-4xl font-bold text-black mb-1">
               {stats.readiness}%
             </div>
-            <div className="text-sm text-gray-600 uppercase tracking-wide">
-              Job Ready
+            <div className="text-sm font-semibold text-gray-900 mb-2">
+              Job Readiness
             </div>
-            {stats.readiness < 60 && (
-              <div className="mt-2 text-xs text-black font-semibold">
-                ⚠️ Need 60%+
-              </div>
-            )}
+            <div className="text-xs text-gray-600">
+              {stats.readiness < 60 ? '⚠️ Need 60%+ to apply' : '✓ Ready to apply'}
+            </div>
           </motion.div>
 
-          {/* Streak */}
+          {/* Day Streak */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="border-2 border-black p-6 bg-black text-white"
+            className="border-2 border-black p-6 bg-white hover:shadow-lg transition-shadow"
           >
-            <div className="text-5xl font-bold mb-2">
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-orange-500 text-white rounded">
+                <Flame className="w-5 h-5" />
+              </div>
+              {stats.streakTrend !== 0 && (
+                <div className="flex items-center gap-1 text-sm font-semibold text-green-600">
+                  <TrendingUp className="w-4 h-4" />
+                  +{stats.streakTrend}
+                </div>
+              )}
+            </div>
+            <div className="text-4xl font-bold text-black mb-1">
               {stats.streak}
             </div>
-            <div className="text-sm text-gray-300 uppercase tracking-wide">
+            <div className="text-sm font-semibold text-gray-900 mb-2">
               Day Streak
+            </div>
+            <div className="text-xs text-gray-600">
+              {stats.streak === 0 ? 'Start today!' : stats.streak === 1 ? 'Keep it going!' : 'On fire! 🔥'}
             </div>
           </motion.div>
 
@@ -302,91 +346,186 @@ export default function BlackWhiteDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="border-2 border-black p-6 bg-white"
+            className="border-2 border-black p-6 bg-white hover:shadow-lg transition-shadow"
           >
-            <div className="text-5xl font-bold text-black mb-2">
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-blue-600 text-white rounded">
+                <Code className="w-5 h-5" />
+              </div>
+              {stats.skillsTrend !== 0 && (
+                <div className="flex items-center gap-1 text-sm font-semibold text-green-600">
+                  <TrendingUp className="w-4 h-4" />
+                  +{stats.skillsTrend}
+                </div>
+              )}
+            </div>
+            <div className="text-4xl font-bold text-black mb-1">
               {stats.skillsCompleted}
             </div>
-            <div className="text-sm text-gray-600 uppercase tracking-wide">
-              Skills Done
+            <div className="text-sm font-semibold text-gray-900 mb-2">
+              Skills Completed
             </div>
-            <div className="mt-1 text-xs text-gray-500">
-              of {stats.totalSkills}
+            <div className="text-xs text-gray-600">
+              {stats.totalSkills - stats.skillsCompleted} remaining of {stats.totalSkills}
             </div>
           </motion.div>
 
-          {/* Hours Invested */}
+          {/* Time Invested */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="border-2 border-black p-6 bg-white"
+            className="border-2 border-black p-6 bg-white hover:shadow-lg transition-shadow"
           >
-            <div className="text-5xl font-bold text-black mb-2">
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-purple-600 text-white rounded">
+                <Clock className="w-5 h-5" />
+              </div>
+              {stats.hoursTrend !== 0 && (
+                <div className="flex items-center gap-1 text-sm font-semibold text-green-600">
+                  <TrendingUp className="w-4 h-4" />
+                  +{stats.hoursTrend}h
+                </div>
+              )}
+            </div>
+            <div className="text-4xl font-bold text-black mb-1">
               {stats.hoursInvested}h
             </div>
-            <div className="text-sm text-gray-600 uppercase tracking-wide">
+            <div className="text-sm font-semibold text-gray-900 mb-2">
               Time Invested
+            </div>
+            <div className="text-xs text-gray-600">
+              {stats.hoursInvested < 10 ? 'Just getting started' : stats.hoursInvested < 50 ? 'Building momentum' : 'Serious commitment! 💪'}
             </div>
           </motion.div>
         </div>
 
-        {/* NEXT BEST ACTION - Single Focused Task */}
+        {/* Next Task Card - Concrete Action */}
         {nextTask && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            className="border-4 border-black p-6 bg-black text-white"
+            className="border-4 border-black bg-gradient-to-r from-black to-gray-900 text-white overflow-hidden"
           >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">
-                  Today's Focus
+            <div className="p-8">
+              <div className="flex items-start justify-between gap-6">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="px-3 py-1 bg-yellow-400 text-black text-xs font-bold uppercase rounded">
+                      Next Task
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      ~{Math.round(nextTask.estimatedMinutes)} minutes
+                    </span>
+                  </div>
+                  <h2 className="text-3xl font-bold mb-3">
+                    Complete: {nextTask.skillName}
+                  </h2>
+                  <p className="text-gray-300 text-lg mb-4">
+                    {nextTask.phaseTitle}
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2 text-sm">
+                      <Zap className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-200">
+                        <strong className="text-white">Why it matters:</strong> This skill appears in {nextTask.interviewFrequency}% of {roadmap.job_title} job interviews
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-2 text-sm">
+                      <Target className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-200">
+                        <strong className="text-white">What you'll learn:</strong> Master this skill to boost your technical readiness score
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <h2 className="text-2xl font-bold mb-2">
-                  {nextTask.skillName}
-                </h2>
-                <p className="text-gray-300 mb-4">
-                  {nextTask.phaseTitle} · ~{Math.round(nextTask.estimatedMinutes / 60)}h estimated
-                </p>
-                <div className="flex items-center gap-4 text-sm">
-                  <span className="flex items-center gap-1">
-                    <Zap className="w-4 h-4 text-yellow-400" />
-                    Asked in {nextTask.interviewFrequency}% of interviews
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                {nextTask.resourceUrl ? (
-                  <a
-                    href={nextTask.resourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-6 py-3 bg-white text-black font-bold hover:bg-gray-100 transition-colors flex items-center gap-2"
-                  >
-                    <Play className="w-5 h-5" />
-                    Start Now
-                  </a>
-                ) : (
+                <div className="flex flex-col gap-3">
                   <button
-                    onClick={() => router.push("/study-buddy")}
-                    className="px-6 py-3 bg-white text-black font-bold hover:bg-gray-100 transition-colors flex items-center gap-2"
+                    onClick={() => router.push(`/roadmap/${roadmap.id}`)}
+                    className="px-8 py-4 bg-white text-black font-bold text-lg hover:bg-gray-100 transition-colors flex items-center gap-3 whitespace-nowrap"
                   >
-                    <Play className="w-5 h-5" />
-                    Learn with AI
+                    <Play className="w-6 h-6" />
+                    Start Now
                   </button>
-                )}
+                  {nextTask.resourceUrl && (
+                    <a
+                      href={nextTask.resourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-8 py-3 border-2 border-white text-white font-semibold hover:bg-white hover:text-black transition-colors flex items-center gap-2 justify-center"
+                    >
+                      <BookOpen className="w-5 h-5" />
+                      View Resource
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* Readiness Breakdown */}
+        {/* Visual Roadmap Progress Timeline */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.38 }}
+          className="border-2 border-black p-6 bg-white"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-black">Roadmap Progress</h3>
+            <span className="text-sm text-gray-600">{stats.readiness}% Complete</span>
+          </div>
+          
+          {/* Segmented Progress Bar */}
+          <div className="flex gap-1 mb-4">
+            {roadmap.phases.map((phase, index) => {
+              const phaseSkills = phase.skills.length;
+              const completedSkills = phase.skills.filter(s => s.status === "completed").length;
+              const phaseProgress = phaseSkills > 0 ? (completedSkills / phaseSkills) * 100 : 0;
+              const isActive = phase.status === "in_progress";
+              const isCompleted = phase.status === "completed";
+              
+              return (
+                <button
+                  key={phase.id}
+                  onClick={() => router.push(`/roadmap/${roadmap.id}#phase-${phase.id}`)}
+                  className="flex-1 group relative"
+                  title={`${phase.title}: ${Math.round(phaseProgress)}% complete`}
+                >
+                  <div className={`h-8 border-2 transition-all ${
+                    isCompleted ? 'bg-black border-black' :
+                    isActive ? 'bg-gray-300 border-black' :
+                    'bg-gray-100 border-gray-300'
+                  } hover:shadow-md`}>
+                    <div 
+                      className={`h-full transition-all duration-700 ${
+                        isCompleted ? 'bg-black' : 'bg-black'
+                      }`}
+                      style={{ width: `${phaseProgress}%` }}
+                    />
+                  </div>
+                  <div className="absolute -bottom-6 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-xs font-semibold text-black whitespace-nowrap">
+                      {phase.title}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          
+          <div className="flex items-center justify-between text-xs text-gray-600 mt-8">
+            <span>Phase 1</span>
+            <span>Phase {roadmap.phases.length}</span>
+          </div>
+        </motion.div>
+
+        {/* Readiness Breakdown */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
           className="border-2 border-black p-6 bg-white"
         >
           <h3 className="text-lg font-bold text-black mb-4">Readiness Breakdown</h3>
@@ -450,42 +589,78 @@ export default function BlackWhiteDashboard() {
           />
         </motion.div>
 
-        {/* Quick Actions - Black & White */}
+        {/* Quick Actions - 2x2 Grid with Icons & Descriptions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="border-2 border-black p-6 bg-white"
+          className="border-2 border-black p-8 bg-white"
         >
-          <h3 className="text-xl font-bold text-black mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <h3 className="text-2xl font-bold text-black mb-6">Quick Actions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <button
               onClick={() => router.push("/projects")}
-              className="p-4 border-2 border-black hover:bg-black hover:text-white transition-all text-left"
+              className="p-6 border-2 border-black hover:bg-black hover:text-white transition-all text-left group"
             >
-              <Target className="w-6 h-6 mb-2" />
-              <p className="font-semibold">Projects</p>
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-black text-white group-hover:bg-white group-hover:text-black transition-colors rounded">
+                  <Target className="w-7 h-7" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xl font-bold mb-2">Projects</p>
+                  <p className="text-sm text-gray-600 group-hover:text-gray-300">
+                    Build portfolio projects that showcase your skills to employers
+                  </p>
+                </div>
+              </div>
             </button>
             <button
               onClick={() => router.push("/interview")}
-              className="p-4 border-2 border-black hover:bg-black hover:text-white transition-all text-left"
+              className="p-6 border-2 border-black hover:bg-black hover:text-white transition-all text-left group"
             >
-              <Zap className="w-6 h-6 mb-2" />
-              <p className="font-semibold">Interview Prep</p>
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-black text-white group-hover:bg-white group-hover:text-black transition-colors rounded">
+                  <MessageSquare className="w-7 h-7" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xl font-bold mb-2">Interview Prep</p>
+                  <p className="text-sm text-gray-600 group-hover:text-gray-300">
+                    Practice technical and behavioral interviews with AI feedback
+                  </p>
+                </div>
+              </div>
             </button>
             <button
-              onClick={() => router.push("/study-groups")}
-              className="p-4 border-2 border-black hover:bg-black hover:text-white transition-all text-left"
+              onClick={() => router.push("/groups")}
+              className="p-6 border-2 border-black hover:bg-black hover:text-white transition-all text-left group"
             >
-              <Users className="w-6 h-6 mb-2" />
-              <p className="font-semibold">Study Groups</p>
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-black text-white group-hover:bg-white group-hover:text-black transition-colors rounded">
+                  <Users className="w-7 h-7" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xl font-bold mb-2">Study Groups</p>
+                  <p className="text-sm text-gray-600 group-hover:text-gray-300">
+                    Join peers on the same journey and learn together
+                  </p>
+                </div>
+              </div>
             </button>
             <button
               onClick={() => router.push("/portfolio")}
-              className="p-4 border-2 border-black hover:bg-black hover:text-white transition-all text-left"
+              className="p-6 border-2 border-black hover:bg-black hover:text-white transition-all text-left group"
             >
-              <CheckCircle2 className="w-6 h-6 mb-2" />
-              <p className="font-semibold">Portfolio</p>
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-black text-white group-hover:bg-white group-hover:text-black transition-colors rounded">
+                  <CheckCircle2 className="w-7 h-7" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xl font-bold mb-2">Portfolio</p>
+                  <p className="text-sm text-gray-600 group-hover:text-gray-300">
+                    Generate and showcase your work to stand out to recruiters
+                  </p>
+                </div>
+              </div>
             </button>
           </div>
         </motion.div>

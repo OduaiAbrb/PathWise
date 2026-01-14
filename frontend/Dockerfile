@@ -9,8 +9,12 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Use npm ci for faster, more reliable installs in CI/CD
-RUN npm ci --legacy-peer-deps --prefer-offline --no-audit
+# Install dependencies - use npm ci if lockfile exists, otherwise npm install
+RUN if [ -f package-lock.json ]; then \
+      npm ci --legacy-peer-deps --prefer-offline --no-audit; \
+    else \
+      npm install --legacy-peer-deps --prefer-offline --no-audit; \
+    fi
 
 # Rebuild the source code only when needed
 FROM base AS builder

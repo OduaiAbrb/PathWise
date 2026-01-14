@@ -310,7 +310,7 @@ export default function BlackWhiteDashboard() {
             </motion.button>
           </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       <div className="max-w-7xl mx-auto p-8 space-y-8">
         {/* Animated Metrics with Glassmorphism */}

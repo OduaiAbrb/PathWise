@@ -242,15 +242,15 @@ export default function BlackWhiteDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
-      {/* Animated Header with Gradient */}
+    <div className="min-h-screen bg-white">
+      {/* Black Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white p-8 shadow-2xl relative overflow-hidden"
+        className="bg-black text-white p-8 shadow-2xl relative overflow-hidden"
       >
         {/* Animated background pattern */}
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-5">
           <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
@@ -260,7 +260,7 @@ export default function BlackWhiteDashboard() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-100"
+              className="text-4xl font-bold text-white"
             >
               {session?.user?.name ? `${session.user.name.split(" ")[0]}'s Dashboard` : "Your Dashboard"}
             </motion.h1>
@@ -268,7 +268,7 @@ export default function BlackWhiteDashboard() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="text-purple-100 mt-2 flex items-center gap-2"
+              className="text-gray-300 mt-2 flex items-center gap-2"
             >
               <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm">{roadmap.job_title}</span>
               <span className="text-sm">·</span>
@@ -294,7 +294,7 @@ export default function BlackWhiteDashboard() {
                   router.push("/roadmap");
                 }
               }}
-              className="px-6 py-3 bg-white text-purple-600 font-bold rounded-xl hover:shadow-2xl transition-all flex items-center gap-2 group"
+              className="px-6 py-3 bg-white text-black font-bold rounded-xl hover:shadow-2xl transition-all flex items-center gap-2 group"
             >
               <Target className="w-5 h-5 group-hover:rotate-12 transition-transform" />
               View Roadmap
@@ -303,7 +303,7 @@ export default function BlackWhiteDashboard() {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push("/groups")}
-              className="px-6 py-3 bg-white/20 backdrop-blur-sm border-2 border-white/50 text-white font-bold rounded-xl hover:bg-white hover:text-purple-600 transition-all flex items-center gap-2 group"
+              className="px-6 py-3 bg-white/20 backdrop-blur-sm border-2 border-white/50 text-white font-bold rounded-xl hover:bg-white hover:text-black transition-all flex items-center gap-2 group"
             >
               <MessageSquare className="w-5 h-5 group-hover:rotate-12 transition-transform" />
               Study Groups
@@ -321,18 +321,18 @@ export default function BlackWhiteDashboard() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             whileHover={{ y: -8, scale: 1.02 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className="relative bg-gradient-to-br from-blue-500 to-indigo-600 p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all overflow-hidden group"
+            className="relative bg-black p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all overflow-hidden group"
           >
             {/* Animated background circles */}
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
             
             <div className="relative z-10">
               <div className="flex items-start justify-between mb-4">
                 <motion.div 
                   whileHover={{ rotate: 360 }}
                   transition={{ duration: 0.6 }}
-                  className="p-3 bg-white/20 backdrop-blur-sm text-white rounded-2xl"
+                  className="p-3 bg-black text-white rounded-2xl"
                 >
                   <Briefcase className="w-6 h-6" />
                 </motion.div>
@@ -341,7 +341,7 @@ export default function BlackWhiteDashboard() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.3, type: "spring" }}
-                    className="flex items-center gap-1 text-sm font-bold text-white bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full"
+                    className="flex items-center gap-1 text-sm font-bold text-black bg-gray-200 px-3 py-1 rounded-full"
                   >
                     {stats.readinessTrend > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                     +{Math.abs(stats.readinessTrend)}%
@@ -352,14 +352,14 @@ export default function BlackWhiteDashboard() {
                 initial={{ scale: 0.5 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: "spring" }}
-                className="text-5xl font-black text-white mb-2"
+                className="text-5xl font-black text-black mb-2"
               >
                 {stats.readiness}%
               </motion.div>
-              <div className="text-sm font-bold text-white/90 mb-2">
+              <div className="text-sm font-bold text-white mb-2">
                 Job Readiness
               </div>
-              <div className="text-xs text-white/80 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full inline-block">
+              <div className="text-xs text-gray-300 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full inline-block">
                 {stats.readiness < 60 ? '⚠️ Need 60%+ to apply' : '✨ Ready to apply'}
               </div>
             </div>
@@ -371,17 +371,17 @@ export default function BlackWhiteDashboard() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             whileHover={{ y: -8, scale: 1.02 }}
             transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
-            className="relative bg-gradient-to-br from-orange-500 to-red-600 p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all overflow-hidden group"
+            className="relative bg-white border-4 border-black p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all overflow-hidden group"
           >
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-black/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-black/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
             
             <div className="relative z-10">
               <div className="flex items-start justify-between mb-4">
                 <motion.div 
                   animate={{ rotate: [0, 10, -10, 0] }}
                   transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                  className="p-3 bg-white/20 backdrop-blur-sm text-white rounded-2xl"
+                  className="p-3 bg-black text-white rounded-2xl"
                 >
                   <Flame className="w-6 h-6" />
                 </motion.div>
@@ -390,7 +390,7 @@ export default function BlackWhiteDashboard() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.4, type: "spring" }}
-                    className="flex items-center gap-1 text-sm font-bold text-white bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full"
+                    className="flex items-center gap-1 text-sm font-bold text-black bg-gray-200 px-3 py-1 rounded-full"
                   >
                     <TrendingUp className="w-4 h-4" />
                     +{stats.streakTrend}
@@ -401,14 +401,14 @@ export default function BlackWhiteDashboard() {
                 initial={{ scale: 0.5 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.3, type: "spring" }}
-                className="text-5xl font-black text-white mb-2"
+                className="text-5xl font-black text-black mb-2"
               >
                 {stats.streak}
               </motion.div>
-              <div className="text-sm font-bold text-white/90 mb-2">
+              <div className="text-sm font-bold text-black mb-2">
                 Day Streak
               </div>
-              <div className="text-xs text-white/80 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full inline-block">
+              <div className="text-xs text-gray-600 bg-gray-100 px-3 py-1 rounded-full inline-block">
                 {stats.streak === 0 ? '🚀 Start today!' : stats.streak === 1 ? '💪 Keep it going!' : '🔥 On fire!'}
               </div>
             </div>
@@ -420,17 +420,17 @@ export default function BlackWhiteDashboard() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             whileHover={{ y: -8, scale: 1.02 }}
             transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.2 }}
-            className="relative bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all overflow-hidden group"
+            className="relative bg-black p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all overflow-hidden group"
           >
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
             
             <div className="relative z-10">
               <div className="flex items-start justify-between mb-4">
                 <motion.div 
                   whileHover={{ rotate: 360 }}
                   transition={{ duration: 0.6 }}
-                  className="p-3 bg-white/20 backdrop-blur-sm text-white rounded-2xl"
+                  className="p-3 bg-black text-white rounded-2xl"
                 >
                   <Code className="w-6 h-6" />
                 </motion.div>
@@ -439,7 +439,7 @@ export default function BlackWhiteDashboard() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.5, type: "spring" }}
-                    className="flex items-center gap-1 text-sm font-bold text-white bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full"
+                    className="flex items-center gap-1 text-sm font-bold text-black bg-gray-200 px-3 py-1 rounded-full"
                   >
                     <TrendingUp className="w-4 h-4" />
                     +{stats.skillsTrend}
@@ -450,14 +450,14 @@ export default function BlackWhiteDashboard() {
                 initial={{ scale: 0.5 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.4, type: "spring" }}
-                className="text-5xl font-black text-white mb-2"
+                className="text-5xl font-black text-black mb-2"
               >
                 {stats.skillsCompleted}
               </motion.div>
-              <div className="text-sm font-bold text-white/90 mb-2">
+              <div className="text-sm font-bold text-white mb-2">
                 Skills Completed
               </div>
-              <div className="text-xs text-white/80 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full inline-block">
+              <div className="text-xs text-gray-300 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full inline-block">
                 {stats.totalSkills - stats.skillsCompleted} remaining of {stats.totalSkills}
               </div>
             </div>
@@ -469,17 +469,17 @@ export default function BlackWhiteDashboard() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             whileHover={{ y: -8, scale: 1.02 }}
             transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.3 }}
-            className="relative bg-gradient-to-br from-purple-500 to-pink-600 p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all overflow-hidden group"
+            className="relative bg-white border-4 border-black p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all overflow-hidden group"
           >
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-black/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-black/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
             
             <div className="relative z-10">
               <div className="flex items-start justify-between mb-4">
                 <motion.div 
                   animate={{ rotate: 360 }}
                   transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                  className="p-3 bg-white/20 backdrop-blur-sm text-white rounded-2xl"
+                  className="p-3 bg-black text-white rounded-2xl"
                 >
                   <Clock className="w-6 h-6" />
                 </motion.div>
@@ -488,7 +488,7 @@ export default function BlackWhiteDashboard() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.6, type: "spring" }}
-                    className="flex items-center gap-1 text-sm font-bold text-white bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full"
+                    className="flex items-center gap-1 text-sm font-bold text-black bg-gray-200 px-3 py-1 rounded-full"
                   >
                     <TrendingUp className="w-4 h-4" />
                     +{stats.hoursTrend}h
@@ -499,31 +499,31 @@ export default function BlackWhiteDashboard() {
                 initial={{ scale: 0.5 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.5, type: "spring" }}
-                className="text-5xl font-black text-white mb-2"
+                className="text-5xl font-black text-black mb-2"
               >
                 {stats.hoursInvested}h
               </motion.div>
-              <div className="text-sm font-bold text-white/90 mb-2">
+              <div className="text-sm font-bold text-black mb-2">
                 Time Invested
               </div>
-              <div className="text-xs text-white/80 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full inline-block">
+              <div className="text-xs text-gray-600 bg-gray-100 px-3 py-1 rounded-full inline-block">
                 {stats.hoursInvested < 10 ? '🌱 Just getting started' : stats.hoursInvested < 50 ? '⚡ Building momentum' : '💪 Serious commitment!'}
               </div>
             </div>
           </motion.div>
         </div>
 
-        {/* Next Task Card - Vibrant & Engaging */}
+        {/* Next Task Card - Black & White */}
         {nextTask && (
           <motion.div
             initial={{ opacity: 0, y: 30, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             whileHover={{ scale: 1.01 }}
             transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
-            className="relative bg-gradient-to-br from-violet-600 via-fuchsia-600 to-pink-600 rounded-3xl shadow-2xl overflow-hidden"
+            className="relative bg-black rounded-3xl shadow-2xl overflow-hidden border-4 border-black"
           >
             {/* Animated background elements */}
-            <div className="absolute inset-0 opacity-20">
+            <div className="absolute inset-0 opacity-5">
               <motion.div 
                 animate={{ 
                   scale: [1, 1.2, 1],
@@ -538,7 +538,7 @@ export default function BlackWhiteDashboard() {
                   rotate: [0, -90, 0]
                 }}
                 transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                className="absolute -bottom-20 -left-20 w-96 h-96 bg-yellow-300 rounded-full blur-3xl"
+                className="absolute -bottom-20 -left-20 w-96 h-96 bg-white rounded-full blur-3xl"
               />
             </div>
             <div className="p-8 relative z-10">
@@ -553,11 +553,11 @@ export default function BlackWhiteDashboard() {
                     <motion.div 
                       animate={{ scale: [1, 1.1, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
-                      className="px-4 py-2 bg-yellow-400 text-black text-sm font-black uppercase rounded-full shadow-lg"
+                      className="px-4 py-2 bg-white text-black text-sm font-black uppercase rounded-full shadow-lg"
                     >
                       🎯 Next Task
                     </motion.div>
-                    <span className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-sm font-semibold rounded-full">
+                    <span className="px-3 py-1 bg-white/10 backdrop-blur-sm text-white text-sm font-semibold rounded-full">
                       ⏱️ ~{Math.round(nextTask.estimatedMinutes)} min
                     </span>
                   </motion.div>
@@ -583,21 +583,21 @@ export default function BlackWhiteDashboard() {
                     transition={{ delay: 0.8 }}
                     className="space-y-3"
                   >
-                    <div className="flex items-start gap-3 p-3 bg-white/10 backdrop-blur-sm rounded-2xl">
+                    <div className="flex items-start gap-3 p-3 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
                       <motion.div
                         animate={{ scale: [1, 1.2, 1] }}
                         transition={{ duration: 1.5, repeat: Infinity }}
                       >
-                        <Zap className="w-6 h-6 text-yellow-300 flex-shrink-0" />
+                        <Zap className="w-6 h-6 text-white flex-shrink-0" />
                       </motion.div>
                       <span className="text-white text-sm">
-                        <strong className="text-yellow-300">Why it matters:</strong> Appears in <span className="text-yellow-300 font-bold">{nextTask.interviewFrequency}%</span> of {roadmap.job_title} interviews
+                        <strong className="text-white">Why it matters:</strong> Appears in <span className="text-white font-bold">{nextTask.interviewFrequency}%</span> of {roadmap.job_title} interviews
                       </span>
                     </div>
-                    <div className="flex items-start gap-3 p-3 bg-white/10 backdrop-blur-sm rounded-2xl">
-                      <Target className="w-6 h-6 text-blue-300 flex-shrink-0" />
+                    <div className="flex items-start gap-3 p-3 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                      <Target className="w-6 h-6 text-white flex-shrink-0" />
                       <span className="text-white text-sm">
-                        <strong className="text-blue-300">Impact:</strong> Boosts your technical readiness score significantly
+                        <strong className="text-white">Impact:</strong> Boosts your technical readiness score significantly
                       </span>
                     </div>
                   </motion.div>
@@ -612,7 +612,7 @@ export default function BlackWhiteDashboard() {
                     whileHover={{ scale: 1.05, y: -3 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => router.push(`/roadmap/${roadmap.id}`)}
-                    className="px-10 py-5 bg-white text-purple-600 font-black text-xl rounded-2xl hover:shadow-2xl transition-all flex items-center gap-3 whitespace-nowrap group"
+                    className="px-10 py-5 bg-white text-black font-black text-xl rounded-2xl hover:shadow-2xl transition-all flex items-center gap-3 whitespace-nowrap group"
                   >
                     <motion.div
                       animate={{ x: [0, 5, 0] }}
@@ -629,7 +629,7 @@ export default function BlackWhiteDashboard() {
                       href={nextTask.resourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-8 py-3 bg-white/20 backdrop-blur-sm border-2 border-white/50 text-white font-bold rounded-2xl hover:bg-white hover:text-purple-600 transition-all flex items-center gap-2 justify-center"
+                      className="px-8 py-3 bg-white/20 backdrop-blur-sm border-2 border-white/50 text-white font-bold rounded-2xl hover:bg-white hover:text-black transition-all flex items-center gap-2 justify-center"
                     >
                       <BookOpen className="w-5 h-5" />
                       View Resource
@@ -647,16 +647,16 @@ export default function BlackWhiteDashboard() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           whileHover={{ scale: 1.01 }}
           transition={{ delay: 0.5, type: "spring" }}
-          className="relative bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-xl border border-purple-200 overflow-hidden"
+          className="relative bg-white p-8 rounded-3xl shadow-xl border-4 border-black overflow-hidden"
         >
           {/* Subtle gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-pink-50/50 pointer-events-none" />
+          <div className="absolute inset-0 bg-gray-50/50 pointer-events-none" />
           <div className="flex items-center justify-between mb-6 relative z-10">
             <motion.h3 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.6 }}
-              className="text-2xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"
+              className="text-2xl font-black text-black"
             >
               🗺️ Roadmap Progress
             </motion.h3>
@@ -664,7 +664,7 @@ export default function BlackWhiteDashboard() {
               initial={{ opacity: 0, scale: 0 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.7, type: "spring" }}
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-full text-sm shadow-lg"
+              className="px-4 py-2 bg-black text-white font-bold rounded-full text-sm shadow-lg"
             >
               {stats.readiness}% Complete
             </motion.span>
@@ -690,19 +690,19 @@ export default function BlackWhiteDashboard() {
                   className="flex-1 group relative"
                   title={`${phase.title}: ${Math.round(phaseProgress)}% complete`}
                 >
-                  <div className={`h-10 rounded-2xl transition-all shadow-lg ${
-                    isCompleted ? 'bg-gradient-to-r from-green-400 to-emerald-500' :
-                    isActive ? 'bg-gradient-to-r from-blue-400 to-indigo-500' :
-                    'bg-gradient-to-r from-gray-200 to-gray-300'
+                  <div className={`h-10 rounded-2xl transition-all shadow-lg border-2 ${
+                    isCompleted ? 'bg-black border-black' :
+                    isActive ? 'bg-gray-300 border-black' :
+                    'bg-gray-100 border-gray-400'
                   } group-hover:shadow-2xl overflow-hidden`}>
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: `${phaseProgress}%` }}
                       transition={{ duration: 1, delay: 0.8 + index * 0.1, ease: "easeOut" }}
                       className={`h-full ${
-                        isCompleted ? 'bg-gradient-to-r from-green-500 to-emerald-600' :
-                        isActive ? 'bg-gradient-to-r from-blue-500 to-indigo-600' :
-                        'bg-gradient-to-r from-purple-500 to-pink-600'
+                        isCompleted ? 'bg-black' :
+                        isActive ? 'bg-black' :
+                        'bg-black'
                       }`}
                     />
                   </div>
@@ -711,7 +711,7 @@ export default function BlackWhiteDashboard() {
                     whileHover={{ opacity: 1, y: 0 }}
                     className="absolute -bottom-8 left-0 right-0 text-center"
                   >
-                    <span className="text-xs font-bold text-purple-600 whitespace-nowrap bg-white px-2 py-1 rounded-full shadow-md">
+                    <span className="text-xs font-bold text-black whitespace-nowrap bg-white px-2 py-1 rounded-full shadow-md border-2 border-black">
                       {phase.title}
                     </span>
                   </motion.div>
@@ -720,7 +720,7 @@ export default function BlackWhiteDashboard() {
             })}
           </div>
           
-          <div className="flex items-center justify-between text-sm font-semibold text-purple-600 mt-12 relative z-10">
+          <div className="flex items-center justify-between text-sm font-semibold text-black mt-12 relative z-10">
             <span>📍 Phase 1</span>
             <span>🎯 Phase {roadmap.phases.length}</span>
           </div>
@@ -731,14 +731,14 @@ export default function BlackWhiteDashboard() {
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ delay: 0.6, type: "spring" }}
-          className="relative bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-xl border border-indigo-200 overflow-hidden"
+          className="relative bg-white p-8 rounded-3xl shadow-xl border-4 border-black overflow-hidden"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 pointer-events-none" />
+          <div className="absolute inset-0 bg-gray-50/50 pointer-events-none" />
           <motion.h3 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.7 }}
-            className="text-2xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6 relative z-10"
+            className="text-2xl font-black text-black mb-6 relative z-10"
           >
             📊 Readiness Breakdown
           </motion.h3>
@@ -749,22 +749,22 @@ export default function BlackWhiteDashboard() {
               transition={{ delay: 0.8 }}
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-bold text-indigo-600">💻 Technical Skills</span>
+                <span className="text-sm font-bold text-black">💻 Technical Skills</span>
                 <motion.span 
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 1, type: "spring" }}
-                  className="font-black text-lg text-indigo-600"
+                  className="font-black text-lg text-black"
                 >
                   {stats.technicalScore}%
                 </motion.span>
               </div>
-              <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full overflow-hidden shadow-inner">
+              <div className="h-4 bg-gray-200 rounded-full overflow-hidden shadow-inner border-2 border-gray-300">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${stats.technicalScore}%` }}
                   transition={{ duration: 1, delay: 1.1, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full shadow-lg"
+                  className="h-full bg-black rounded-full shadow-lg"
                 />
               </div>
             </motion.div>
@@ -774,22 +774,22 @@ export default function BlackWhiteDashboard() {
               transition={{ delay: 0.9 }}
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-bold text-emerald-600">🚀 Projects</span>
+                <span className="text-sm font-bold text-black">🚀 Projects</span>
                 <motion.span 
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 1.1, type: "spring" }}
-                  className="font-black text-lg text-emerald-600"
+                  className="font-black text-lg text-black"
                 >
                   {stats.projectsScore}%
                 </motion.span>
               </div>
-              <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full overflow-hidden shadow-inner">
+              <div className="h-4 bg-gray-200 rounded-full overflow-hidden shadow-inner border-2 border-gray-300">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${stats.projectsScore}%` }}
                   transition={{ duration: 1, delay: 1.2, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full shadow-lg"
+                  className="h-full bg-black rounded-full shadow-lg"
                 />
               </div>
             </motion.div>
@@ -799,22 +799,22 @@ export default function BlackWhiteDashboard() {
               transition={{ delay: 1 }}
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-bold text-purple-600">🎯 Interview Ready</span>
+                <span className="text-sm font-bold text-black">🎯 Interview Ready</span>
                 <motion.span 
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 1.2, type: "spring" }}
-                  className="font-black text-lg text-purple-600"
+                  className="font-black text-lg text-black"
                 >
                   {stats.interviewScore}%
                 </motion.span>
               </div>
-              <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full overflow-hidden shadow-inner">
+              <div className="h-4 bg-gray-200 rounded-full overflow-hidden shadow-inner border-2 border-gray-300">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${stats.interviewScore}%` }}
                   transition={{ duration: 1, delay: 1.3, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-purple-500 to-pink-600 rounded-full shadow-lg"
+                  className="h-full bg-black rounded-full shadow-lg"
                 />
               </div>
             </motion.div>
@@ -824,13 +824,13 @@ export default function BlackWhiteDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.4 }}
-              className="mt-6 p-5 bg-gradient-to-r from-yellow-100 to-orange-100 border-2 border-yellow-400 rounded-2xl text-yellow-900 text-sm shadow-lg relative z-10"
+              className="mt-6 p-5 bg-gray-100 border-4 border-black rounded-2xl text-black text-sm shadow-lg relative z-10"
             >
               <div className="flex items-start gap-3">
                 <span className="text-2xl">⚡</span>
                 <div>
                   <strong className="text-base">Keep pushing forward!</strong>
-                  <p className="mt-1">You need 60%+ readiness to start applying. Focus on <span className="font-bold text-orange-600">{nextTask?.skillName || "your next skill"}</span> to level up!</p>
+                  <p className="mt-1">You need 60%+ readiness to start applying. Focus on <span className="font-bold">{nextTask?.skillName || "your next skill"}</span> to level up!</p>
                 </div>
               </div>
             </motion.div>
@@ -857,14 +857,14 @@ export default function BlackWhiteDashboard() {
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ delay: 0.7, type: "spring" }}
-          className="relative bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-xl border border-pink-200 overflow-hidden"
+          className="relative bg-white p-8 rounded-3xl shadow-xl border-4 border-black overflow-hidden"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-pink-50/50 to-purple-50/50 pointer-events-none" />
+          <div className="absolute inset-0 bg-gray-50/50 pointer-events-none" />
           <motion.h3 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.8 }}
-            className="text-2xl font-black bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-8 relative z-10"
+            className="text-2xl font-black text-black mb-8 relative z-10"
           >
             ⚡ Quick Actions
           </motion.h3>
@@ -876,14 +876,14 @@ export default function BlackWhiteDashboard() {
               whileTap={{ scale: 0.97 }}
               transition={{ delay: 0.9 }}
               onClick={() => router.push("/projects")}
-              className="p-6 bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all text-left group overflow-hidden relative"
+              className="p-6 bg-black hover:bg-gray-900 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all text-left group overflow-hidden relative border-4 border-black"
             >
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex items-start gap-4 relative z-10">
                 <motion.div 
                   whileHover={{ rotate: 360 }}
                   transition={{ duration: 0.6 }}
-                  className="p-3 bg-white/20 backdrop-blur-sm text-white rounded-2xl"
+                  className="p-3 bg-black text-white rounded-2xl"
                 >
                   <Target className="w-8 h-8" />
                 </motion.div>
@@ -902,20 +902,20 @@ export default function BlackWhiteDashboard() {
               whileTap={{ scale: 0.97 }}
               transition={{ delay: 1 }}
               onClick={() => router.push("/interview")}
-              className="p-6 bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all text-left group overflow-hidden relative"
+              className="p-6 bg-white border-4 border-black hover:bg-gray-100 text-black rounded-2xl shadow-xl hover:shadow-2xl transition-all text-left group overflow-hidden relative"
             >
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex items-start gap-4 relative z-10">
                 <motion.div 
                   whileHover={{ rotate: 360 }}
                   transition={{ duration: 0.6 }}
-                  className="p-3 bg-white/20 backdrop-blur-sm text-white rounded-2xl"
+                  className="p-3 bg-black text-white rounded-2xl"
                 >
                   <MessageSquare className="w-8 h-8" />
                 </motion.div>
                 <div className="flex-1">
                   <p className="text-2xl font-black mb-2">Interview Prep</p>
-                  <p className="text-sm text-white/90">
+                  <p className="text-sm text-gray-700">
                     Practice technical and behavioral interviews with AI feedback
                   </p>
                 </div>
@@ -928,14 +928,14 @@ export default function BlackWhiteDashboard() {
               whileTap={{ scale: 0.97 }}
               transition={{ delay: 1.1 }}
               onClick={() => router.push("/groups")}
-              className="p-6 bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all text-left group overflow-hidden relative"
+              className="p-6 bg-black hover:bg-gray-900 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all text-left group overflow-hidden relative border-4 border-black"
             >
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex items-start gap-4 relative z-10">
                 <motion.div 
                   whileHover={{ rotate: 360 }}
                   transition={{ duration: 0.6 }}
-                  className="p-3 bg-white/20 backdrop-blur-sm text-white rounded-2xl"
+                  className="p-3 bg-black text-white rounded-2xl"
                 >
                   <Users className="w-8 h-8" />
                 </motion.div>
@@ -954,20 +954,20 @@ export default function BlackWhiteDashboard() {
               whileTap={{ scale: 0.97 }}
               transition={{ delay: 1.2 }}
               onClick={() => router.push("/portfolio")}
-              className="p-6 bg-gradient-to-br from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all text-left group overflow-hidden relative"
+              className="p-6 bg-white border-4 border-black hover:bg-gray-100 text-black rounded-2xl shadow-xl hover:shadow-2xl transition-all text-left group overflow-hidden relative"
             >
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex items-start gap-4 relative z-10">
                 <motion.div 
                   whileHover={{ rotate: 360 }}
                   transition={{ duration: 0.6 }}
-                  className="p-3 bg-white/20 backdrop-blur-sm text-white rounded-2xl"
+                  className="p-3 bg-black text-white rounded-2xl"
                 >
                   <CheckCircle2 className="w-8 h-8" />
                 </motion.div>
                 <div className="flex-1">
                   <p className="text-2xl font-black mb-2">Portfolio</p>
-                  <p className="text-sm text-white/90">
+                  <p className="text-sm text-gray-700">
                     Generate and showcase your work to stand out to recruiters
                   </p>
                 </div>

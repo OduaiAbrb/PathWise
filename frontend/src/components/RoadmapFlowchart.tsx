@@ -64,9 +64,9 @@ export default function RoadmapFlowchart({ roadmap, onSkillClick }: RoadmapFlowc
   };
 
   return (
-    <div className="bg-white border-2 border-black p-8">
+    <div className="bg-white border-4 border-black p-8 rounded-3xl shadow-xl">
       {/* Header */}
-      <div className="mb-8 pb-6 border-b-2 border-black">
+      <div className="mb-8 pb-6 border-b-4 border-black">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -82,7 +82,7 @@ export default function RoadmapFlowchart({ roadmap, onSkillClick }: RoadmapFlowc
         </div>
 
         {/* Progress Bar */}
-        <div className="mt-4 h-3 bg-gray-200 border border-black">
+        <div className="mt-4 h-4 bg-gray-200 border-2 border-black rounded-full overflow-hidden">
           <div
             className="h-full bg-black transition-all duration-500"
             style={{ width: `${roadmap.completion_percentage}%` }}
@@ -98,9 +98,9 @@ export default function RoadmapFlowchart({ roadmap, onSkillClick }: RoadmapFlowc
 
           return (
             <div key={phase.id} className="relative">
-              {/* Connecting Line to Next Phase */}
+              {/* Connecting Line to Next Phase - Thicker trunk */}
               {!isLastPhase && (
-                <div className="absolute left-6 top-16 w-0.5 h-full bg-gray-300 -z-10" />
+                <div className="absolute left-6 top-16 w-1 h-full bg-black -z-10" />
               )}
 
               {/* Phase Header */}
@@ -112,10 +112,10 @@ export default function RoadmapFlowchart({ roadmap, onSkillClick }: RoadmapFlowc
               >
                 <button
                   onClick={() => togglePhase(phase.id)}
-                  className="w-full flex items-center gap-4 p-4 bg-white border-2 border-black hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center gap-4 p-4 bg-white border-4 border-black hover:bg-gray-50 transition-all hover:shadow-lg rounded-xl"
                 >
-                  {/* Phase Icon */}
-                  <div className="w-12 h-12 bg-black text-white font-bold text-xl flex items-center justify-center">
+                  {/* Phase Icon - Tree Node */}
+                  <div className="w-12 h-12 bg-black text-white font-bold text-xl flex items-center justify-center rounded-full border-4 border-white shadow-lg">
                     {phaseIndex + 1}
                   </div>
 
@@ -128,7 +128,7 @@ export default function RoadmapFlowchart({ roadmap, onSkillClick }: RoadmapFlowc
                   </div>
 
                   {/* Status Badge */}
-                  <div className={`px-3 py-1 border-2 text-xs font-bold uppercase ${
+                  <div className={`px-3 py-1 border-2 text-xs font-bold uppercase rounded-full ${
                     phase.status === "completed"
                       ? "bg-black text-white border-black"
                       : phase.status === "in_progress"
@@ -144,7 +144,7 @@ export default function RoadmapFlowchart({ roadmap, onSkillClick }: RoadmapFlowc
                   }`} />
                 </button>
 
-                {/* Skills Tree */}
+                {/* Skills Tree - Branches */}
                 {isExpanded && (
                   <div className="mt-4 ml-16 space-y-3">
                     {phase.skills.map((skill, skillIndex) => {
@@ -152,20 +152,21 @@ export default function RoadmapFlowchart({ roadmap, onSkillClick }: RoadmapFlowc
 
                       return (
                         <div key={skill.id} className="relative">
-                          {/* Connecting Line */}
-                          <div className="absolute -left-8 top-0 w-8 h-1/2 border-l-2 border-b-2 border-gray-300" />
+                          {/* Connecting Branch Line */}
+                          <div className="absolute -left-8 top-0 w-8 h-1/2 border-l-2 border-b-2 border-black" />
                           {!isLastSkill && (
-                            <div className="absolute -left-8 top-1/2 w-0.5 h-full bg-gray-300" />
+                            <div className="absolute -left-8 top-1/2 w-1 h-full bg-black" />
                           )}
 
-                          {/* Skill Card */}
+                          {/* Skill Card - Leaf Node */}
                           <motion.button
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: phaseIndex * 0.1 + skillIndex * 0.05 }}
+                            whileHover={{ scale: 1.02, x: 5 }}
                             onClick={() => onSkillClick && onSkillClick(skill, phase.id)}
                             disabled={skill.status === "locked"}
-                            className={`w-full flex items-center gap-3 p-4 border-2 transition-all ${
+                            className={`w-full flex items-center gap-3 p-4 border-3 transition-all rounded-xl shadow-md hover:shadow-lg ${
                               skill.status === "completed"
                                 ? "bg-black text-white border-black"
                                 : skill.status === "in_progress"
@@ -199,7 +200,7 @@ export default function RoadmapFlowchart({ roadmap, onSkillClick }: RoadmapFlowc
                             {/* Progress Indicator */}
                             {skill.status === "in_progress" && skill.progress !== undefined && (
                               <div className="flex items-center gap-2">
-                                <div className="w-16 h-2 bg-gray-200 border border-black">
+                                <div className="w-16 h-2 bg-gray-200 border-2 border-black rounded-full overflow-hidden">
                                   <div
                                     className="h-full bg-black"
                                     style={{ width: `${skill.progress}%` }}
@@ -226,7 +227,7 @@ export default function RoadmapFlowchart({ roadmap, onSkillClick }: RoadmapFlowc
       </div>
 
       {/* Footer Stats */}
-      <div className="mt-8 pt-6 border-t-2 border-black grid grid-cols-3 gap-4">
+      <div className="mt-8 pt-6 border-t-4 border-black grid grid-cols-3 gap-4">
         <div className="text-center">
           <div className="text-2xl font-bold text-black">
             {roadmap.phases.filter(p => p.status === "completed").length}

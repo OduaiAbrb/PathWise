@@ -56,7 +56,6 @@ import NotificationSystem from "@/components/NotificationSystem";
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, description: "Roadmap & Stats" },
   { href: "/interview", label: "Interview Prep", icon: MessageSquare, description: "Practice interviews" },
-  { href: "/interview/video", label: "Mock Interview", icon: Video, description: "Video practice" },
   { href: "/study-buddy", label: "AI Mentor", icon: Brain, description: "Personal guidance" },
   { href: "/resume-scanner", label: "Resume Tools", icon: FileText, description: "ATS optimization" },
 ];

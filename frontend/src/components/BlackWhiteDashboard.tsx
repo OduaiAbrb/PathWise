@@ -396,9 +396,9 @@ export default function BlackWhiteDashboard() {
                 <span className="text-sm text-gray-600">Technical Skills</span>
                 <span className="font-bold">{stats.technicalScore}%</span>
               </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-black transition-all duration-500"
+                  className="h-full bg-black rounded-full transition-all duration-700 ease-out"
                   style={{ width: `${stats.technicalScore}%` }}
                 />
               </div>
@@ -408,9 +408,9 @@ export default function BlackWhiteDashboard() {
                 <span className="text-sm text-gray-600">Projects</span>
                 <span className="font-bold">{stats.projectsScore}%</span>
               </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-black transition-all duration-500"
+                  className="h-full bg-black rounded-full transition-all duration-700 ease-out"
                   style={{ width: `${stats.projectsScore}%` }}
                 />
               </div>
@@ -420,9 +420,9 @@ export default function BlackWhiteDashboard() {
                 <span className="text-sm text-gray-600">Interview Ready</span>
                 <span className="font-bold">{stats.interviewScore}%</span>
               </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-black transition-all duration-500"
+                  className="h-full bg-black rounded-full transition-all duration-700 ease-out"
                   style={{ width: `${stats.interviewScore}%` }}
                 />
               </div>

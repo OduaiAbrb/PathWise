@@ -24,6 +24,7 @@ export default function SettingsPage() {
     marketing: false,
   });
   const [saved, setSaved] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleSave = () => {
     setSaved(true);
@@ -248,7 +249,10 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="pt-6 border-t border-neutral-200">
-                  <button className="text-red-600 hover:text-red-700 font-medium">
+                  <button 
+                    onClick={() => setShowDeleteModal(true)}
+                    className="text-red-600 hover:text-red-700 font-medium"
+                  >
                     Delete Account
                   </button>
                 </div>
@@ -297,6 +301,40 @@ export default function SettingsPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl p-6 w-full max-w-md"
+          >
+            <h2 className="text-xl font-semibold text-neutral-900 mb-4">Delete Account</h2>
+            <p className="text-neutral-600 mb-6">
+              Are you sure you want to delete your account? This action cannot be undone. All your data, including roadmaps, progress, and settings will be permanently deleted.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 px-4 py-2 border-2 border-neutral-200 rounded-lg font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  // TODO: Implement actual account deletion API call
+                  alert("Account deletion functionality will be implemented with backend integration");
+                  setShowDeleteModal(false);
+                }}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+              >
+                Delete Account
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

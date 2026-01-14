@@ -14,6 +14,7 @@ import {
   Lock,
   Send,
   X,
+  Check,
 } from "lucide-react";
 import { getApiUrl } from "@/lib/fetch-api";
 
@@ -50,6 +51,9 @@ export default function GroupsPage() {
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDescription, setNewGroupDescription] = useState("");
   const [newGroupTopic, setNewGroupTopic] = useState("");
+  const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null);
+  const [leavingGroupId, setLeavingGroupId] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const accessToken = (session as { accessToken?: string })?.accessToken;
 
   useEffect(() => {
@@ -164,6 +168,17 @@ export default function GroupsPage() {
   };
 
   const joinGroup = async (groupId: string) => {
+    if (joiningGroupId) return; // Prevent double-clicks
+    
+    setJoiningGroupId(groupId);
+    
+    // Optimistic update
+    setGroups((prev) =>
+      prev.map((g) =>
+        g.id === groupId ? { ...g, joined: true, members: g.members + 1 } : g
+      )
+    );
+
     try {
       const response = await fetch(getApiUrl(`/api/v1/social/groups/${groupId}/join`), {
         method: "POST",
@@ -172,48 +187,63 @@ export default function GroupsPage() {
         },
       });
 
-      if (response.ok) {
+      if (!response.ok) {
+        // Revert on failure
+        setGroups((prev) =>
+          prev.map((g) =>
+            g.id === groupId ? { ...g, joined: false, members: g.members - 1 } : g
+          )
+        );
+      } else {
+        showSuccess("Successfully joined the group!");
+      }
+    } catch (error) {
+      // Keep optimistic update even on error for demo
+      showSuccess("Joined group (demo mode)");
+    } finally {
+      setJoiningGroupId(null);
+    }
+  };
+
+  const leaveGroup = async (groupId: string) => {
+    if (leavingGroupId) return; // Prevent double-clicks
+    
+    setLeavingGroupId(groupId);
+    
+    // Optimistic update
+    setGroups((prev) =>
+      prev.map((g) =>
+        g.id === groupId ? { ...g, joined: false, members: Math.max(0, g.members - 1) } : g
+      )
+    );
+    
+    if (selectedGroup?.id === groupId) {
+      setSelectedGroup(null);
+    }
+
+    try {
+      const response = await fetch(getApiUrl(`/api/v1/social/groups/${groupId}/leave`), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      
+      if (!response.ok) {
+        // Revert on failure
         setGroups((prev) =>
           prev.map((g) =>
             g.id === groupId ? { ...g, joined: true, members: g.members + 1 } : g
           )
         );
       } else {
-        // Optimistic update for demo
-        setGroups((prev) =>
-          prev.map((g) =>
-            g.id === groupId ? { ...g, joined: true, members: g.members + 1 } : g
-          )
-        );
+        showSuccess("Left the group");
       }
     } catch (error) {
-      setGroups((prev) =>
-        prev.map((g) =>
-          g.id === groupId ? { ...g, joined: true, members: g.members + 1 } : g
-        )
-      );
-    }
-  };
-
-  const leaveGroup = async (groupId: string) => {
-    try {
-      await fetch(getApiUrl(`/api/v1/social/groups/${groupId}/leave`), {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-    } catch (error) {
-      // Continue anyway
-    }
-    
-    setGroups((prev) =>
-      prev.map((g) =>
-        g.id === groupId ? { ...g, joined: false, members: g.members - 1 } : g
-      )
-    );
-    if (selectedGroup?.id === groupId) {
-      setSelectedGroup(null);
+      // Keep optimistic update
+      showSuccess("Left group (demo mode)");
+    } finally {
+      setLeavingGroupId(null);
     }
   };
 
@@ -279,6 +309,11 @@ export default function GroupsPage() {
     }
   };
 
+  const showSuccess = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
   const createGroup = async () => {
     if (!newGroupName.trim()) return;
 
@@ -292,6 +327,11 @@ export default function GroupsPage() {
       isPrivate: false,
       joined: true,
     };
+
+    // Optimistic update
+    setGroups((prev) => [newGroup, ...prev]);
+    setShowCreateModal(false);
+    showSuccess(`Group "${newGroupName}" created successfully!`);
 
     try {
       const response = await fetch(getApiUrl("/api/v1/social/groups"), {
@@ -309,15 +349,13 @@ export default function GroupsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setGroups((prev) => [data.data || newGroup, ...prev]);
-      } else {
-        setGroups((prev) => [newGroup, ...prev]);
+        // Replace temp group with real one
+        setGroups((prev) => prev.map(g => g.id === newGroup.id ? (data.data || newGroup) : g));
       }
     } catch (error) {
-      setGroups((prev) => [newGroup, ...prev]);
+      // Keep optimistic update
     }
 
-    setShowCreateModal(false);
     setNewGroupName("");
     setNewGroupDescription("");
     setNewGroupTopic("");
@@ -335,6 +373,19 @@ export default function GroupsPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
+      {/* Success Notification */}
+      {successMessage && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="fixed top-20 right-6 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2"
+        >
+          <Check className="w-5 h-5" />
+          {successMessage}
+        </motion.div>
+      )}
+
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Groups List */}
         <div className={selectedGroup ? "lg:col-span-1" : "lg:col-span-3"}>
@@ -458,19 +509,24 @@ export default function GroupsPage() {
                         </button>
                         <button
                           onClick={() => leaveGroup(group.id)}
-                          className="btn-secondary text-sm py-2"
+                          disabled={leavingGroupId === group.id}
+                          className="btn-secondary text-sm py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Leave
+                          {leavingGroupId === group.id ? "Leaving..." : "Leave"}
                         </button>
                       </>
                     ) : (
                       <button
                         onClick={() => joinGroup(group.id)}
-                        disabled={group.members >= group.maxMembers}
-                        className="btn-primary flex-1 justify-center text-sm py-2"
+                        disabled={group.members >= group.maxMembers || joiningGroupId === group.id}
+                        className="btn-primary flex-1 justify-center text-sm py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <UserPlus className="w-4 h-4" />
-                        {group.members >= group.maxMembers ? "Full" : "Join Group"}
+                        {joiningGroupId === group.id ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <UserPlus className="w-4 h-4" />
+                        )}
+                        {joiningGroupId === group.id ? "Joining..." : group.members >= group.maxMembers ? "Full" : "Join Group"}
                       </button>
                     )}
                   </div>

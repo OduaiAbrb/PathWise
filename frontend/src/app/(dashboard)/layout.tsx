@@ -89,7 +89,7 @@ export default function DashboardLayout({
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -139,8 +139,8 @@ export default function DashboardLayout({
                   className="w-8 h-8 rounded-full"
                 />
               ) : (
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-medium text-blue-600">
+                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-medium text-black">
                     {session.user?.name?.[0] || "U"}
                   </span>
                 </div>
@@ -174,7 +174,7 @@ export default function DashboardLayout({
                 onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${
                   isActive(item.href)
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                    ? "bg-black text-white shadow-lg"
                     : "text-slate-700 hover:bg-slate-100"
                 }`}
                 data-testid={`nav-${item.label.toLowerCase().replace(" ", "-")}`}

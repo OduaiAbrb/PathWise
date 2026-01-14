@@ -8,7 +8,9 @@ WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json* ./
-RUN npm install --legacy-peer-deps || npm ci --legacy-peer-deps
+
+# Use npm ci for faster, more reliable installs in CI/CD
+RUN npm ci --legacy-peer-deps --prefer-offline --no-audit
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -32,7 +34,8 @@ ENV GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
 ENV GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
 ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
 
-# Build the application
+# Build the application with optimizations
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
 
 # Production image, copy all the files and run next
@@ -48,8 +51,7 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 
 # Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+RUN mkdir -p .next && chown nextjs:nodejs .next
 
 # Automatically leverage output traces to reduce image size
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

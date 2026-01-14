@@ -1,6 +1,7 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
+buildCommand = "echo 'Building with Docker...'"
 
 [deploy]
 startCommand = "node server.js"

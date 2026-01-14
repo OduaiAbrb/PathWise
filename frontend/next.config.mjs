@@ -37,4 +37,6 @@ export default withSentryConfig(nextConfig, {
   hideSourceMaps: true,
   disableLogger: true,
   automaticVercelMonitors: true,
+  // Disable source map upload during build to speed up Railway builds
+  dryRun: process.env.RAILWAY_ENVIRONMENT ? true : false,
 });

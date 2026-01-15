@@ -7,6 +7,10 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   output: 'standalone',
+  generateBuildId: async () => {
+    // Force new build ID to clear Railway cache
+    return `build-${Date.now()}`;
+  },
   images: {
     remotePatterns: [
       {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession } from "next-auth/react";
 import {
   Search,
   Filter,
@@ -29,6 +30,7 @@ import {
   ArrowUpRight,
   Zap
 } from "lucide-react";
+import { getApiUrl } from "@/lib/fetch-api";
 
 interface SearchResult {
   id: string;

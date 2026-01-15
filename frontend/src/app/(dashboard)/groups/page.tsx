@@ -28,6 +28,7 @@ interface StudyGroup {
   isPrivate: boolean;
   nextSession?: string;
   joined: boolean;
+  isSeeded?: boolean;
 }
 
 interface GroupMessage {
@@ -140,9 +141,11 @@ export default function GroupsPage() {
   };
 
   const getSuggestedGroups = (): StudyGroup[] => {
+    // Use deterministic UUIDs for seeded groups (these are static, not from DB)
+    // Join/leave operations for seeded groups work via localStorage only
     return [
       {
-        id: "1",
+        id: "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
         name: "Backend Engineers Hub",
         description: "Weekly discussions on system design, APIs, and databases. Perfect for aspiring backend developers.",
         members: 24,
@@ -151,9 +154,10 @@ export default function GroupsPage() {
         isPrivate: false,
         nextSession: "Tomorrow, 7 PM EST",
         joined: false,
+        isSeeded: true,
       },
       {
-        id: "2",
+        id: "b2c3d4e5-f6a7-5b6c-9d0e-1f2a3b4c5d6e",
         name: "Python Mastery",
         description: "From basics to advanced Python concepts. Code reviews, pair programming, and best practices.",
         members: 18,
@@ -162,9 +166,10 @@ export default function GroupsPage() {
         isPrivate: false,
         nextSession: "Friday, 6 PM EST",
         joined: false,
+        isSeeded: true,
       },
       {
-        id: "3",
+        id: "c3d4e5f6-a7b8-6c7d-0e1f-2a3b4c5d6e7f",
         name: "Interview Prep Squad",
         description: "Mock interviews, coding challenges, and behavioral prep. Get job-ready together.",
         members: 12,
@@ -173,9 +178,10 @@ export default function GroupsPage() {
         isPrivate: false,
         nextSession: "Saturday, 10 AM EST",
         joined: false,
+        isSeeded: true,
       },
       {
-        id: "4",
+        id: "d4e5f6a7-b8c9-7d8e-1f2a-3b4c5d6e7f8a",
         name: "Cloud & DevOps",
         description: "AWS, Docker, Kubernetes, and CI/CD pipelines. Hands-on labs and certifications.",
         members: 31,
@@ -184,9 +190,10 @@ export default function GroupsPage() {
         isPrivate: false,
         nextSession: "Wednesday, 8 PM EST",
         joined: false,
+        isSeeded: true,
       },
       {
-        id: "5",
+        id: "e5f6a7b8-c9d0-8e9f-2a3b-4c5d6e7f8a9b",
         name: "React & Frontend",
         description: "Modern React patterns, TypeScript, and UI/UX best practices. Build portfolio projects together.",
         members: 22,
@@ -195,6 +202,7 @@ export default function GroupsPage() {
         isPrivate: false,
         nextSession: "Thursday, 7 PM EST",
         joined: false,
+        isSeeded: true,
       },
     ];
   };

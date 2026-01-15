@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 import {
   Trophy,
   Zap,
@@ -16,6 +17,7 @@ import {
   Medal,
   Crown
 } from "lucide-react";
+import { getApiUrl } from "@/lib/fetch-api";
 
 interface Achievement {
   id: string;
@@ -58,102 +60,129 @@ interface GamificationPanelProps {
 }
 
 export default function GamificationPanel({ userId }: GamificationPanelProps) {
+  const { data: session } = useSession();
   const [stats, setStats] = useState<GamificationStats | null>(null);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [weeklyChallenge, setWeeklyChallenge] = useState<WeeklyChallenge | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Replace with real API calls
-    // For now, generate dynamic mock data based on user activity
-    const generateGamificationData = () => {
-      const baseStats: GamificationStats = {
-        totalXP: Math.floor(Math.random() * 5000) + 1000,
-        level: Math.floor(Math.random() * 15) + 1,
-        xpToNext: Math.floor(Math.random() * 800) + 200,
-        currentLevelXP: Math.floor(Math.random() * 1000),
-        nextLevelXP: 1000,
-        streak: Math.floor(Math.random() * 30) + 1,
-        longestStreak: Math.floor(Math.random() * 60) + 10,
-        skillsMastered: Math.floor(Math.random() * 25) + 5,
-        totalStudyHours: Math.floor(Math.random() * 200) + 50,
-        completedChallenges: Math.floor(Math.random() * 12) + 3,
-      };
+    const fetchGamificationData = async () => {
+      const accessToken = (session as any)?.accessToken;
+      if (!accessToken) {
+        setIsLoading(false);
+        return;
+      }
 
-      const sampleAchievements: Achievement[] = [
-        {
-          id: "first_roadmap",
-          title: "Path Finder",
-          description: "Create your first learning roadmap",
-          icon: "🗺️",
-          unlocked: true,
-          unlockedAt: "2024-01-15",
-          progress: 1,
-          maxProgress: 1,
-          rarity: "common"
-        },
-        {
-          id: "week_streak",
-          title: "Consistent Learner",
-          description: "Maintain a 7-day learning streak",
-          icon: "🔥",
-          unlocked: baseStats.streak >= 7,
-          unlockedAt: baseStats.streak >= 7 ? "2024-01-20" : undefined,
-          progress: Math.min(baseStats.streak, 7),
-          maxProgress: 7,
-          rarity: "rare"
-        },
-        {
-          id: "skill_master",
-          title: "Skill Collector",
-          description: "Master 10 different skills",
-          icon: "🎯",
-          unlocked: baseStats.skillsMastered >= 10,
-          progress: baseStats.skillsMastered,
-          maxProgress: 10,
-          rarity: "epic"
-        },
-        {
-          id: "study_marathon",
-          title: "Knowledge Seeker",
-          description: "Complete 100 hours of study",
-          icon: "📚",
-          unlocked: baseStats.totalStudyHours >= 100,
-          progress: baseStats.totalStudyHours,
-          maxProgress: 100,
-          rarity: "legendary"
-        },
-        {
-          id: "challenge_champion",
-          title: "Challenge Champion",
-          description: "Complete 5 weekly challenges",
-          icon: "🏆",
-          unlocked: baseStats.completedChallenges >= 5,
-          progress: baseStats.completedChallenges,
-          maxProgress: 5,
-          rarity: "epic"
+      try {
+        // Fetch real stats from backend
+        const response = await fetch(getApiUrl("/api/v1/gamification/stats"), {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const backendStats = data.data || data;
+          
+          // Map backend response to our interface
+          const mappedStats: GamificationStats = {
+            totalXP: backendStats.total_xp || backendStats.totalXP || 0,
+            level: backendStats.level || 1,
+            xpToNext: backendStats.xp_to_next || backendStats.xpToNext || 1000,
+            currentLevelXP: backendStats.current_level_xp || backendStats.currentLevelXP || 0,
+            nextLevelXP: backendStats.next_level_xp || backendStats.nextLevelXP || 1000,
+            streak: backendStats.streak || backendStats.current_streak || 0,
+            longestStreak: backendStats.longest_streak || backendStats.longestStreak || 0,
+            skillsMastered: backendStats.skills_mastered || backendStats.skillsMastered || 0,
+            totalStudyHours: backendStats.total_study_hours || backendStats.totalStudyHours || 0,
+            completedChallenges: backendStats.completed_challenges || backendStats.completedChallenges || 0,
+          };
+          
+          setStats(mappedStats);
+          
+          // Generate achievements based on real stats
+          const generatedAchievements: Achievement[] = [
+            {
+              id: "first_roadmap",
+              title: "Path Finder",
+              description: "Create your first learning roadmap",
+              icon: "🗺️",
+              unlocked: true,
+              unlockedAt: new Date().toISOString().split('T')[0],
+              progress: 1,
+              maxProgress: 1,
+              rarity: "common"
+            },
+            {
+              id: "week_streak",
+              title: "Consistent Learner",
+              description: "Maintain a 7-day learning streak",
+              icon: "🔥",
+              unlocked: mappedStats.streak >= 7,
+              unlockedAt: mappedStats.streak >= 7 ? new Date().toISOString().split('T')[0] : undefined,
+              progress: Math.min(mappedStats.streak, 7),
+              maxProgress: 7,
+              rarity: "rare"
+            },
+            {
+              id: "skill_master",
+              title: "Skill Collector",
+              description: "Master 10 different skills",
+              icon: "🎯",
+              unlocked: mappedStats.skillsMastered >= 10,
+              progress: mappedStats.skillsMastered,
+              maxProgress: 10,
+              rarity: "epic"
+            },
+            {
+              id: "study_marathon",
+              title: "Knowledge Seeker",
+              description: "Complete 100 hours of study",
+              icon: "📚",
+              unlocked: mappedStats.totalStudyHours >= 100,
+              progress: Math.min(mappedStats.totalStudyHours, 100),
+              maxProgress: 100,
+              rarity: "legendary"
+            },
+            {
+              id: "challenge_champion",
+              title: "Challenge Champion",
+              description: "Complete 5 weekly challenges",
+              icon: "🏆",
+              unlocked: mappedStats.completedChallenges >= 5,
+              progress: mappedStats.completedChallenges,
+              maxProgress: 5,
+              rarity: "epic"
+            }
+          ];
+          
+          setAchievements(generatedAchievements);
+          
+          // Set weekly challenge based on current progress
+          const currentChallenge: WeeklyChallenge = {
+            id: "weekly_focus",
+            title: "Weekly Deep Dive",
+            description: "Complete 5 learning sessions this week",
+            progress: Math.min(mappedStats.streak, 5),
+            target: 5,
+            reward: "250 XP + Rare Badge",
+            deadline: "Sunday, 11:59 PM",
+            completed: mappedStats.streak >= 5
+          };
+          
+          setWeeklyChallenge(currentChallenge);
         }
-      ];
-
-      const currentChallenge: WeeklyChallenge = {
-        id: "weekly_focus",
-        title: "Weekly Deep Dive",
-        description: "Complete 5 learning sessions this week",
-        progress: Math.floor(Math.random() * 5),
-        target: 5,
-        reward: "250 XP + Rare Badge",
-        deadline: "Sunday, 11:59 PM",
-        completed: false
-      };
-
-      setStats(baseStats);
-      setAchievements(sampleAchievements);
-      setWeeklyChallenge(currentChallenge);
-      setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching gamification stats:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    generateGamificationData();
-  }, [userId]);
+    fetchGamificationData();
+  }, [userId, session]);
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {

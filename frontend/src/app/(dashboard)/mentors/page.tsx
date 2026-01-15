@@ -45,7 +45,7 @@ export default function MentorsPage() {
   });
   const [mentors] = useState<Mentor[]>([
     {
-      id: "1",
+      id: "1", 
       name: "Sarah Chen",
       title: "Senior Software Engineer",
       company: "Google",

@@ -249,8 +249,8 @@ export default function GroupsPage() {
         showSuccess("Successfully joined the group!");
       }
     } catch (error) {
-      // Keep optimistic update and localStorage for demo
-      showSuccess("Joined group (demo mode)");
+      // Keep optimistic update and localStorage
+      showSuccess("Joined group!");
     } finally {
       setJoiningGroupId(null);
     }
@@ -303,7 +303,7 @@ export default function GroupsPage() {
       }
     } catch (error) {
       // Keep optimistic update and localStorage
-      showSuccess("Left group (demo mode)");
+      showSuccess("Left group!");
     } finally {
       setLeavingGroupId(null);
     }

@@ -641,24 +641,21 @@ export default function BlackWhiteDashboard() {
           </motion.div>
         )}
 
-        {/* Visual Roadmap Progress Timeline */}
+        {/* Tree-Based Roadmap Visualization */}
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          whileHover={{ scale: 1.01 }}
           transition={{ delay: 0.5, type: "spring" }}
           className="relative bg-white p-8 rounded-3xl shadow-xl border-4 border-black overflow-hidden"
         >
-          {/* Subtle gradient overlay */}
-          <div className="absolute inset-0 bg-gray-50/50 pointer-events-none" />
-          <div className="flex items-center justify-between mb-6 relative z-10">
+          <div className="flex items-center justify-between mb-8">
             <motion.h3 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.6 }}
               className="text-2xl font-black text-black"
             >
-              🗺️ Roadmap Progress
+              🌳 Your Learning Tree
             </motion.h3>
             <motion.span 
               initial={{ opacity: 0, scale: 0 }}
@@ -670,59 +667,117 @@ export default function BlackWhiteDashboard() {
             </motion.span>
           </div>
           
-          {/* Segmented Progress Bar */}
-          <div className="flex gap-2 mb-6 relative z-10">
+          {/* Tree Structure */}
+          <div className="relative pl-8">
+            {/* Main Trunk Line */}
+            <div className="absolute left-4 top-0 bottom-0 w-1 bg-black" />
+            
             {roadmap.phases.map((phase, index) => {
               const phaseSkills = phase.skills.length;
-              const completedSkills = phase.skills.filter(s => s.status === "completed").length;
-              const phaseProgress = phaseSkills > 0 ? (completedSkills / phaseSkills) * 100 : 0;
+              const completedSkills = phase.skills.filter((s: any) => s.status === "completed").length;
+              const phaseProgress = phaseSkills > 0 ? Math.round((completedSkills / phaseSkills) * 100) : 0;
               const isActive = phase.status === "in_progress";
               const isCompleted = phase.status === "completed";
+              const isLast = index === roadmap.phases.length - 1;
               
               return (
-                <motion.button
+                <motion.div
                   key={phase.id}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.7 + index * 0.1 }}
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  onClick={() => router.push(`/roadmap/${roadmap.id}#phase-${phase.id}`)}
-                  className="flex-1 group relative"
-                  title={`${phase.title}: ${Math.round(phaseProgress)}% complete`}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.7 + index * 0.15 }}
+                  className={`relative ${isLast ? '' : 'mb-6'}`}
                 >
-                  <div className={`h-10 rounded-2xl transition-all shadow-lg border-2 ${
-                    isCompleted ? 'bg-black border-black' :
-                    isActive ? 'bg-gray-300 border-black' :
-                    'bg-gray-100 border-gray-400'
-                  } group-hover:shadow-2xl overflow-hidden`}>
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${phaseProgress}%` }}
-                      transition={{ duration: 1, delay: 0.8 + index * 0.1, ease: "easeOut" }}
-                      className={`h-full ${
-                        isCompleted ? 'bg-black' :
-                        isActive ? 'bg-black' :
-                        'bg-black'
-                      }`}
-                    />
+                  {/* Branch Line */}
+                  <div className="absolute left-[-16px] top-6 w-8 h-0.5 bg-black" />
+                  
+                  {/* Phase Node (Circle) */}
+                  <div className="absolute left-[-24px] top-3 w-6 h-6 rounded-full border-4 border-black bg-white flex items-center justify-center z-10">
+                    {isCompleted ? (
+                      <div className="w-3 h-3 bg-black rounded-full" />
+                    ) : isActive ? (
+                      <div className="w-2 h-2 bg-black rounded-full animate-pulse" />
+                    ) : null}
                   </div>
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    whileHover={{ opacity: 1, y: 0 }}
-                    className="absolute -bottom-8 left-0 right-0 text-center"
+                  
+                  {/* Phase Content */}
+                  <motion.button
+                    whileHover={{ scale: 1.02, x: 5 }}
+                    onClick={() => router.push(`/roadmap/${roadmap.id}#phase-${phase.id}`)}
+                    className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                      isCompleted 
+                        ? 'bg-black text-white border-black' 
+                        : isActive 
+                        ? 'bg-white text-black border-black shadow-lg' 
+                        : 'bg-gray-50 text-gray-600 border-gray-300'
+                    }`}
                   >
-                    <span className="text-xs font-bold text-black whitespace-nowrap bg-white px-2 py-1 rounded-full shadow-md border-2 border-black">
-                      {phase.title}
-                    </span>
-                  </motion.div>
-                </motion.button>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-bold text-lg">
+                        Phase {index + 1}: {phase.title}
+                      </span>
+                      <span className={`text-sm font-bold ${isCompleted ? 'text-white' : 'text-black'}`}>
+                        {phaseProgress}%
+                      </span>
+                    </div>
+                    
+                    {/* Skills as mini branches */}
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {phase.skills.slice(0, 5).map((skill: any, skillIndex: number) => (
+                        <span 
+                          key={skill.id}
+                          className={`text-xs px-2 py-1 rounded-full ${
+                            skill.status === 'completed' 
+                              ? isCompleted ? 'bg-white text-black' : 'bg-black text-white'
+                              : skill.status === 'in_progress'
+                              ? 'bg-gray-200 text-black border border-black'
+                              : 'bg-gray-100 text-gray-500'
+                          }`}
+                        >
+                          {skill.name}
+                        </span>
+                      ))}
+                      {phase.skills.length > 5 && (
+                        <span className={`text-xs px-2 py-1 rounded-full ${isCompleted ? 'text-gray-300' : 'text-gray-500'}`}>
+                          +{phase.skills.length - 5} more
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Progress bar inside phase */}
+                    <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${phaseProgress}%` }}
+                        transition={{ duration: 1, delay: 0.8 + index * 0.1 }}
+                        className={`h-full ${isCompleted ? 'bg-white' : 'bg-black'}`}
+                      />
+                    </div>
+                  </motion.button>
+                </motion.div>
               );
             })}
+            
+            {/* Tree Root */}
+            <div className="absolute left-2 bottom-[-20px] w-5 h-5 bg-black rounded-full border-4 border-white shadow-lg" />
           </div>
           
-          <div className="flex items-center justify-between text-sm font-semibold text-black mt-12 relative z-10">
-            <span>📍 Phase 1</span>
-            <span>🎯 Phase {roadmap.phases.length}</span>
+          {/* Legend */}
+          <div className="flex items-center justify-center gap-6 mt-8 pt-6 border-t-2 border-gray-200">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-black rounded-full" />
+              <span className="text-sm font-semibold text-black">Completed</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-white border-2 border-black rounded-full">
+                <div className="w-1.5 h-1.5 bg-black rounded-full m-auto mt-0.5 animate-pulse" />
+              </div>
+              <span className="text-sm font-semibold text-black">In Progress</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-gray-200 rounded-full border border-gray-300" />
+              <span className="text-sm font-semibold text-gray-500">Not Started</span>
+            </div>
           </div>
         </motion.div>
 

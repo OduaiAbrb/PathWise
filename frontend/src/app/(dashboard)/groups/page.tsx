@@ -217,11 +217,13 @@ export default function GroupsPage() {
     );
 
     try {
-      const response = await fetch(getApiUrl(`/api/v1/social/groups/${groupId}/join`), {
+      const response = await fetch(getApiUrl(`/api/v1/social/groups/join`), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ group_id: groupId }),
       });
 
       if (!response.ok) {
@@ -268,11 +270,13 @@ export default function GroupsPage() {
     }
 
     try {
-      const response = await fetch(getApiUrl(`/api/v1/social/groups/${groupId}/leave`), {
+      const response = await fetch(getApiUrl(`/api/v1/social/groups/leave`), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ group_id: groupId }),
       });
       
       if (!response.ok) {

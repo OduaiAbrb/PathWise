@@ -23,6 +23,12 @@ import {
   BookOpen,
 } from "lucide-react";
 import RoadmapFlowchart from "./RoadmapFlowchart";
+import { SkillDecaySystem } from "./SkillDecaySystem";
+import { LearningVelocityGraph } from "./LearningVelocityGraph";
+import { WeaknessIdentifier } from "./WeaknessIdentifier";
+import { StreakNotifications } from "./StreakNotifications";
+import { ExportStats } from "./ExportStats";
+import { Confetti, useCelebration } from "./Confetti";
 
 interface RoadmapData {
   id: string;
@@ -63,6 +69,7 @@ export default function BlackWhiteDashboard() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const accessToken = (session as { accessToken?: string })?.accessToken;
+  const { isTriggered: confettiTriggered, celebrate } = useCelebration();
 
   const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
   const [nextTask, setNextTask] = useState<NextTask | null>(null);
@@ -1030,6 +1037,41 @@ export default function BlackWhiteDashboard() {
             </motion.button>
           </div>
         </motion.div>
+
+        {/* Analytics Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.3 }}
+          className="mt-12 space-y-8"
+        >
+          {/* Notifications & Features Row */}
+          <div className="grid lg:grid-cols-2 gap-8">
+            <StreakNotifications 
+              currentStreak={stats.streak}
+              onNotificationClick={() => router.push('/dashboard')}
+            />
+            <ExportStats />
+          </div>
+
+          {/* Analytics Row */}
+          <div className="grid lg:grid-cols-2 gap-8">
+            <LearningVelocityGraph />
+            <WeaknessIdentifier onStartLearning={(skillId) => {
+              console.log('Starting learning for skill:', skillId);
+              celebrate();
+            }} />
+          </div>
+
+          {/* Skill Decay System */}
+          <SkillDecaySystem onPracticeSkill={(skillId) => {
+            console.log('Practicing skill:', skillId);
+            celebrate();
+          }} />
+        </motion.div>
+
+        {/* Confetti Effect */}
+        <Confetti trigger={confettiTriggered} />
       </div>
     </div>
   );

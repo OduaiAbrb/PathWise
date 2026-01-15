@@ -33,6 +33,7 @@ import {
   Shield,
 } from "lucide-react";
 import NotificationSystem from "@/components/NotificationSystem";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 /**
  * Dashboard Layout - Streamlined Navigation
@@ -62,11 +63,14 @@ const navItems = [
 
 // Secondary items (collapsed by default)
 const secondaryItems = [
-  { href: "/partners", label: "Find Partner", icon: Users, description: "Accountability buddy" },
+  { href: "/jobs", label: "Job Board", icon: Briefcase, description: "Find opportunities" },
+  { href: "/applications", label: "Applications", icon: ClipboardList, description: "Track applications" },
+  { href: "/challenges", label: "Challenges", icon: Trophy, description: "Weekly coding competitions" },
+  { href: "/mentors", label: "Mentors", icon: Users, description: "Connect with experts" },
   { href: "/projects", label: "Projects", icon: Lightbulb, description: "Build proof" },
   { href: "/groups", label: "Study Groups", icon: Users, description: "Community" },
+  { href: "/success-stories", label: "Success Stories", icon: Award, description: "Career journeys" },
   { href: "/resources", label: "Resources", icon: BookOpen, description: "Learning materials" },
-  { href: "/pricing", label: "Upgrade", icon: Crown, description: "Premium features" },
 ];
 
 export default function DashboardLayout({
@@ -129,6 +133,7 @@ export default function DashboardLayout({
 
           {/* Right: User Menu */}
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <NotificationSystem />
             
             <div className="flex items-center gap-3 pl-3 border-l border-slate-200">

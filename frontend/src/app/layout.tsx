@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -41,18 +42,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body className={`${inter.variable} font-sans`}>
-        <Providers>
-          {children}
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              className: "!bg-dark-800 !text-dark-100 !border !border-dark-700",
-              duration: 4000,
-            }}
-          />
-        </Providers>
+        <ThemeProvider>
+          <Providers>
+            {children}
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                className: "!bg-dark-800 !text-dark-100 !border !border-dark-700",
+                duration: 4000,
+              }}
+            />
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

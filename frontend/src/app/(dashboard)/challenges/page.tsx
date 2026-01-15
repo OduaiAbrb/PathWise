@@ -17,7 +17,7 @@ import {
   Award,
   TrendingUp,
   Zap,
-  Fire
+  Flame
 } from "lucide-react";
 import { getApiUrl } from "@/lib/fetch-api";
 
@@ -276,7 +276,7 @@ export default function ChallengesPage() {
 
         <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Fire className="w-5 h-5" />
+            <Flame className="w-5 h-5" />
             <span className="text-sm font-medium opacity-90">Your Streak</span>
           </div>
           <div className="text-2xl font-bold">5</div>

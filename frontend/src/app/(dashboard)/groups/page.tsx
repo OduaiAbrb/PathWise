@@ -56,6 +56,18 @@ export default function GroupsPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const accessToken = (session as { accessToken?: string })?.accessToken;
 
+  // Load joined groups from localStorage
+  const getJoinedGroupIds = (): Set<string> => {
+    if (typeof window === 'undefined') return new Set();
+    const stored = localStorage.getItem('joinedGroups');
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  };
+
+  const saveJoinedGroupIds = (groupIds: Set<string>) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('joinedGroups', JSON.stringify(Array.from(groupIds)));
+  };
+
   useEffect(() => {
     fetchGroups();
   }, [accessToken]);
@@ -74,6 +86,9 @@ export default function GroupsPage() {
         const data = await response.json();
         const allGroups = data.data || [];
         
+        // Get locally stored joined groups
+        const joinedGroupIds = getJoinedGroupIds();
+        
         // Transform backend data to match our interface
         const formattedGroups = allGroups.map((group: any) => ({
           id: group.id,
@@ -84,24 +99,41 @@ export default function GroupsPage() {
           topic: group.topic || "General",
           isPrivate: group.is_private || false,
           nextSession: group.next_session || null,
-          joined: group.is_member || false,
+          joined: group.is_member || joinedGroupIds.has(group.id),
         }));
         
-        // If no groups from backend, show suggested groups
+        // If no groups from backend, show suggested groups with persisted join state
         if (formattedGroups.length === 0) {
-          setGroups(getSuggestedGroups());
+          const suggested = getSuggestedGroups().map(g => ({
+            ...g,
+            joined: joinedGroupIds.has(g.id),
+            members: joinedGroupIds.has(g.id) ? g.members + 1 : g.members,
+          }));
+          setGroups(suggested);
         } else {
           setGroups(formattedGroups);
         }
       } else {
-        // Silently fall back to suggested groups instead of showing error
+        // Silently fall back to suggested groups with persisted join state
         console.error("Failed to fetch groups from backend");
-        setGroups(getSuggestedGroups());
+        const joinedGroupIds = getJoinedGroupIds();
+        const suggested = getSuggestedGroups().map(g => ({
+          ...g,
+          joined: joinedGroupIds.has(g.id),
+          members: joinedGroupIds.has(g.id) ? g.members + 1 : g.members,
+        }));
+        setGroups(suggested);
       }
     } catch (error) {
-      // Silently fall back to suggested groups instead of showing error modal
+      // Silently fall back to suggested groups with persisted join state
       console.error("Error fetching groups:", error);
-      setGroups(getSuggestedGroups());
+      const joinedGroupIds = getJoinedGroupIds();
+      const suggested = getSuggestedGroups().map(g => ({
+        ...g,
+        joined: joinedGroupIds.has(g.id),
+        members: joinedGroupIds.has(g.id) ? g.members + 1 : g.members,
+      }));
+      setGroups(suggested);
     } finally {
       setIsLoading(false);
     }
@@ -172,6 +204,11 @@ export default function GroupsPage() {
     
     setJoiningGroupId(groupId);
     
+    // Update localStorage
+    const joinedGroupIds = getJoinedGroupIds();
+    joinedGroupIds.add(groupId);
+    saveJoinedGroupIds(joinedGroupIds);
+    
     // Optimistic update
     setGroups((prev) =>
       prev.map((g) =>
@@ -189,6 +226,10 @@ export default function GroupsPage() {
 
       if (!response.ok) {
         // Revert on failure
+        const joinedGroupIds = getJoinedGroupIds();
+        joinedGroupIds.delete(groupId);
+        saveJoinedGroupIds(joinedGroupIds);
+        
         setGroups((prev) =>
           prev.map((g) =>
             g.id === groupId ? { ...g, joined: false, members: g.members - 1 } : g
@@ -198,7 +239,7 @@ export default function GroupsPage() {
         showSuccess("Successfully joined the group!");
       }
     } catch (error) {
-      // Keep optimistic update even on error for demo
+      // Keep optimistic update and localStorage for demo
       showSuccess("Joined group (demo mode)");
     } finally {
       setJoiningGroupId(null);
@@ -209,6 +250,11 @@ export default function GroupsPage() {
     if (leavingGroupId) return; // Prevent double-clicks
     
     setLeavingGroupId(groupId);
+    
+    // Update localStorage
+    const joinedGroupIds = getJoinedGroupIds();
+    joinedGroupIds.delete(groupId);
+    saveJoinedGroupIds(joinedGroupIds);
     
     // Optimistic update
     setGroups((prev) =>
@@ -231,6 +277,10 @@ export default function GroupsPage() {
       
       if (!response.ok) {
         // Revert on failure
+        const joinedGroupIds = getJoinedGroupIds();
+        joinedGroupIds.add(groupId);
+        saveJoinedGroupIds(joinedGroupIds);
+        
         setGroups((prev) =>
           prev.map((g) =>
             g.id === groupId ? { ...g, joined: true, members: g.members + 1 } : g
@@ -240,7 +290,7 @@ export default function GroupsPage() {
         showSuccess("Left the group");
       }
     } catch (error) {
-      // Keep optimistic update
+      // Keep optimistic update and localStorage
       showSuccess("Left group (demo mode)");
     } finally {
       setLeavingGroupId(null);

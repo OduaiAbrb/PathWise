@@ -87,38 +87,46 @@ export default function AdvancedSearchSystem() {
   const [popularTags, setPopularTags] = useState<string[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  const { data: session } = useSession();
+  const accessToken = (session as any)?.accessToken;
+
   useEffect(() => {
-    // Initialize with sample data
+    // Initialize with skill-based tags from common roadmap skills
     setPopularTags([
-      "JavaScript", "React", "Node.js", "Python", "Machine Learning",
-      "Web Development", "Data Science", "Mobile Development", "DevOps"
+      "JavaScript", "React", "Node.js", "Python", "SQL",
+      "REST APIs", "Git", "Docker", "System Design", "Data Structures"
     ]);
 
+    // Load search history from localStorage
+    const savedHistory = localStorage.getItem("searchHistory");
+    if (savedHistory) {
+      setSearchHistory(JSON.parse(savedHistory));
+    }
+
+    // Generate AI recommendations based on common learning paths
     setAiRecommendations([
       {
         id: "1",
-        title: "Advanced React Patterns",
-        reason: "Based on your recent React course completion",
-        confidence: 0.92,
+        title: "Backend Development Fundamentals",
+        reason: "Essential skills for backend engineering roles",
+        confidence: 0.95,
         type: "personalized"
       },
       {
         id: "2",
-        title: "Full-Stack JavaScript Bootcamp",
-        reason: "Trending among developers with similar interests",
-        confidence: 0.87,
+        title: "System Design Principles",
+        reason: "Required for senior engineering interviews",
+        confidence: 0.90,
         type: "trending"
       },
       {
         id: "3",
-        title: "API Design Workshop",
-        reason: "Complements your backend development skills",
-        confidence: 0.81,
+        title: "Database Optimization",
+        reason: "Complements your API development skills",
+        confidence: 0.85,
         type: "complementary"
       }
     ]);
-
-    setSearchHistory(["React hooks", "Node.js authentication", "JavaScript async"]);
   }, []);
 
   const performSearch = async () => {
@@ -126,97 +134,65 @@ export default function AdvancedSearchSystem() {
 
     setIsSearching(true);
     
-    // Simulate API search
-    setTimeout(() => {
-      const mockResults: SearchResult[] = [
-        {
-          id: "1",
-          type: "course",
-          title: "Complete React Developer Course 2024",
-          description: "Learn React from scratch with hooks, context, routing, and state management. Build real-world projects and master modern React development.",
-          author: "Sarah Johnson",
-          rating: 4.8,
-          reviews: 2341,
-          duration: "40 hours",
-          difficulty: "intermediate",
-          tags: ["React", "JavaScript", "Web Development", "Frontend"],
-          createdAt: new Date(2024, 0, 15),
-          popularity: 95,
-          relevance: 98
-        },
-        {
-          id: "2",
-          type: "video",
-          title: "React Hooks Explained in 20 Minutes",
-          description: "Quick and comprehensive guide to understanding React hooks with practical examples and best practices.",
-          author: "Tech Academy",
-          rating: 4.6,
-          reviews: 1205,
-          duration: "20 min",
-          difficulty: "beginner",
-          tags: ["React", "Hooks", "Tutorial"],
-          createdAt: new Date(2024, 1, 20),
-          popularity: 88,
-          relevance: 92
-        },
-        {
-          id: "3",
-          type: "project",
-          title: "Build a React E-commerce Site",
-          description: "Step-by-step project to create a fully functional e-commerce website using React, Redux, and Stripe integration.",
-          author: "Code Masters",
-          rating: 4.9,
-          reviews: 856,
-          duration: "8 hours",
-          difficulty: "advanced",
-          tags: ["React", "Redux", "E-commerce", "Project"],
-          createdAt: new Date(2024, 2, 5),
-          popularity: 91,
-          relevance: 89
-        },
-        {
-          id: "4",
-          type: "quiz",
-          title: "React Fundamentals Quiz",
-          description: "Test your React knowledge with 50 carefully crafted questions covering components, props, state, and lifecycle methods.",
-          author: "QuizMaster Pro",
-          rating: 4.4,
-          reviews: 634,
-          duration: "30 min",
-          difficulty: "intermediate",
-          tags: ["React", "Quiz", "Assessment"],
-          createdAt: new Date(2024, 1, 10),
-          popularity: 76,
-          relevance: 85
-        },
-        {
-          id: "5",
-          type: "group",
-          title: "React Developers Study Group",
-          description: "Join 2,500+ React developers sharing knowledge, solving challenges, and building projects together.",
-          author: "React Community",
-          rating: 4.7,
-          reviews: 412,
-          difficulty: "beginner",
-          tags: ["React", "Community", "Study Group", "Networking"],
-          createdAt: new Date(2024, 0, 1),
-          popularity: 94,
-          relevance: 78
-        }
-      ].filter(result => 
-        result.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        result.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        result.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
+    try {
+      // Try to fetch from backend resources API
+      const response = await fetch(getApiUrl(`/api/v1/resources/skill/${encodeURIComponent(searchQuery)}`), {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      });
 
-      setSearchResults(mockResults);
+      if (response.ok) {
+        const data = await response.json();
+        const resources = data.data?.resources || data.resources || [];
+        
+        // Transform backend resources to SearchResult format
+        const results: SearchResult[] = resources.map((r: any, index: number) => ({
+          id: r.id || `resource-${index}`,
+          type: (r.type || "article") as SearchResult["type"],
+          title: r.title || r.name || "Untitled Resource",
+          description: r.description || "No description available",
+          author: r.author || r.provider || "Unknown",
+          rating: r.rating || 4.5,
+          reviews: r.reviews || 0,
+          duration: r.duration || r.estimated_time || "Varies",
+          difficulty: (r.difficulty || "intermediate") as SearchResult["difficulty"],
+          tags: r.tags || [searchQuery],
+          createdAt: r.created_at ? new Date(r.created_at) : new Date(),
+          popularity: r.popularity || 80,
+          relevance: r.relevance || 90
+        }));
+        
+        setSearchResults(results);
+      } else {
+        // Fallback: show skill-based suggestions
+        setSearchResults([{
+          id: "suggestion-1",
+          type: "course" as const,
+          title: `Learn ${searchQuery}`,
+          description: `Explore curated resources for ${searchQuery}. Check the Resources page for more options.`,
+          author: "PathWise",
+          rating: 4.5,
+          reviews: 0,
+          duration: "Self-paced",
+          difficulty: "intermediate" as const,
+          tags: [searchQuery, "Learning"],
+          createdAt: new Date(),
+          popularity: 85,
+          relevance: 95
+        }]);
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+      setSearchResults([]);
+    } finally {
       setIsSearching(false);
       
-      // Add to search history
+      // Add to search history and save to localStorage
       if (!searchHistory.includes(searchQuery)) {
-        setSearchHistory(prev => [searchQuery, ...prev.slice(0, 4)]);
+        const newHistory = [searchQuery, ...searchHistory.slice(0, 4)];
+        setSearchHistory(newHistory);
+        localStorage.setItem("searchHistory", JSON.stringify(newHistory));
       }
-    }, 1200);
+    }
   };
 
   const getTypeIcon = (type: string) => {

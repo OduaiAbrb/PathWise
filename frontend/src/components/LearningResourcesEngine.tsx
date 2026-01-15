@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession } from "next-auth/react";
 import {
   Play,
   Book,
@@ -30,12 +31,13 @@ import {
   Headphones,
   FileCode,
   Image as ImageIcon,
-  Link,
+  Link as LinkIcon,
   Calendar,
   TrendingUp,
   Award
 } from "lucide-react";
 import Link from "next/link";
+import { getApiUrl } from "@/lib/fetch-api";
 
 interface LearningResource {
   id: string;

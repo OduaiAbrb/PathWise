@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getApiUrl } from "@/lib/fetch-api";
 import {
   UserCircle,
   Star,
@@ -30,6 +32,9 @@ interface Mentor {
 }
 
 export default function MentorsPage() {
+  const { data: session } = useSession();
+  const accessToken = (session as { accessToken?: string })?.accessToken;
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedExpertise, setSelectedExpertise] = useState<string | null>(null);
   const [showApplyModal, setShowApplyModal] = useState(false);
@@ -43,27 +48,63 @@ export default function MentorsPage() {
     bio: "",
     linkedin: "",
   });
-  const [mentors] = useState<Mentor[]>([
+  const [mentors, setMentors] = useState<Mentor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch mentors from backend
+  useEffect(() => {
+    const fetchMentors = async () => {
+      if (!accessToken) {
+        setMentors(getSampleMentors());
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${getApiUrl()}/api/v1/mentors`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setMentors(data || getSampleMentors());
+        } else {
+          setMentors(getSampleMentors());
+        }
+      } catch (error) {
+        console.error("Error fetching mentors:", error);
+        setMentors(getSampleMentors());
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMentors();
+  }, [accessToken]);
+
+  const getSampleMentors = (): Mentor[] => [
     {
-      id: "1", 
+      id: "1",
       name: "Sarah Chen",
-      title: "Senior Software Engineer",
+      title: "Senior Full Stack Developer",
       company: "Google",
-      expertise: ["System Design", "Backend", "Python"],
+      expertise: ["React", "Node.js", "System Design"],
       rating: 4.9,
-      reviews: 47,
+      reviews: 150,
       hourlyRate: 120,
       available: true,
-      bio: "10+ years building scalable systems. I help engineers prepare for FAANG interviews.",
+      bio: "10+ years building scalable web applications. Helped 50+ developers land FAANG jobs.",
     },
     {
       id: "2",
       name: "Marcus Johnson",
       title: "Engineering Manager",
-      company: "Stripe",
-      expertise: ["Career Growth", "Leadership", "Backend"],
+      company: "Microsoft",
+      expertise: ["Leadership", "Career Growth", "System Design"],
       rating: 4.8,
-      reviews: 32,
+      reviews: 89,
       hourlyRate: 150,
       available: true,
       bio: "Former IC turned manager. I coach engineers on career transitions and leadership.",
@@ -92,7 +133,7 @@ export default function MentorsPage() {
       available: true,
       bio: "Cloud architecture expert. I help teams design and scale their infrastructure.",
     },
-  ]);
+  ];
 
   const expertiseOptions = ["System Design", "Backend", "Frontend", "DevOps", "Career Growth", "Leadership"];
 

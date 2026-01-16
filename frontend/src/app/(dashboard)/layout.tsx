@@ -58,14 +58,13 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, description: "Roadmap & Stats" },
   { href: "/interview", label: "Interview Prep", icon: MessageSquare, description: "Practice interviews" },
   { href: "/study-buddy", label: "AI Mentor", icon: Brain, description: "Personal guidance" },
-  { href: "/resume-scanner", label: "Resume Tools", icon: FileText, description: "ATS optimization" },
+  { href: "/profile", label: "Profile", icon: Users, description: "Analytics & challenges" },
 ];
 
 // Secondary items (collapsed by default)
 const secondaryItems = [
   { href: "/jobs", label: "Job Board", icon: Briefcase, description: "Find opportunities" },
   { href: "/applications", label: "Applications", icon: ClipboardList, description: "Track applications" },
-  { href: "/challenges", label: "Challenges", icon: Trophy, description: "Weekly coding competitions" },
   { href: "/mentors", label: "Mentors", icon: Users, description: "Connect with experts" },
   { href: "/projects", label: "Projects", icon: Lightbulb, description: "Build proof" },
   { href: "/groups", label: "Study Groups", icon: Users, description: "Community" },

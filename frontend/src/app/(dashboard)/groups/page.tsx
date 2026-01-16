@@ -218,8 +218,8 @@ export default function GroupsPage() {
     saveJoinedGroupIds(joinedGroupIds);
     
     // Optimistic update
-    setGroups((prev) =>
-      prev.map((g) =>
+    setGroups((prev: StudyGroup[]) =>
+      prev.map((g: StudyGroup) =>
         g.id === groupId ? { ...g, joined: true, members: g.members + 1 } : g
       )
     );
@@ -240,8 +240,8 @@ export default function GroupsPage() {
         joinedGroupIds.delete(groupId);
         saveJoinedGroupIds(joinedGroupIds);
         
-        setGroups((prev) =>
-          prev.map((g) =>
+        setGroups((prev: StudyGroup[]) =>
+          prev.map((g: StudyGroup) =>
             g.id === groupId ? { ...g, joined: false, members: g.members - 1 } : g
           )
         );
@@ -267,8 +267,8 @@ export default function GroupsPage() {
     saveJoinedGroupIds(joinedGroupIds);
     
     // Optimistic update
-    setGroups((prev) =>
-      prev.map((g) =>
+    setGroups((prev: StudyGroup[]) =>
+      prev.map((g: StudyGroup) =>
         g.id === groupId ? { ...g, joined: false, members: Math.max(0, g.members - 1) } : g
       )
     );
@@ -293,8 +293,8 @@ export default function GroupsPage() {
         joinedGroupIds.add(groupId);
         saveJoinedGroupIds(joinedGroupIds);
         
-        setGroups((prev) =>
-          prev.map((g) =>
+        setGroups((prev: StudyGroup[]) =>
+          prev.map((g: StudyGroup) =>
             g.id === groupId ? { ...g, joined: true, members: g.members + 1 } : g
           )
         );
@@ -354,11 +354,11 @@ export default function GroupsPage() {
       timestamp: new Date(),
     };
 
-    setChatMessages((prev) => [...prev, message]);
+    setChatMessages((prev: GroupMessage[]) => [...prev, message]);
     setNewMessage("");
 
     try {
-      await fetch(getApiUrl(`/api/v1/social/groups/${selectedGroup.id}/messages`), {
+      const response = await fetch(getApiUrl(`/api/v1/social/groups/${selectedGroup.id}/messages`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -391,7 +391,7 @@ export default function GroupsPage() {
     };
 
     // Optimistic update
-    setGroups((prev) => [newGroup, ...prev]);
+    setGroups((prev: StudyGroup[]) => [newGroup, ...prev]);
     setShowCreateModal(false);
     showSuccess(`Group "${newGroupName}" created successfully!`);
 

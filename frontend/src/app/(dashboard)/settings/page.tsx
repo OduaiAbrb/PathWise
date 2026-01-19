@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
@@ -12,7 +12,12 @@ import {
   Sun,
   Check,
   ChevronRight,
+  Save,
+  AlertTriangle,
 } from "lucide-react";
+import { getApiUrl } from "@/lib/fetch-api";
+import FormField from "@/components/FormField";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -25,10 +30,108 @@ export default function SettingsPage() {
   });
   const [saved, setSaved] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: "",
+    email: "",
+    bio: "",
+    targetRole: "",
+    location: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  const accessToken = (session as { accessToken?: string })?.accessToken;
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  useEffect(() => {
+    if (session?.user) {
+      setProfileData(prev => ({
+        ...prev,
+        name: session.user?.name || "",
+        email: session.user?.email || "",
+      }));
+    }
+    
+    if (accessToken) {
+      fetchProfileData();
+    }
+  }, [session, accessToken]);
+
+  const fetchProfileData = async () => {
+    if (!accessToken) return;
+    
+    try {
+      const response = await fetch(getApiUrl("/api/v1/users/profile"), {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setProfileData(prev => ({
+          ...prev,
+          bio: data.data?.bio || "",
+          targetRole: data.data?.target_role || "",
+          location: data.data?.location || "",
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!accessToken) return;
+    
+    setIsLoading(true);
+    setErrors({});
+    
+    try {
+      const response = await fetch(getApiUrl("/api/v1/users/profile"), {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bio: profileData.bio,
+          target_role: profileData.targetRole,
+          location: profileData.location,
+        }),
+      });
+      
+      if (response.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      } else {
+        const errorData = await response.json();
+        setErrors({ general: errorData.detail || "Failed to save profile" });
+      }
+    } catch (error) {
+      setErrors({ general: "Network error. Please try again." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const saveNotificationSettings = async () => {
+    if (!accessToken) return;
+    
+    try {
+      const response = await fetch(getApiUrl("/api/v1/users/notification-preferences"), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(notifications),
+      });
+      
+      if (response.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      }
+    } catch (error) {
+      console.error("Failed to save notifications:", error);
+    }
   };
 
   const tabs = [

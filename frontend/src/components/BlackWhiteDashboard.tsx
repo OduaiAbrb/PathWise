@@ -281,7 +281,7 @@ export default function BlackWhiteDashboard() {
           <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
-        <div className="max-w-7xl mx-auto flex items-center justify-between relative z-10">
+        <div className="max-w-7xl mx-auto flex items-center justify-between relative z-10 container-padding">
           <div>
             <motion.h1 
               initial={{ opacity: 0, x: -20 }}
@@ -824,7 +824,7 @@ export default function BlackWhiteDashboard() {
           >
             📊 Readiness Breakdown
           </motion.h3>
-          <div className="grid grid-cols-3 gap-6 relative z-10">
+          <div className="grid grid-cols-3 gap-6 relative z-10 stats-grid">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -954,7 +954,7 @@ export default function BlackWhiteDashboard() {
           >
             ⚡ Quick Actions
           </motion.h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10 quick-actions-grid">
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}

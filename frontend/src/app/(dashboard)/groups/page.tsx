@@ -225,13 +225,24 @@ export default function GroupsPage() {
     );
 
     try {
+      // Skip backend call for seeded groups (they don't exist in backend)
+      const group = groups.find(g => g.id === groupId);
+      if (group?.isSeeded) {
+        showSuccess("Successfully joined the group!");
+        setJoiningGroupId(null);
+        return;
+      }
+
       const response = await fetch(getApiUrl(`/api/v1/social/groups/join`), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ group_id: groupId }),
+        body: JSON.stringify({ 
+          group_id: groupId,
+          user_id: session?.user?.id || session?.user?.email 
+        }),
       });
 
       if (!response.ok) {
@@ -278,13 +289,24 @@ export default function GroupsPage() {
     }
 
     try {
+      // Skip backend call for seeded groups (they don't exist in backend)
+      const group = groups.find(g => g.id === groupId);
+      if (group?.isSeeded) {
+        showSuccess("Left the group");
+        setLeavingGroupId(null);
+        return;
+      }
+
       const response = await fetch(getApiUrl(`/api/v1/social/groups/leave`), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ group_id: groupId }),
+        body: JSON.stringify({ 
+          group_id: groupId,
+          user_id: session?.user?.id || session?.user?.email 
+        }),
       });
       
       if (!response.ok) {

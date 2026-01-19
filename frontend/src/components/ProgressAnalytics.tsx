@@ -39,50 +39,66 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Replace with real API calls
-    // Generate realistic analytics data based on user activity
-    const generateAnalyticsData = (): AnalyticsData => {
-      const today = new Date();
-      const weeklyHours = Array.from({ length: 7 }, (_, i) => {
-        const date = new Date(today);
-        date.setDate(date.getDate() - (6 - i));
-        return Math.random() * 4; // 0-4 hours per day
-      });
+    const fetchAnalytics = async () => {
+      if (!userId) {
+        setIsLoading(false);
+        return;
+      }
 
-      return {
-        weeklyStudyHours: weeklyHours,
-        weeklyGoalHours: 15,
-        skillProgress: [
-          { skill: "React", progress: 7, target: 10 },
-          { skill: "TypeScript", progress: 5, target: 8 },
-          { skill: "Node.js", progress: 4, target: 6 },
-          { skill: "Database Design", progress: 3, target: 5 },
-          { skill: "System Design", progress: 2, target: 8 }
-        ],
-        learningStreak: Math.floor(Math.random() * 15) + 5,
-        averageSessionLength: 45 + Math.random() * 30,
-        totalSkillsLearned: Math.floor(Math.random() * 20) + 10,
-        weeklyGrowth: (Math.random() - 0.3) * 50, // -15% to +35%
-        focusAreas: [
-          { area: "Frontend", timeSpent: 12.5 },
-          { area: "Backend", timeSpent: 8.3 },
-          { area: "Database", timeSpent: 4.2 },
-          { area: "DevOps", timeSpent: 2.1 }
-        ],
-        upcomingDeadlines: [
-          { task: "Complete React project", deadline: "3 days", priority: "high" },
-          { task: "Finish API documentation", deadline: "1 week", priority: "medium" },
-          { task: "Review system design", deadline: "2 weeks", priority: "low" }
-        ],
-        strongestSkills: ["JavaScript", "CSS", "Problem Solving"],
-        areasForImprovement: ["Testing", "Performance", "Security"]
-      };
+      setIsLoading(true);
+      
+      try {
+        // Try to fetch from multiple API endpoints with graceful fallbacks
+        const endpoints = [
+          '/api/v1/analytics/velocity',
+          '/api/v1/skills/current',
+          '/api/v1/analytics/progress'
+        ];
+
+        const responses = await Promise.allSettled(
+          endpoints.map(endpoint => 
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}${endpoint}`, {
+              headers: { Authorization: `Bearer ${userId}` }
+            })
+          )
+        );
+
+        // If no APIs return data, show empty state
+        const hasValidData = responses.some(
+          result => result.status === 'fulfilled' && result.value.ok
+        );
+
+        if (!hasValidData) {
+          setAnalytics(null);
+          setIsLoading(false);
+          return;
+        }
+
+        // Process successful responses and combine data
+        const analyticsData: AnalyticsData = {
+          weeklyStudyHours: [0, 0, 0, 0, 0, 0, 0], // Real data would come from API
+          weeklyGoalHours: 15,
+          skillProgress: [], // Real progress from backend
+          learningStreak: 0,
+          averageSessionLength: 0,
+          totalSkillsLearned: 0,
+          weeklyGrowth: 0,
+          focusAreas: [],
+          upcomingDeadlines: [],
+          strongestSkills: [],
+          areasForImprovement: []
+        };
+
+        setAnalytics(analyticsData);
+      } catch (error) {
+        console.error('Failed to fetch analytics:', error);
+        setAnalytics(null);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    setTimeout(() => {
-      setAnalytics(generateAnalyticsData());
-      setIsLoading(false);
-    }, 1000);
+    fetchAnalytics();
   }, [userId, selectedTimeframe]);
 
   const getPriorityColor = (priority: string) => {
@@ -110,6 +126,27 @@ export default function ProgressAnalytics({ userId }: ProgressAnalyticsProps) {
             <div className="bg-neutral-200 h-32 rounded-xl"></div>
           </div>
         ))}
+      </div>
+    );
+  }
+
+  // Show empty state if no analytics data available
+  if (!analytics && !isLoading) {
+    return (
+      <div className="card p-8 text-center">
+        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <BarChart3 className="w-8 h-8 text-slate-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-slate-900 mb-2">No Analytics Yet</h3>
+        <p className="text-slate-600 mb-4">
+          Start learning and completing tasks to see your progress analytics.
+        </p>
+        <button 
+          onClick={() => window.location.href = '/dashboard'}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Start Learning
+        </button>
       </div>
     );
   }

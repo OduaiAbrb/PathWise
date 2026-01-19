@@ -85,65 +85,17 @@ export default function JobsPage() {
         const data = await response.json();
         setJobs(data.data || []);
       } else {
-        setJobs(generateMockJobs());
+        // If API not available, show empty state instead of mock data
+        setJobs([]);
       }
     } catch (error) {
-      setJobs(generateMockJobs());
+      // No fallback to mock data - show empty state
+      setJobs([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const generateMockJobs = (): Job[] => [
-    {
-      id: "1",
-      title: "Senior Frontend Developer",
-      company: "TechCorp",
-      location: "San Francisco, CA",
-      salary: "$120k - $160k",
-      type: "full-time",
-      posted: "2 days ago",
-      description: "Join our team building next-generation web applications...",
-      requirements: ["5+ years React", "TypeScript experience", "Team leadership"],
-      skills: ["React", "TypeScript", "JavaScript", "CSS", "Node.js"],
-      matchScore: 92,
-      url: "https://example.com/job1",
-      isBookmarked: false,
-      applied: false
-    },
-    {
-      id: "2", 
-      title: "Full Stack Engineer",
-      company: "StartupXYZ",
-      location: "Remote",
-      salary: "$90k - $130k",
-      type: "full-time",
-      posted: "1 day ago", 
-      description: "Build scalable web applications from front to back...",
-      requirements: ["React/Node.js", "Database design", "API development"],
-      skills: ["React", "Node.js", "PostgreSQL", "AWS", "Docker"],
-      matchScore: 88,
-      url: "https://example.com/job2",
-      isBookmarked: true,
-      applied: false
-    },
-    {
-      id: "3",
-      title: "Python Backend Developer", 
-      company: "DataFlow Inc",
-      location: "Austin, TX",
-      salary: "$100k - $140k",
-      type: "full-time",
-      posted: "3 days ago",
-      description: "Work on high-performance APIs and data processing...",
-      requirements: ["Python expertise", "FastAPI/Django", "Database optimization"],
-      skills: ["Python", "FastAPI", "PostgreSQL", "Redis", "Docker"],
-      matchScore: 75,
-      url: "https://example.com/job3", 
-      isBookmarked: false,
-      applied: false
-    }
-  ];
 
   const filterJobs = () => {
     let filtered = jobs;

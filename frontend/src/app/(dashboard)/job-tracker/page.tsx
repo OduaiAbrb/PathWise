@@ -109,9 +109,16 @@ export default function JobTrackerPage() {
         const data = await response.json();
         setApplications(data.data.applications || []);
         setStats(data.data.stats || null);
+      } else {
+        // Show empty state when API not available
+        setApplications([]);
+        setStats({ total: 0, saved: 0, applied: 0, interviewing: 0, offers: 0, rejected: 0 });
       }
     } catch (error) {
       console.error("Failed to fetch applications:", error);
+      // Show empty state on error
+      setApplications([]);
+      setStats({ total: 0, saved: 0, applied: 0, interviewing: 0, offers: 0, rejected: 0 });
     } finally {
       setIsLoading(false);
     }

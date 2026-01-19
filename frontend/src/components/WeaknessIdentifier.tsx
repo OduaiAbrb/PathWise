@@ -69,10 +69,12 @@ export function WeaknessIdentifier({ onStartLearning }: WeaknessIdentifierProps)
         const data = await response.json();
         setWeakSkills(processWeaknessData(data.data || []));
       } else {
-        setWeakSkills(generateMockWeaknesses());
+        // Show empty state when API not available
+        setWeakSkills([]);
       }
     } catch (error) {
-      setWeakSkills(generateMockWeaknesses());
+      // Show empty state on error
+      setWeakSkills([]);
     } finally {
       setIsLoading(false);
     }
@@ -169,62 +171,6 @@ export function WeaknessIdentifier({ onStartLearning }: WeaknessIdentifierProps)
     }
   };
 
-  const generateMockWeaknesses = (): WeakSkill[] => [
-    {
-      id: "1",
-      name: "System Design",
-      category: "architecture",
-      currentLevel: 25,
-      targetLevel: 80,
-      expectedLevel: 60,
-      daysOverdue: 12,
-      priority: "critical",
-      impact: "Required for 90% of senior engineer roles",
-      quickActions: [
-        { type: "resource", title: "System Design Primer", estimatedTime: 60, difficulty: "medium" },
-        { type: "practice", title: "Design Twitter", estimatedTime: 90, difficulty: "hard" },
-        { type: "review", title: "Scalability Patterns", estimatedTime: 30, difficulty: "medium" }
-      ],
-      lastStudied: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-      timeToTarget: 25
-    },
-    {
-      id: "2",
-      name: "Algorithm Optimization",
-      category: "programming",
-      currentLevel: 40,
-      targetLevel: 85,
-      expectedLevel: 65,
-      daysOverdue: 8,
-      priority: "high",
-      impact: "Essential for technical interviews",
-      quickActions: [
-        { type: "practice", title: "LeetCode Problems", estimatedTime: 45, difficulty: "hard" },
-        { type: "review", title: "Big O Notation", estimatedTime: 25, difficulty: "easy" },
-        { type: "resource", title: "Algorithm Patterns", estimatedTime: 40, difficulty: "medium" }
-      ],
-      lastStudied: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-      timeToTarget: 15
-    },
-    {
-      id: "3",
-      name: "Database Design",
-      category: "backend",
-      currentLevel: 55,
-      targetLevel: 80,
-      expectedLevel: 70,
-      daysOverdue: 5,
-      priority: "medium",
-      impact: "Critical for backend and full-stack roles",
-      quickActions: [
-        { type: "project", title: "Design Database Schema", estimatedTime: 120, difficulty: "medium" },
-        { type: "resource", title: "SQL Optimization", estimatedTime: 50, difficulty: "medium" },
-        { type: "practice", title: "Query Practice", estimatedTime: 35, difficulty: "easy" }
-      ],
-      lastStudied: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      timeToTarget: 8
-    }
-  ];
 
   const getPriorityColor = (priority: WeakSkill['priority']) => {
     const colors = {

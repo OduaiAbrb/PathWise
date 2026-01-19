@@ -50,60 +50,18 @@ export function LearningVelocityGraph({ timeframe = "12weeks" }: LearningVelocit
         setVelocityData(data.data?.velocity || []);
         setMilestones(data.data?.milestones || []);
       } else {
-        setVelocityData(generateMockVelocityData());
-        setMilestones(generateMockMilestones());
+        // Show empty state when API not available
+        setVelocityData([]);
+        setMilestones([]);
       }
     } catch (error) {
-      setVelocityData(generateMockVelocityData());
-      setMilestones(generateMockMilestones());
+      // Show empty state on error
+      setVelocityData([]);
+      setMilestones([]);
     } finally {
       setIsLoading(false);
     }
   };
-
-  const generateMockVelocityData = (): VelocityData[] => {
-    const weeks = parseInt(timeframe.replace(/\D/g, '')) || 12;
-    const data: VelocityData[] = [];
-    
-    for (let i = weeks; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - (i * 7));
-      
-      data.push({
-        week: date.toISOString().split('T')[0],
-        skillsLearned: Math.floor(Math.random() * 4) + 1,
-        hoursStudied: Math.floor(Math.random() * 20) + 5,
-        tasksCompleted: Math.floor(Math.random() * 15) + 3,
-        xpGained: Math.floor(Math.random() * 500) + 200,
-        streak: Math.min(i === 0 ? 7 : Math.floor(Math.random() * 7), 7)
-      });
-    }
-    
-    return data;
-  };
-
-  const generateMockMilestones = (): Milestone[] => [
-    {
-      week: "2024-01-08",
-      achievement: "Completed React Fundamentals",
-      type: "skill"
-    },
-    {
-      week: "2024-01-01",
-      achievement: "7-day learning streak",
-      type: "streak"
-    },
-    {
-      week: "2023-12-25",
-      achievement: "Built first portfolio project",
-      type: "project"
-    },
-    {
-      week: "2023-12-18",
-      achievement: "JavaScript certification earned",
-      type: "certificate"
-    }
-  ];
 
   const getMetricData = () => {
     switch (selectedMetric) {

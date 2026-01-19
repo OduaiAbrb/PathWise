@@ -240,8 +240,7 @@ export default function GroupsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ 
-          group_id: groupId,
-          user_id: session?.user?.id || session?.user?.email 
+          group_id: groupId
         }),
       });
 
@@ -304,8 +303,7 @@ export default function GroupsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ 
-          group_id: groupId,
-          user_id: session?.user?.id || session?.user?.email 
+          group_id: groupId
         }),
       });
       

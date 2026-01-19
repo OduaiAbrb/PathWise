@@ -19,6 +19,7 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
+import { CardLoadingSkeleton } from "@/components/LoadingSpinner";
 
 interface RoadmapListItem {
   id: string;
@@ -109,10 +110,19 @@ export default function RoadmapListPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-600">Loading your roadmaps...</p>
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="mb-8">
+          <div className="h-8 bg-gray-200 rounded w-64 mb-2 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-96 animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <CardLoadingSkeleton />
+          <CardLoadingSkeleton />
+          <CardLoadingSkeleton />
+        </div>
+        <div className="space-y-4">
+          <CardLoadingSkeleton />
+          <CardLoadingSkeleton />
         </div>
       </div>
     );

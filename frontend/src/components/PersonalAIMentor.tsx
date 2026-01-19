@@ -201,7 +201,7 @@ export default function PersonalAIMentor() {
         systemContext += `\n\nINTERVIEW PRESSURE MODE ACTIVE:\n- Be a strict, senior interviewer\n- Ask follow-up questions\n- Give honest, harsh feedback\n- Score responses 1-10\n- Point out weaknesses directly\n- Simulate rejection if answer is poor`;
       }
 
-      const response = await fetch(getApiUrl("/api/v1/study-buddy/chat"), {
+      const response = await fetch(getApiUrl("/api/v1/chat/message"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -215,6 +215,7 @@ export default function PersonalAIMentor() {
           })),
           context: systemContext,
           mode: isInterviewMode ? "interview" : "mentor",
+          user_context: userContext,
         }),
       });
 

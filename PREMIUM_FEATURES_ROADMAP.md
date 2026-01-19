@@ -8,7 +8,7 @@
 - Clear "Start Now" CTA
 - Why it matters explanation
 - Progress tracking
-- Streak counter
+- Streak counter 
 
 ### 2. 🎙️ REAL INTERVIEW SIMULATION
 **Status:** Implementing Now

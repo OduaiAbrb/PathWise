@@ -23,11 +23,6 @@ import {
   BookOpen,
 } from "lucide-react";
 import RoadmapFlowchart from "./RoadmapFlowchart";
-import { SkillDecaySystem } from "./SkillDecaySystem";
-import { LearningVelocityGraph } from "./LearningVelocityGraph";
-import { WeaknessIdentifier } from "./WeaknessIdentifier";
-import { StreakNotifications } from "./StreakNotifications";
-import { ExportStats } from "./ExportStats";
 import { Confetti, useCelebration } from "./Confetti";
 
 interface RoadmapData {
@@ -115,6 +110,31 @@ export default function BlackWhiteDashboard() {
       fetchDashboard();
     }
   }, [accessToken, status]);
+
+  const markSkillAsStarted = async (skillId: string, phaseId: string) => {
+    if (!accessToken) return;
+
+    try {
+      const response = await fetch(getApiUrl(`/api/v1/skills/${skillId}/start`), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phase_id: phaseId,
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh dashboard to show updated progress
+        fetchDashboard();
+        celebrate(); // Trigger confetti
+      }
+    } catch (error) {
+      console.error("Failed to start skill:", error);
+    }
+  };
 
   const fetchDashboard = async () => {
     if (!accessToken) return;
@@ -908,8 +928,12 @@ export default function BlackWhiteDashboard() {
           <RoadmapFlowchart
             roadmap={roadmap}
             onSkillClick={(skill, phaseId) => {
-              // Navigate to skill detail or start learning
-              console.log("Skill clicked:", skill.name);
+              // Start skill learning session
+              if (skill.status === "not_started") {
+                markSkillAsStarted(skill.id, phaseId);
+              } else if (skill.status === "in_progress") {
+                router.push(`/learn/${skill.id}`);
+              }
             }}
           />
         </motion.div>

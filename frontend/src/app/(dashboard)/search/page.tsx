@@ -3,5 +3,5 @@
 import AdvancedSearchSystem from "@/components/AdvancedSearchSystem";
 
 export default function SearchPage() {
-  return <AdvancedSearchSystem />;
+  return <AdvancedSearchSystem/>;
 }

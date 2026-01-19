@@ -562,7 +562,7 @@ def get_resources_for_skill(
         # Try partial matching
         normalized = skill_name.lower().strip()
         for key, cat in SKILL_CATEGORY_MAP.items():
-            if key in normalized or normalized in key:
+            if key in normalized or normalized in key: d
                 category = cat
                 break
     

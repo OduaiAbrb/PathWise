@@ -90,10 +90,49 @@ export default function ProjectsPage() {
     }
   };
 
+  const generateProjectFromSkills = async () => {
+    if (!accessToken) return;
+    
+    setIsGenerating(true);
+    try {
+      const prompt = customPrompt.trim() || "Generate a project based on my current roadmap skills";
+      
+      const response = await fetch(getApiUrl("/api/v1/projects/generate"), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt,
+          difficulty: "intermediate",
+          include_resume_bullets: true,
+          include_interview_prep: true,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const newProject = data.data || data;
+        setProjects(prev => [newProject, ...prev]);
+        setCustomPrompt("");
+        setShowPromptInput(false);
+      } else {
+        // Fallback to sample projects only if API fails
+        setProjects(getSampleProjects());
+      }
+    } catch (error) {
+      console.error("Failed to generate project:", error);
+      setProjects(getSampleProjects());
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const getSampleProjects = (): Project[] => {
     return [
       {
-        id: "1",
+        id: "sample-1",
         title: "RESTful Task Management API",
         description: "Build a complete REST API for managing tasks with authentication, CRUD operations, and proper error handling.",
         problemStatement: "Create a backend API that allows users to manage their tasks. Include user authentication, task categories, due dates, and priority levels. Implement proper validation and error responses.",

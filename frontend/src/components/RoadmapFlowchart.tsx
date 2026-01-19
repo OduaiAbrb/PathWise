@@ -164,7 +164,15 @@ export default function RoadmapFlowchart({ roadmap, onSkillClick }: RoadmapFlowc
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: phaseIndex * 0.1 + skillIndex * 0.05 }}
                             whileHover={{ scale: 1.02, x: 5 }}
-                            onClick={() => onSkillClick && onSkillClick(skill, phase.id)}
+                            onClick={() => {
+                              if (skill.status !== "locked" && onSkillClick) {
+                                onSkillClick(skill, phase.id);
+                              } else if (skill.status !== "locked") {
+                                // Navigate to skill learning page or mark as started
+                                console.log("Starting skill:", skill.name);
+                                // TODO: Add skill start functionality
+                              }
+                            }}
                             disabled={skill.status === "locked"}
                             className={`w-full flex items-center gap-3 p-4 border-3 transition-all rounded-xl shadow-md hover:shadow-lg ${
                               skill.status === "completed"

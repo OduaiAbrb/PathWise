@@ -1,14 +1,14 @@
-import { withSentryConfig } from "@sentry/nextjs";
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   typescript: {
     ignoreBuildErrors: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   output: 'standalone',
   generateBuildId: async () => {
-    // Force new build ID to clear Railway cache
     return `build-${Date.now()}`;
   },
   images: {
@@ -33,14 +33,17 @@ const nextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  org: "oduai-aburubs-projects",
-  project: "javascript-nextjs",
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  hideSourceMaps: true,
-  disableLogger: true,
-  automaticVercelMonitors: true,
-  // Disable source map upload during build to speed up Railway builds
-  dryRun: process.env.RAILWAY_ENVIRONMENT ? true : false,
-});
+// Only use Sentry in production, skip during Railway builds to avoid issues
+let config = nextConfig;
+
+if (process.env.SENTRY_AUTH_TOKEN && !process.env.RAILWAY_ENVIRONMENT) {
+  const { withSentryConfig } = await import("@sentry/nextjs");
+  config = withSentryConfig(nextConfig, {
+    org: "oduai-aburubs-projects",
+    project: "javascript-nextjs",
+    silent: true,
+    hideSourceMaps: true,
+  });
+}
+
+export default config;

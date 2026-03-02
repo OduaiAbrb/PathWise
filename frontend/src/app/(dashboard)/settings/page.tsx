@@ -30,6 +30,7 @@ export default function SettingsPage() {
   });
   const [saved, setSaved] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     name: "",
@@ -38,7 +39,14 @@ export default function SettingsPage() {
     targetRole: "",
     location: "",
   });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
   
   const accessToken = (session as { accessToken?: string })?.accessToken;
 
@@ -167,8 +175,8 @@ export default function SettingsPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
                   activeTab === tab.id
-                    ? "bg-neutral-900 text-white"
-                    : "text-neutral-600 hover:bg-neutral-100"
+                    ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                    : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
                 }`}
               >
                 <tab.icon className="w-5 h-5" />
@@ -189,7 +197,7 @@ export default function SettingsPage() {
             {/* Profile Tab */}
             {activeTab === "profile" && (
               <div className="space-y-6">
-                <h2 className="text-lg font-semibold text-neutral-900">Profile Information</h2>
+                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Profile Information</h2>
                 
                 <div className="flex items-center gap-4">
                   {session?.user?.image ? (
@@ -298,7 +306,7 @@ export default function SettingsPage() {
             {/* Notifications Tab */}
             {activeTab === "notifications" && (
               <div className="space-y-6">
-                <h2 className="text-lg font-semibold text-neutral-900">Notification Preferences</h2>
+                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Notification Preferences</h2>
 
                 <div className="space-y-4">
                   {[
@@ -307,10 +315,10 @@ export default function SettingsPage() {
                     { key: "weekly", label: "Weekly Progress Report", description: "Summary of your learning progress" },
                     { key: "marketing", label: "Marketing Emails", description: "Tips, features, and promotions" },
                   ].map((item) => (
-                    <div key={item.key} className="flex items-center justify-between p-4 bg-neutral-50 rounded-xl">
+                    <div key={item.key} className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800 rounded-xl">
                       <div>
-                        <p className="font-medium text-neutral-900">{item.label}</p>
-                        <p className="text-sm text-neutral-500">{item.description}</p>
+                        <p className="font-medium text-neutral-900 dark:text-white">{item.label}</p>
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400">{item.description}</p>
                       </div>
                       <button
                         onClick={() => setNotifications(prev => ({
@@ -319,12 +327,12 @@ export default function SettingsPage() {
                         }))}
                         className={`w-12 h-7 rounded-full transition-colors ${
                           notifications[item.key as keyof typeof notifications]
-                            ? "bg-neutral-900"
-                            : "bg-neutral-300"
+                            ? "bg-neutral-900 dark:bg-white"
+                            : "bg-neutral-300 dark:bg-neutral-600"
                         }`}
                       >
                         <div
-                          className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                          className={`w-5 h-5 bg-white dark:bg-neutral-900 rounded-full transition-transform ${
                             notifications[item.key as keyof typeof notifications]
                               ? "translate-x-6"
                               : "translate-x-1"
@@ -357,44 +365,47 @@ export default function SettingsPage() {
             {/* Security Tab */}
             {activeTab === "security" && (
               <div className="space-y-6">
-                <h2 className="text-lg font-semibold text-neutral-900">Security Settings</h2>
+                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Security Settings</h2>
 
                 <div className="space-y-4">
-                  <div className="p-4 bg-neutral-50 rounded-xl">
+                  <button 
+                    onClick={() => setShowPasswordModal(true)}
+                    className="w-full p-4 bg-neutral-50 dark:bg-neutral-800 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors text-left"
+                  >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-neutral-900">Change Password</p>
-                        <p className="text-sm text-neutral-500">Update your password regularly</p>
+                        <p className="font-medium text-neutral-900 dark:text-white">Change Password</p>
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400">Update your password regularly</p>
                       </div>
                       <ChevronRight className="w-5 h-5 text-neutral-400" />
                     </div>
-                  </div>
+                  </button>
 
-                  <div className="p-4 bg-neutral-50 rounded-xl">
+                  <div className="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-xl">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-neutral-900">Two-Factor Authentication</p>
-                        <p className="text-sm text-neutral-500">Add an extra layer of security</p>
+                        <p className="font-medium text-neutral-900 dark:text-white">Two-Factor Authentication</p>
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400">Add an extra layer of security</p>
                       </div>
-                      <span className="text-sm text-neutral-500">Not enabled</span>
+                      <span className="text-xs px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full font-medium">Coming Soon</span>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-neutral-50 rounded-xl">
+                  <div className="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-xl">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-neutral-900">Active Sessions</p>
-                        <p className="text-sm text-neutral-500">Manage your logged-in devices</p>
+                        <p className="font-medium text-neutral-900 dark:text-white">Active Sessions</p>
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400">You are currently logged in on this device</p>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-neutral-400" />
+                      <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full font-medium">1 Active</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-neutral-200">
+                <div className="pt-6 border-t border-neutral-200 dark:border-neutral-700">
                   <button 
                     onClick={() => setShowDeleteModal(true)}
-                    className="text-red-600 hover:text-red-700 font-medium"
+                    className="text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 font-medium"
                   >
                     Delete Account
                   </button>
@@ -405,15 +416,15 @@ export default function SettingsPage() {
             {/* Billing Tab */}
             {activeTab === "billing" && (
               <div className="space-y-6">
-                <h2 className="text-lg font-semibold text-neutral-900">Billing & Subscription</h2>
+                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Billing & Subscription</h2>
 
-                <div className="p-6 bg-neutral-900 text-white rounded-xl">
+                <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-800 dark:from-neutral-800 dark:to-neutral-900 text-white rounded-xl border border-neutral-700">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <p className="text-sm text-neutral-400">Current Plan</p>
                       <p className="text-2xl font-bold">Free</p>
                     </div>
-                    <button className="btn bg-white text-neutral-900 hover:bg-neutral-100">
+                    <button className="btn bg-white text-neutral-900 hover:bg-neutral-100 text-sm px-4 py-2">
                       Upgrade to Pro
                     </button>
                   </div>
@@ -422,22 +433,33 @@ export default function SettingsPage() {
                   </p>
                 </div>
 
+                {/* Pro Plan Features */}
+                <div className="p-4 border-2 border-dashed border-neutral-200 dark:border-neutral-700 rounded-xl">
+                  <h3 className="font-medium text-neutral-900 dark:text-white mb-3">Pro Plan Includes:</h3>
+                  <ul className="space-y-2 text-sm text-neutral-600 dark:text-neutral-400">
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Unlimited roadmaps</li>
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Advanced AI mentor with interview prep</li>
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Priority support</li>
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-500" /> Resume optimization tools</li>
+                  </ul>
+                </div>
+
                 <div className="space-y-4">
-                  <h3 className="font-medium text-neutral-900">Payment Method</h3>
-                  <div className="p-4 bg-neutral-50 rounded-xl flex items-center justify-between">
+                  <h3 className="font-medium text-neutral-900 dark:text-white">Payment Method</h3>
+                  <div className="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-xl flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <CreditCard className="w-5 h-5 text-neutral-500" />
-                      <span className="text-neutral-600">No payment method added</span>
+                      <CreditCard className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />
+                      <span className="text-neutral-600 dark:text-neutral-400">No payment method added</span>
                     </div>
-                    <button className="text-sm font-medium text-neutral-900 hover:underline">
+                    <button className="text-sm font-medium text-neutral-900 dark:text-white hover:underline">
                       Add
                     </button>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="font-medium text-neutral-900">Billing History</h3>
-                  <p className="text-sm text-neutral-500">No billing history available</p>
+                  <h3 className="font-medium text-neutral-900 dark:text-white">Billing History</h3>
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400">No billing history available</p>
                 </div>
               </div>
             )}
@@ -451,28 +473,161 @@ export default function SettingsPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl p-6 w-full max-w-md"
+            className="bg-white dark:bg-neutral-900 rounded-2xl p-6 w-full max-w-md border border-neutral-200 dark:border-neutral-700"
           >
-            <h2 className="text-xl font-semibold text-neutral-900 mb-4">Delete Account</h2>
-            <p className="text-neutral-600 mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+              </div>
+              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">Delete Account</h2>
+            </div>
+            <p className="text-neutral-600 dark:text-neutral-400 mb-6">
               Are you sure you want to delete your account? This action cannot be undone. All your data, including roadmaps, progress, and settings will be permanently deleted.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 px-4 py-2 border-2 border-neutral-200 rounded-lg font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+                className="flex-1 px-4 py-2 border-2 border-neutral-200 dark:border-neutral-700 rounded-lg font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={async () => {
-                  // TODO: Implement actual account deletion API call
-                  alert("Account deletion functionality will be implemented with backend integration");
+                  if (!accessToken) return;
+                  try {
+                    const response = await fetch(getApiUrl("/api/v1/users/account"), {
+                      method: "DELETE",
+                      headers: { Authorization: `Bearer ${accessToken}` },
+                    });
+                    if (response.ok) {
+                      window.location.href = "/";
+                    } else {
+                      alert("Failed to delete account. Please try again.");
+                    }
+                  } catch (error) {
+                    alert("Network error. Please try again.");
+                  }
                   setShowDeleteModal(false);
                 }}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
               >
                 Delete Account
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Change Password Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-neutral-900 rounded-2xl p-6 w-full max-w-md border border-neutral-200 dark:border-neutral-700"
+          >
+            <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-4">Change Password</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="label">Current Password</label>
+                <input
+                  type="password"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                  className="input"
+                  placeholder="Enter current password"
+                />
+              </div>
+              <div>
+                <label className="label">New Password</label>
+                <input
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                  className="input"
+                  placeholder="Enter new password"
+                />
+              </div>
+              <div>
+                <label className="label">Confirm New Password</label>
+                <input
+                  type="password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  className="input"
+                  placeholder="Confirm new password"
+                />
+              </div>
+
+              {passwordError && (
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
+                  {passwordError}
+                </div>
+              )}
+
+              {passwordSuccess && (
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-600 dark:text-green-400 text-sm">
+                  Password changed successfully!
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                  setPasswordError("");
+                  setPasswordSuccess(false);
+                }}
+                className="flex-1 px-4 py-2 border-2 border-neutral-200 dark:border-neutral-700 rounded-lg font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setPasswordError("");
+                  setPasswordSuccess(false);
+                  
+                  if (passwordData.newPassword !== passwordData.confirmPassword) {
+                    setPasswordError("Passwords do not match");
+                    return;
+                  }
+                  if (passwordData.newPassword.length < 8) {
+                    setPasswordError("Password must be at least 8 characters");
+                    return;
+                  }
+                  
+                  if (!accessToken) return;
+                  try {
+                    const response = await fetch(getApiUrl("/api/v1/users/change-password"), {
+                      method: "POST",
+                      headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        current_password: passwordData.currentPassword,
+                        new_password: passwordData.newPassword,
+                      }),
+                    });
+                    
+                    if (response.ok) {
+                      setPasswordSuccess(true);
+                      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                      setTimeout(() => setShowPasswordModal(false), 2000);
+                    } else {
+                      const data = await response.json();
+                      setPasswordError(data.detail || "Failed to change password");
+                    }
+                  } catch (error) {
+                    setPasswordError("Network error. Please try again.");
+                  }
+                }}
+                className="flex-1 px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg font-medium hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-colors"
+              >
+                Change Password
               </button>
             </div>
           </motion.div>

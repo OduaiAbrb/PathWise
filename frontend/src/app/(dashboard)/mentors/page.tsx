@@ -61,7 +61,7 @@ export default function MentorsPage() {
       }
 
       try {
-        const response = await fetch(`${getApiUrl()}/api/v1/mentors`, {
+        const response = await fetch(getApiUrl("/api/v1/mentors"), {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -180,8 +180,8 @@ export default function MentorsPage() {
             onClick={() => setSelectedExpertise(null)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               !selectedExpertise
-                ? "bg-neutral-900 text-white"
-                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
             }`}
           >
             All
@@ -192,8 +192,8 @@ export default function MentorsPage() {
               onClick={() => setSelectedExpertise(exp)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedExpertise === exp
-                  ? "bg-neutral-900 text-white"
-                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                  ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
               }`}
             >
               {exp}
@@ -219,14 +219,14 @@ export default function MentorsPage() {
               <div className="flex-1">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="font-semibold text-neutral-900">{mentor.name}</h3>
-                    <p className="text-sm text-neutral-600">{mentor.title}</p>
-                    <p className="text-sm text-neutral-500">{mentor.company}</p>
+                    <h3 className="font-semibold text-neutral-900 dark:text-white">{mentor.name}</h3>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400">{mentor.title}</p>
+                    <p className="text-sm text-neutral-500 dark:text-neutral-500">{mentor.company}</p>
                   </div>
                   <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                     mentor.available
-                      ? "bg-green-100 text-green-700"
-                      : "bg-neutral-100 text-neutral-500"
+                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                      : "bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400"
                   }`}>
                     {mentor.available ? "Available" : "Busy"}
                   </div>
@@ -234,7 +234,7 @@ export default function MentorsPage() {
               </div>
             </div>
 
-            <p className="text-sm text-neutral-600 mb-4">{mentor.bio}</p>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">{mentor.bio}</p>
 
             <div className="flex flex-wrap gap-2 mb-4">
               {mentor.expertise.map((exp) => (
@@ -244,7 +244,7 @@ export default function MentorsPage() {
               ))}
             </div>
 
-            <div className="flex items-center gap-4 text-sm text-neutral-500 mb-4">
+            <div className="flex items-center gap-4 text-sm text-neutral-500 dark:text-neutral-400 mb-4">
               <span className="flex items-center gap-1">
                 <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
                 {mentor.rating} ({mentor.reviews})
@@ -255,7 +255,7 @@ export default function MentorsPage() {
               </span>
             </div>
 
-            <div className="flex gap-2 pt-4 border-t border-neutral-200">
+            <div className="flex gap-2 pt-4 border-t border-neutral-200 dark:border-neutral-700">
               <button
                 onClick={() => {
                   setSelectedMentor(mentor);
@@ -269,7 +269,7 @@ export default function MentorsPage() {
               </button>
               <button 
                 onClick={() => alert("Chat feature coming soon!")}
-                className="inline-flex items-center justify-center p-2 border border-neutral-300 hover:bg-neutral-50 text-neutral-600 rounded-lg transition-colors"
+                className="inline-flex items-center justify-center p-2 border border-neutral-300 hover:bg-neutral-50 text-neutral-600 rounded-lg transition-colors dark:border-neutral-600 dark:hover:bg-neutral-800 dark:text-neutral-400"
               >
                 <MessageSquare className="w-4 h-4" />
               </button>
@@ -287,8 +287,8 @@ export default function MentorsPage() {
           <div className="w-16 h-16 bg-neutral-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <UserCircle className="w-8 h-8 text-neutral-400" />
           </div>
-          <h3 className="font-semibold text-neutral-900 mb-2">No mentors found</h3>
-          <p className="text-neutral-500">Try adjusting your search or filters</p>
+          <h3 className="font-semibold text-neutral-900 dark:text-white mb-2">No mentors found</h3>
+          <p className="text-neutral-500 dark:text-neutral-400">Try adjusting your search or filters</p>
         </motion.div>
       )}
 
@@ -326,16 +326,16 @@ export default function MentorsPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              className="bg-white dark:bg-neutral-900 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto border border-neutral-200 dark:border-neutral-700"
             >
               {applicationSubmitted ? (
                 <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle2 className="w-8 h-8 text-green-600" />
+                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
                   </div>
-                  <h2 className="text-xl font-semibold text-neutral-900 mb-2">Application Submitted!</h2>
-                  <p className="text-neutral-600 mb-6">
+                  <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">Application Submitted!</h2>
+                  <p className="text-neutral-600 dark:text-neutral-400 mb-6">
                     We'll review your application and get back to you within 3-5 business days.
                   </p>
                   <button
@@ -351,10 +351,10 @@ export default function MentorsPage() {
               ) : (
                 <>
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-neutral-900">Apply to Become a Mentor</h2>
+                    <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">Apply to Become a Mentor</h2>
                     <button
                       onClick={() => setShowApplyModal(false)}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100"
+                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 dark:text-neutral-400"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -362,13 +362,13 @@ export default function MentorsPage() {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                      <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                         Area of Expertise
                       </label>
                       <select
                         value={applicationData.expertise}
                         onChange={(e) => setApplicationData({ ...applicationData, expertise: e.target.value })}
-                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white focus:border-transparent bg-white dark:bg-neutral-800 dark:text-white"
                       >
                         <option value="">Select your expertise</option>
                         <option value="System Design">System Design</option>
@@ -382,13 +382,13 @@ export default function MentorsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                      <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                         Years of Experience
                       </label>
                       <select
                         value={applicationData.experience}
                         onChange={(e) => setApplicationData({ ...applicationData, experience: e.target.value })}
-                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white focus:border-transparent bg-white dark:bg-neutral-800 dark:text-white"
                       >
                         <option value="">Select experience</option>
                         <option value="3-5">3-5 years</option>
@@ -399,7 +399,7 @@ export default function MentorsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                      <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                         Short Bio
                       </label>
                       <textarea
@@ -407,12 +407,12 @@ export default function MentorsPage() {
                         onChange={(e) => setApplicationData({ ...applicationData, bio: e.target.value })}
                         placeholder="Tell us about your experience and why you want to mentor..."
                         rows={4}
-                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent resize-none"
+                        className="w-full px-4 py-3 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white focus:border-transparent resize-none bg-white dark:bg-neutral-800 dark:text-white dark:placeholder-neutral-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                      <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                         LinkedIn Profile (optional)
                       </label>
                       <input
@@ -420,7 +420,7 @@ export default function MentorsPage() {
                         value={applicationData.linkedin}
                         onChange={(e) => setApplicationData({ ...applicationData, linkedin: e.target.value })}
                         placeholder="https://linkedin.com/in/yourprofile"
-                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white focus:border-transparent bg-white dark:bg-neutral-800 dark:text-white dark:placeholder-neutral-500"
                       />
                     </div>
                   </div>
@@ -428,7 +428,7 @@ export default function MentorsPage() {
                   <div className="flex gap-3 mt-6">
                     <button
                       onClick={() => setShowApplyModal(false)}
-                      className="flex-1 px-4 py-3 border border-neutral-200 rounded-xl font-medium text-neutral-700 hover:bg-neutral-50"
+                      className="flex-1 px-4 py-3 border border-neutral-200 dark:border-neutral-700 rounded-xl font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800"
                     >
                       Cancel
                     </button>
@@ -461,16 +461,16 @@ export default function MentorsPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl p-6 max-w-md w-full"
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+              className="bg-white dark:bg-neutral-900 rounded-2xl p-6 max-w-md w-full border border-neutral-200 dark:border-neutral-700"
             >
               {bookingConfirmed ? (
                 <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle2 className="w-8 h-8 text-green-600" />
+                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
                   </div>
-                  <h2 className="text-xl font-semibold text-neutral-900 mb-2">Session Booked!</h2>
-                  <p className="text-neutral-600 mb-6">
+                  <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">Session Booked!</h2>
+                  <p className="text-neutral-600 dark:text-neutral-400 mb-6">
                     Your session with {selectedMentor.name} has been confirmed. You'll receive a calendar invite shortly.
                   </p>
                   <button
@@ -487,43 +487,43 @@ export default function MentorsPage() {
               ) : (
                 <>
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-neutral-900">Book a Session</h2>
+                    <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">Book a Session</h2>
                     <button
                       onClick={() => setShowBookingModal(false)}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100"
+                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 dark:text-neutral-400"
                     >
                       <X className="w-5 h-5" />
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-4 p-4 bg-neutral-50 rounded-xl mb-6">
-                    <div className="w-12 h-12 bg-neutral-200 rounded-full flex items-center justify-center">
-                      <UserCircle className="w-8 h-8 text-neutral-500" />
+                  <div className="flex items-center gap-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-xl mb-6">
+                    <div className="w-12 h-12 bg-neutral-200 dark:bg-neutral-700 rounded-full flex items-center justify-center">
+                      <UserCircle className="w-8 h-8 text-neutral-500 dark:text-neutral-400" />
                     </div>
                     <div>
-                      <p className="font-semibold text-neutral-900">{selectedMentor.name}</p>
-                      <p className="text-sm text-neutral-600">{selectedMentor.title}</p>
-                      <p className="text-sm text-neutral-500">${selectedMentor.hourlyRate}/hour</p>
+                      <p className="font-semibold text-neutral-900 dark:text-white">{selectedMentor.name}</p>
+                      <p className="text-sm text-neutral-600 dark:text-neutral-400">{selectedMentor.title}</p>
+                      <p className="text-sm text-neutral-500 dark:text-neutral-500">${selectedMentor.hourlyRate}/hour</p>
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                      <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                         Select Date
                       </label>
                       <input
                         type="date"
                         min={new Date().toISOString().split('T')[0]}
-                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
+                        className="w-full px-4 py-3 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white focus:border-transparent bg-white dark:bg-neutral-800 dark:text-white"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                      <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                         Select Time
                       </label>
-                      <select className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent">
+                      <select className="w-full px-4 py-3 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white focus:border-transparent bg-white dark:bg-neutral-800 dark:text-white">
                         <option value="">Choose a time slot</option>
                         <option value="09:00">9:00 AM</option>
                         <option value="10:00">10:00 AM</option>
@@ -535,13 +535,13 @@ export default function MentorsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                      <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                         What would you like to discuss?
                       </label>
                       <textarea
                         placeholder="Brief description of topics you'd like to cover..."
                         rows={3}
-                        className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-neutral-900 focus:border-transparent resize-none"
+                        className="w-full px-4 py-3 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white focus:border-transparent resize-none bg-white dark:bg-neutral-800 dark:text-white dark:placeholder-neutral-500"
                       />
                     </div>
                   </div>
@@ -549,7 +549,7 @@ export default function MentorsPage() {
                   <div className="flex gap-3 mt-6">
                     <button
                       onClick={() => setShowBookingModal(false)}
-                      className="flex-1 px-4 py-3 border border-neutral-200 rounded-xl font-medium text-neutral-700 hover:bg-neutral-50"
+                      className="flex-1 px-4 py-3 border border-neutral-200 dark:border-neutral-700 rounded-xl font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800"
                     >
                       Cancel
                     </button>

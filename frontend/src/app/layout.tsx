@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "../styles/responsive.css";
+import "../styles/rtl.css";
 import { Providers } from "@/components/providers";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { I18nProvider } from "@/i18n";
 import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -52,18 +54,20 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="PathWise" />
       </head>
       <body className={`${inter.variable} font-sans`}>
-        <ThemeProvider>
-          <Providers>
-            {children}
-            <Toaster
-              position="bottom-right"
-              toastOptions={{
-                className: "!bg-dark-800 !text-dark-100 !border !border-dark-700",
-                duration: 4000,
-              }}
-            />
-          </Providers>
-        </ThemeProvider>
+        <I18nProvider>
+          <ThemeProvider>
+            <Providers>
+              {children}
+              <Toaster
+                position="bottom-right"
+                toastOptions={{
+                  className: "!bg-dark-800 !text-dark-100 !border !border-dark-700",
+                  duration: 4000,
+                }}
+              />
+            </Providers>
+          </ThemeProvider>
+        </I18nProvider>
       </body>
     </html>
   );

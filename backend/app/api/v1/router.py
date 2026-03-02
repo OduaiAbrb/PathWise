@@ -6,7 +6,8 @@ from app.api.v1.endpoints import (
     readiness, jd_comparison, career, jd_aggregator,
     portfolio, interview, challenges, users,
     resume_scanner, job_tracker, resources, exams, partners,
-    skill_decay, sharing, weekly_digest, company_paths
+    skill_decay, sharing, weekly_digest, company_paths,
+    notifications
 )
 
 api_router = APIRouter()
@@ -42,3 +43,4 @@ api_router.include_router(skill_decay.router, prefix="/skill-decay", tags=["Skil
 api_router.include_router(sharing.router, prefix="/sharing", tags=["Progress Sharing & Referrals"])
 api_router.include_router(weekly_digest.router, prefix="/digest", tags=["Weekly Digest"])
 api_router.include_router(company_paths.router, prefix="/company-prep", tags=["Company-Specific Prep"])
+api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications & Email Verification"])

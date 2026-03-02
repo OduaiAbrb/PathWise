@@ -34,6 +34,8 @@ import {
 } from "lucide-react";
 import NotificationSystem from "@/components/NotificationSystem";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import LanguageToggle from "@/components/LanguageToggle";
+import NotificationBanner from "@/components/NotificationBanner";
 
 /**
  * Dashboard Layout - Streamlined Navigation
@@ -145,6 +147,7 @@ export default function DashboardLayout({
 
           {/* Right: User Menu */}
           <div className="flex items-center gap-3">
+            <LanguageToggle />
             <ThemeToggle />
             <NotificationSystem />
 
@@ -294,6 +297,7 @@ export default function DashboardLayout({
       {/* Main Content */}
       <main className="lg:pl-64 pt-16 min-h-screen">
         <div className="p-6 lg:p-8">{children}</div>
+        <NotificationBanner />
       </main>
     </div>
   );

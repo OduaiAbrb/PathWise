@@ -1,12 +1,14 @@
 from pydantic_settings import BaseSettings
 from typing import List
 import os
+import warnings
 
 
 class Settings(BaseSettings):
     # App
     APP_NAME: str = "PathWise AI"
     DEBUG: bool = False
+    ENVIRONMENT: str = os.getenv("RAILWAY_ENVIRONMENT", os.getenv("ENVIRONMENT", "development"))
     
     # Database (SQLite for dev, PostgreSQL for production)
     DATABASE_URL: str = os.getenv(
@@ -18,7 +20,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379")
     
     # JWT
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-super-secret-key-change-in-production")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-only-secret-key-change-in-production")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 43200  # 30 days (30 * 24 * 60)
     REFRESH_TOKEN_EXPIRE_DAYS: int = 60  # 60 days for refresh
@@ -32,6 +34,7 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "https://pathwise.ai",
+        "https://www.pathwise.ai",
         "https://frontend-production-752a.up.railway.app",
     ]
     
@@ -50,6 +53,27 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+    
+    def validate_production(self) -> None:
+        """Validate critical settings for production deployment."""
+        is_prod = self.ENVIRONMENT != "development"
+        if not is_prod:
+            return
+        
+        if "dev-only" in self.SECRET_KEY or "change-in-production" in self.SECRET_KEY:
+            raise RuntimeError(
+                "FATAL: SECRET_KEY is not set! Set the SECRET_KEY environment variable "
+                "to a strong random value in production."
+            )
+        
+        if "sqlite" in self.DATABASE_URL:
+            warnings.warn(
+                "WARNING: Using SQLite in production! Data will be lost on redeploy. "
+                "Set DATABASE_URL to a PostgreSQL connection string.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
 
 
 settings = Settings()
+settings.validate_production()

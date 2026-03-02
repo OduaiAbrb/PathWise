@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from datetime import datetime
+from datetime import datetime, timezone
+from pydantic import BaseModel
 
 from app.db.database import get_db
 from app.db.models import User
@@ -17,6 +18,7 @@ from app.core.security import (
     verify_password,
     create_access_token,
     get_current_user_id,
+    validate_password_strength,
 )
 from app.services.email_service import send_welcome_email
 
@@ -30,6 +32,9 @@ async def register(
     db: AsyncSession = Depends(get_db)
 ):
     """Register a new user with email and password."""
+    # Validate password strength
+    validate_password_strength(user_data.password)
+    
     # Check if user exists
     result = await db.execute(select(User).where(User.email == user_data.email))
     existing_user = result.scalar_one_or_none()
@@ -95,7 +100,7 @@ async def login(
         )
     
     # Update last login
-    user.last_login = datetime.utcnow()
+    user.last_login = datetime.now(timezone.utc)
     await db.commit()
     
     # Generate token
@@ -147,7 +152,7 @@ async def google_auth(
             )
             db.add(user)
     
-    user.last_login = datetime.utcnow()
+    user.last_login = datetime.now(timezone.utc)
     await db.commit()
     await db.refresh(user)
     
@@ -202,10 +207,45 @@ async def verify_token_endpoint(
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db)
 ):
-    """Debug endpoint to verify token is working."""
-    print(f"✅ Token verification successful for user: {user_id}")
+    """Verify token is valid."""
     return {
         "success": True,
         "message": "Token is valid",
         "user_id": user_id,
     }
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+@router.post("/change-password", response_model=dict)
+async def change_password(
+    data: ChangePasswordRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """Change the current user's password."""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if not user.password_hash:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot change password for OAuth-only accounts. Set a password first."
+        )
+    
+    if not verify_password(data.current_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    # Validate new password strength
+    validate_password_strength(data.new_password)
+    
+    user.password_hash = get_password_hash(data.new_password)
+    await db.commit()
+    
+    return {"success": True, "message": "Password changed successfully"}

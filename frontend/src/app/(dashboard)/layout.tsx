@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { motion, AnimatePresence } from "framer-motion";
+
 import {
   LayoutDashboard,
   Map,
@@ -15,7 +15,7 @@ import {
   LogOut,
   Menu,
   X,
-  ChevronDown,
+
   Bell,
   Brain,
   Users,
@@ -52,23 +52,38 @@ import { ThemeToggle } from "@/components/ThemeToggle";
  * - Study Groups (if valuable)
  */
 
-// Streamlined navigation - only essential items
-// ROADMAP REMOVED: Now integrated into dashboard only (single roadmap per user)
+// Streamlined navigation - organized into logical groups
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, description: "Roadmap & Stats" },
   { href: "/interview", label: "Interview Prep", icon: MessageSquare, description: "Practice interviews" },
   { href: "/study-buddy", label: "AI Mentor", icon: Brain, description: "Personal guidance" },
 ];
 
-// Secondary items (collapsed by default)
-const secondaryItems = [
+// Career tools
+const careerItems = [
   { href: "/jobs", label: "Job Board", icon: Briefcase, description: "Find opportunities" },
   { href: "/applications", label: "Applications", icon: ClipboardList, description: "Track applications" },
-  { href: "/mentors", label: "Mentors", icon: Users, description: "Connect with experts" },
+  { href: "/job-tracker", label: "Job Tracker", icon: ClipboardList, description: "Pipeline view" },
+  { href: "/jd-analyzer", label: "JD Analyzer", icon: FileText, description: "Analyze job descriptions" },
+  { href: "/resume-scanner", label: "Resume Scanner", icon: FileText, description: "Optimize your resume" },
+  { href: "/portfolio", label: "Portfolio", icon: Award, description: "Showcase your work" },
+];
+
+// Learning & growth
+const learningItems = [
+  { href: "/roadmap", label: "Roadmap", icon: Map, description: "Your learning path" },
   { href: "/projects", label: "Projects", icon: Lightbulb, description: "Build proof" },
-  { href: "/groups", label: "Study Groups", icon: Users, description: "Community" },
-  { href: "/success-stories", label: "Success Stories", icon: Award, description: "Career journeys" },
+  { href: "/challenges", label: "Challenges", icon: Zap, description: "Daily challenges" },
   { href: "/resources", label: "Resources", icon: BookOpen, description: "Learning materials" },
+  { href: "/achievements", label: "Achievements", icon: Trophy, description: "Your badges" },
+];
+
+// Community
+const communityItems = [
+  { href: "/groups", label: "Study Groups", icon: Users, description: "Collaborative learning" },
+  { href: "/mentors", label: "Mentors", icon: Users, description: "Connect with experts" },
+  { href: "/partners", label: "Partners", icon: Shield, description: "Accountability" },
+  { href: "/success-stories", label: "Success Stories", icon: Award, description: "Career journeys" },
 ];
 
 export default function DashboardLayout({
@@ -80,7 +95,6 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showSecondary, setShowSecondary] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -121,9 +135,9 @@ export default function DashboardLayout({
             </button>
             <Link href="/dashboard" className="flex items-center gap-2">
               <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 35 C8 35 12 28 16 22 C20 16 16 12 20 8 L24 4 L28 8 L24 12" stroke="#0f172a" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M4 38 L18 38 C22 38 24 34 22 30 C20 26 24 22 22 18" stroke="#0f172a" strokeWidth="3" fill="none" strokeLinecap="round"/>
-                <circle cx="10" cy="32" r="3" fill="#0f172a"/>
+                <path d="M8 35 C8 35 12 28 16 22 C20 16 16 12 20 8 L24 4 L28 8 L24 12" stroke="#0f172a" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M4 38 L18 38 C22 38 24 34 22 30 C20 26 24 22 22 18" stroke="#0f172a" strokeWidth="3" fill="none" strokeLinecap="round" />
+                <circle cx="10" cy="32" r="3" fill="#0f172a" />
               </svg>
               <span className="text-lg font-bold text-slate-900 hidden sm:block">PathWise</span>
             </Link>
@@ -133,9 +147,9 @@ export default function DashboardLayout({
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <NotificationSystem />
-            
-            <Link 
-              href="/profile" 
+
+            <Link
+              href="/profile"
               className="flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-neutral-700 hover:opacity-80 transition-opacity cursor-pointer"
             >
               {session.user?.image ? (
@@ -163,14 +177,13 @@ export default function DashboardLayout({
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-16 left-0 bottom-0 w-64 bg-white border-r border-slate-200 dark:bg-neutral-900 dark:border-neutral-800 z-40 transform transition-transform duration-300 lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-16 left-0 bottom-0 w-64 bg-white border-r border-slate-200 dark:bg-neutral-900 dark:border-neutral-800 z-40 transform transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
-        <div className="h-full flex flex-col py-6">
+        <div className="h-full flex flex-col overflow-y-auto">
           {/* Main Navigation */}
-          <nav className="flex-1 px-3 space-y-1">
-            <p className="px-3 text-xs font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-3">
+          <nav className="flex-1 px-3 py-4 space-y-1">
+            <p className="px-3 text-xs font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2">
               Core
             </p>
             {navItems.map((item) => (
@@ -178,69 +191,83 @@ export default function DashboardLayout({
                 key={item.href}
                 href={item.href}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${
-                  isActive(item.href)
-                    ? "bg-black text-white shadow-lg dark:bg-white dark:text-black"
-                    : "text-slate-700 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-                }`}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive(item.href)
+                  ? "bg-black text-white shadow-lg dark:bg-white dark:text-black"
+                  : "text-slate-700 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                  }`}
                 data-testid={`nav-${item.label.toLowerCase().replace(" ", "-")}`}
               >
-                <item.icon className="w-5 h-5" />
-                <div>
-                  <span>{item.label}</span>
-                  {!isActive(item.href) && (
-                    <p className="text-xs text-slate-500 dark:text-neutral-500 font-normal">{item.description}</p>
-                  )}
-                </div>
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                <span>{item.label}</span>
               </Link>
             ))}
 
-            {/* Secondary Items Toggle */}
-            <button
-              onClick={() => setShowSecondary(!showSecondary)}
-              className="w-full flex items-center justify-between px-3 py-2 mt-4 text-xs font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-wider hover:text-slate-600 dark:hover:text-neutral-400"
-            >
-              More
-              <ChevronDown className={`w-4 h-4 transition-transform ${showSecondary ? "rotate-180" : ""}`} />
-            </button>
+            {/* Career Tools */}
+            <p className="px-3 pt-4 text-xs font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2">
+              Career Tools
+            </p>
+            {careerItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setSidebarOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${isActive(item.href)
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-black"
+                  : "text-slate-600 hover:bg-slate-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                  }`}
+              >
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                {item.label}
+              </Link>
+            ))}
 
-            <AnimatePresence>
-              {showSecondary && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
-                >
-                  {secondaryItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setSidebarOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                        isActive(item.href)
-                          ? "bg-slate-900 text-white dark:bg-white dark:text-black"
-                          : "text-slate-600 hover:bg-slate-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
-                      }`}
-                    >
-                      <item.icon className="w-5 h-5" />
-                      {item.label}
-                    </Link>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Learning & Growth */}
+            <p className="px-3 pt-4 text-xs font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2">
+              Learning
+            </p>
+            {learningItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setSidebarOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${isActive(item.href)
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-black"
+                  : "text-slate-600 hover:bg-slate-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                  }`}
+              >
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                {item.label}
+              </Link>
+            ))}
+
+            {/* Community */}
+            <p className="px-3 pt-4 text-xs font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2">
+              Community
+            </p>
+            {communityItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setSidebarOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${isActive(item.href)
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-black"
+                  : "text-slate-600 hover:bg-slate-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                  }`}
+              >
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
           {/* Bottom Actions */}
           <div className="px-3 pt-4 border-t border-slate-200 dark:border-neutral-800 space-y-1">
             <Link
               href="/settings"
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                isActive("/settings")
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-black"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
-              }`}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive("/settings")
+                ? "bg-slate-900 text-white dark:bg-white dark:text-black"
+                : "text-slate-600 hover:bg-slate-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                }`}
             >
               <Settings className="w-5 h-5" />
               Settings

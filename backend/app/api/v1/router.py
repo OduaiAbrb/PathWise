@@ -5,7 +5,8 @@ from app.api.v1.endpoints import (
     resume, projects, mentors, social, scheduler, income,
     readiness, jd_comparison, career, jd_aggregator,
     portfolio, interview, challenges, users,
-    resume_scanner, job_tracker, resources, exams, partners
+    resume_scanner, job_tracker, resources, exams, partners,
+    skill_decay, sharing, weekly_digest, company_paths
 )
 
 api_router = APIRouter()
@@ -35,3 +36,9 @@ api_router.include_router(job_tracker.router, prefix="/job-tracker", tags=["Job 
 api_router.include_router(resources.router, prefix="/resources", tags=["Learning Resources"])
 api_router.include_router(exams.router, prefix="/exams", tags=["Exams & Checkpoints"])
 api_router.include_router(partners.router, prefix="/partners", tags=["Accountability Partners"])
+
+# New features
+api_router.include_router(skill_decay.router, prefix="/skill-decay", tags=["Skill Decay"])
+api_router.include_router(sharing.router, prefix="/sharing", tags=["Progress Sharing & Referrals"])
+api_router.include_router(weekly_digest.router, prefix="/digest", tags=["Weekly Digest"])
+api_router.include_router(company_paths.router, prefix="/company-prep", tags=["Company-Specific Prep"])

@@ -52,12 +52,14 @@ export default function ComparisonBenchmarks({ targetRole }: ComparisonBenchmark
 
       if (response.ok) {
         const data = await response.json();
-        setBenchmarks(data.data || generateMockBenchmarks());
+        setBenchmarks(data.data || []);
       } else {
-        setBenchmarks(generateMockBenchmarks());
+        // Show empty state when API not available
+        setBenchmarks([]);
       }
     } catch (error) {
-      setBenchmarks(generateMockBenchmarks());
+      // Show empty state on error
+      setBenchmarks([]);
     } finally {
       setIsLoading(false);
     }

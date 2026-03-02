@@ -101,11 +101,12 @@ Nice to have:
         const data = await response.json();
         setResult(data.data || data);
       } else {
-        // Generate detailed mock result
-        setResult(generateMockResult());
+        // Show error state when API not available
+        setResult(null);
       }
     } catch (error) {
-      setResult(generateMockResult());
+      // Show error state on error
+      setResult(null);
     } finally {
       setIsScanning(false);
     }

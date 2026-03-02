@@ -80,41 +80,23 @@ export default function SmartReminderSystem() {
     completed: false
   });
 
-  // Sample reminders for demo
+  // Initialize with empty reminders - user creates their own
   useEffect(() => {
-    const sampleReminders: Reminder[] = [
-      {
-        id: "1",
-        title: "Review JavaScript Fundamentals",
-        description: "Complete the async/await chapter and practice exercises",
-        type: "study",
-        priority: "high",
-        scheduledTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
-        frequency: "once",
-        isActive: true,
-        completed: false,
-        notificationMethods: ["browser", "sound"],
-        tags: ["javascript", "fundamentals"],
-        estimatedDuration: 60,
-        relatedSkill: "JavaScript"
-      },
-      {
-        id: "2",
-        title: "Take React Quiz",
-        description: "Test your knowledge on React hooks and state management",
-        type: "quiz",
-        priority: "medium",
-        scheduledTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
-        frequency: "weekly",
-        isActive: true,
-        completed: false,
-        notificationMethods: ["browser", "email"],
-        tags: ["react", "quiz"],
-        estimatedDuration: 30,
-        relatedSkill: "React"
+    // Load reminders from localStorage if available
+    const savedReminders = localStorage.getItem('pathwise-reminders');
+    if (savedReminders) {
+      try {
+        const parsed = JSON.parse(savedReminders);
+        setReminders(parsed.map((r: any) => ({
+          ...r,
+          scheduledTime: new Date(r.scheduledTime)
+        })));
+      } catch {
+        setReminders([]);
       }
-    ];
-    setReminders(sampleReminders);
+    } else {
+      setReminders([]);
+    }
   }, []);
 
   const createReminder = () => {

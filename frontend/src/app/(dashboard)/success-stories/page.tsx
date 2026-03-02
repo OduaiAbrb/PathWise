@@ -93,10 +93,12 @@ export default function SuccessStoriesPage() {
         const data = await response.json();
         setStories(data.data || []);
       } else {
-        setStories(generateMockStories());
+        // Show empty state when API not available
+        setStories([]);
       }
     } catch (error) {
-      setStories(generateMockStories());
+      // Show empty state on error
+      setStories([]);
     } finally {
       setIsLoading(false);
     }

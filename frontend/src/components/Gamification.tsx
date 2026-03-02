@@ -111,12 +111,14 @@ export default function Gamification() {
 
       if (response.ok) {
         const data = await response.json();
-        setStats(data.data || generateMockStats());
+        setStats(data.data || null);
       } else {
-        setStats(generateMockStats());
+        // Show empty state when API not available
+        setStats(null);
       }
     } catch (error) {
-      setStats(generateMockStats());
+      // Show empty state on error
+      setStats(null);
     } finally {
       setIsLoading(false);
     }

@@ -114,13 +114,12 @@ export default function DiscoverPage() {
         const data = await response.json();
         setCareerPaths(data.paths || []);
       } else {
-        // Generate mock paths based on interests
-        const mockPaths = generateMockPaths();
-        setCareerPaths(mockPaths);
+        // Show empty state when API not available
+        setCareerPaths([]);
       }
     } catch (error) {
-      const mockPaths = generateMockPaths();
-      setCareerPaths(mockPaths);
+      // Show empty state on error
+      setCareerPaths([]);
     } finally {
       setIsGenerating(false);
       setStep(3);

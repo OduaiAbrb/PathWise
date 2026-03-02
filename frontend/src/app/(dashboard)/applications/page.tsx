@@ -83,10 +83,12 @@ export default function ApplicationsPage() {
         const data = await response.json();
         setApplications(data.data || []);
       } else {
-        setApplications(generateMockApplications());
+        // Show empty state when API not available
+        setApplications([]);
       }
     } catch (error) {
-      setApplications(generateMockApplications());
+      // Show empty state on error
+      setApplications([]);
     } finally {
       setIsLoading(false);
     }

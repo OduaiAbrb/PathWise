@@ -46,11 +46,12 @@ export function SkillDecaySystem({ onPracticeSkill }: SkillDecaySystemProps) {
         const data = await response.json();
         setDecayingSkills(calculateSkillDecay(data.data || []));
       } else {
-        // Generate mock decaying skills for demo
-        setDecayingSkills(generateMockDecayingSkills());
+        // Show empty state when API not available
+        setDecayingSkills([]);
       }
     } catch (error) {
-      setDecayingSkills(generateMockDecayingSkills());
+      // Show empty state on error
+      setDecayingSkills([]);
     } finally {
       setIsLoading(false);
     }

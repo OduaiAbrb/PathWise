@@ -87,119 +87,60 @@ export default function EnhancedStudyGroups({ groupId }: { groupId: string }) {
     loadGroupData();
   }, [groupId]);
 
-  const loadGroupData = () => {
-    // Load mock data - in real app, these would be API calls
-    setStudySessions([
-      {
-        id: "1",
-        title: "React Hooks Deep Dive",
-        description: "Interactive session covering useState, useEffect, and custom hooks with live coding examples",
-        scheduledTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
-        duration: 90,
-        type: "video_call",
-        status: "upcoming",
-        participants: 8,
-        maxParticipants: 15,
-        host: "Sarah Chen"
-      },
-      {
-        id: "2",
-        title: "System Design Mock Interview",
-        description: "Practice system design problems with peer feedback and expert guidance",
-        scheduledTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1 week from now
-        duration: 120,
-        type: "screen_share",
-        status: "upcoming",
-        participants: 12,
-        maxParticipants: 20,
-        host: "Michael Rodriguez"
-      },
-      {
-        id: "3",
-        title: "JavaScript Fundamentals Review",
-        description: "Completed session reviewing closures, prototypes, and async programming",
-        scheduledTime: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-        duration: 75,
-        type: "discussion",
-        status: "completed",
-        participants: 14,
-        maxParticipants: 15,
-        host: "Emily Watson"
+  const loadGroupData = async () => {
+    // Load real data from API
+    try {
+      const response = await fetch(`/api/v1/social/groups/${groupId}/sessions`);
+      if (response.ok) {
+        const data = await response.json();
+        setStudySessions(data.data || []);
+      } else {
+        // Empty state when API not available
+        setStudySessions([]);
       }
-    ]);
+    } catch (error) {
+      // Empty state on error
+      setStudySessions([]);
+    }
 
-    setResources([
-      {
-        id: "1",
-        title: "React Hooks Cheat Sheet",
-        type: "pdf",
-        url: "#",
-        uploadedBy: "Sarah Chen",
-        uploadedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        size: "2.4 MB",
-        downloads: 28,
-        rating: 4.8
-      },
-      {
-        id: "2",
-        title: "Advanced JavaScript Patterns Course",
-        type: "video",
-        url: "#",
-        uploadedBy: "Michael Rodriguez",
-        uploadedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-        size: "1.2 GB",
-        downloads: 45,
-        rating: 4.9
-      },
-      {
-        id: "3",
-        title: "System Design Interview Guide",
-        type: "link",
-        url: "https://github.com/donnemartin/system-design-primer",
-        uploadedBy: "Alex Kim",
-        uploadedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        downloads: 67,
-        rating: 4.7
+    // Load resources from API
+    try {
+      const resourcesRes = await fetch(`/api/v1/social/groups/${groupId}/resources`);
+      if (resourcesRes.ok) {
+        const resourcesData = await resourcesRes.json();
+        setResources(resourcesData.data || []);
+      } else {
+        setResources([]);
       }
-    ]);
+    } catch {
+      setResources([]);
+    }
 
-    setAchievements([
-      {
-        id: "1",
-        title: "Study Streak Master",
-        description: "Attend 5 consecutive study sessions",
-        icon: "🔥",
-        earnedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        progress: 5,
-        maxProgress: 5
-      },
-      {
-        id: "2",
-        title: "Resource Contributor",
-        description: "Share 10 helpful resources with the group",
-        icon: "📚",
-        progress: 7,
-        maxProgress: 10
-      },
-      {
-        id: "3",
-        title: "Discussion Leader",
-        description: "Lead 3 study sessions",
-        icon: "🎯",
-        progress: 1,
-        maxProgress: 3
+    // Load achievements from API
+    try {
+      const achievementsRes = await fetch(`/api/v1/social/groups/${groupId}/achievements`);
+      if (achievementsRes.ok) {
+        const achievementsData = await achievementsRes.json();
+        setAchievements(achievementsData.data || []);
+      } else {
+        setAchievements([]);
       }
-    ]);
+    } catch {
+      setAchievements([]);
+    }
 
-    setAnalytics({
-      totalStudyTime: 24.5,
-      sessionsAttended: 12,
-      resourcesShared: 7,
-      averageRating: 4.6,
-      streakDays: 14,
-      weeklyGoal: 8,
-      weeklyProgress: 6
-    });
+    // Load analytics from API
+    try {
+      const analyticsRes = await fetch(`/api/v1/social/groups/${groupId}/analytics`);
+      if (analyticsRes.ok) {
+        const analyticsData = await analyticsRes.json();
+        setAnalytics(analyticsData.data || null);
+      } else {
+        setAnalytics(null);
+      }
+    } catch {
+      setAnalytics(null);
+    }
   };
 
   const joinSession = (sessionId: string) => {

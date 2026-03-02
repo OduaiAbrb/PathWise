@@ -89,10 +89,12 @@ export default function ChallengesPage() {
         const data = await response.json();
         setChallenges(data.data || []);
       } else {
-        setChallenges(generateMockChallenges());
+        // Show empty state when API not available
+        setChallenges([]);
       }
     } catch (error) {
-      setChallenges(generateMockChallenges());
+      // Show empty state on error
+      setChallenges([]);
     } finally {
       setIsLoading(false);
     }

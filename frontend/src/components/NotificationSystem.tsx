@@ -72,57 +72,28 @@ export default function NotificationSystem() {
   });
 
   useEffect(() => {
-    // Initialize with sample notifications
-    const sampleNotifications: Notification[] = [
-      {
-        id: "1",
-        type: "achievement",
-        title: "🏆 Achievement Unlocked!",
-        message: "Congratulations! You've completed your first React course and earned the 'React Rookie' badge.",
-        timestamp: new Date(Date.now() - 5 * 60 * 1000),
-        read: false,
-        priority: "medium"
-      },
-      {
-        id: "2",
-        type: "reminder",
-        title: "📚 Study Reminder",
-        message: "Time for your JavaScript fundamentals session. You have 'Async/Await' scheduled in 15 minutes.",
-        timestamp: new Date(Date.now() - 15 * 60 * 1000),
-        read: false,
-        priority: "high"
-      },
-      {
-        id: "3",
-        type: "social",
-        title: "👥 New Study Group Invite",
-        message: "Sarah Chen invited you to join the 'Backend Engineers Hub' study group. 24 members are already participating!",
-        timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
-        read: true,
-        priority: "medium"
-      },
-      {
-        id: "4",
-        type: "quiz",
-        title: "🧠 Quiz Results Available",
-        message: "Your 'React Hooks Quiz' results are ready! You scored 87% - Great job!",
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        read: false,
-        priority: "low"
-      },
-      {
-        id: "5",
-        type: "system",
-        title: "🔄 Platform Update",
-        message: "New features available: Advanced code editor with real-time collaboration is now live!",
-        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-        read: true,
-        priority: "low"
+    // Fetch real notifications from API
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch('/api/v1/notifications', {
+          headers: { 'Content-Type': 'application/json' }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setNotifications(data.data || []);
+          setUnreadCount((data.data || []).filter((n: Notification) => !n.read).length);
+        } else {
+          // Empty state when API not available
+          setNotifications([]);
+          setUnreadCount(0);
+        }
+      } catch (error) {
+        // Empty state on error
+        setNotifications([]);
+        setUnreadCount(0);
       }
-    ];
-
-    setNotifications(sampleNotifications);
-    setUnreadCount(sampleNotifications.filter(n => !n.read).length);
+    };
+    fetchNotifications();
   }, []);
 
   const markAsRead = (id: string) => {

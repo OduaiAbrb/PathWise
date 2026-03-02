@@ -76,11 +76,12 @@ export default function ATSOptimizerPage() {
         const data = await response.json();
         setAnalysis(data.data || data);
       } else {
-        // Generate mock analysis for demo
-        setAnalysis(generateMockAnalysis());
+        // Show error state when API not available
+        setAnalysis(null);
       }
     } catch (error) {
-      setAnalysis(generateMockAnalysis());
+      // Show error state on error
+      setAnalysis(null);
     } finally {
       setIsAnalyzing(false);
     }

@@ -119,7 +119,7 @@ def test_career_roles():
         return False
 
 def test_career_discover():
-    """Test 7: Career discovery endpoint"""
+    """Test 7: Career discovery endpoint (requires auth)"""
     try:
         response = requests.post(
             f"{BASE_URL}/api/v1/career/discover",
@@ -130,11 +130,12 @@ def test_career_discover():
             },
             timeout=10
         )
-        passed = response.status_code in [200, 401, 422]
-        log_test("Career Discover", passed, f"Status: {response.status_code}")
+        # 403 expected without auth token
+        passed = response.status_code in [200, 401, 403, 422]
+        log_test("Career Discover (Auth)", passed, f"Status: {response.status_code}")
         return passed
     except Exception as e:
-        log_test("Career Discover", False, str(e))
+        log_test("Career Discover (Auth)", False, str(e))
         return False
 
 def test_roadmap_generate():
@@ -158,25 +159,27 @@ def test_roadmap_generate():
         return False
 
 def test_social_groups_list():
-    """Test 9: Social groups listing"""
+    """Test 9: Social groups listing (requires auth)"""
     try:
         response = requests.get(f"{BASE_URL}/api/v1/social/groups", timeout=10)
-        passed = response.status_code in [200, 401]
-        log_test("Social Groups List", passed, f"Status: {response.status_code}")
+        # 403 expected without auth token
+        passed = response.status_code in [200, 401, 403]
+        log_test("Social Groups (Auth)", passed, f"Status: {response.status_code}")
         return passed
     except Exception as e:
-        log_test("Social Groups List", False, str(e))
+        log_test("Social Groups (Auth)", False, str(e))
         return False
 
 def test_gamification_stats():
-    """Test 10: Gamification stats endpoint"""
+    """Test 10: Gamification stats endpoint (requires auth)"""
     try:
         response = requests.get(f"{BASE_URL}/api/v1/gamification/stats", timeout=10)
-        passed = response.status_code in [200, 401]
-        log_test("Gamification Stats", passed, f"Status: {response.status_code}")
+        # 403 expected without auth token
+        passed = response.status_code in [200, 401, 403]
+        log_test("Gamification Stats (Auth)", passed, f"Status: {response.status_code}")
         return passed
     except Exception as e:
-        log_test("Gamification Stats", False, str(e))
+        log_test("Gamification Stats (Auth)", False, str(e))
         return False
 
 def test_challenges_list():
@@ -192,14 +195,15 @@ def test_challenges_list():
         return False
 
 def test_challenges_today():
-    """Test 12: Today's challenge endpoint"""
+    """Test 12: Today's challenge endpoint (requires auth)"""
     try:
         response = requests.get(f"{BASE_URL}/api/v1/challenges/today", timeout=10)
-        passed = response.status_code in [200, 401, 404]
-        log_test("Today's Challenge", passed, f"Status: {response.status_code}")
+        # 403 expected without auth token
+        passed = response.status_code in [200, 401, 403, 404]
+        log_test("Today's Challenge (Auth)", passed, f"Status: {response.status_code}")
         return passed
     except Exception as e:
-        log_test("Today's Challenge", False, str(e))
+        log_test("Today's Challenge (Auth)", False, str(e))
         return False
 
 def test_frontend_landing():
@@ -237,7 +241,7 @@ def test_frontend_signup():
         return False
 
 def test_chat_message():
-    """Test 16: AI Chat message endpoint"""
+    """Test 16: AI Chat message endpoint (requires auth)"""
     try:
         response = requests.post(
             f"{BASE_URL}/api/v1/chat/message",
@@ -247,11 +251,12 @@ def test_chat_message():
             },
             timeout=30
         )
-        passed = response.status_code in [200, 401, 422]
-        log_test("AI Chat Message", passed, f"Status: {response.status_code}")
+        # 403 expected without auth token
+        passed = response.status_code in [200, 401, 403, 422]
+        log_test("AI Chat Message (Auth)", passed, f"Status: {response.status_code}")
         return passed
     except Exception as e:
-        log_test("AI Chat Message", False, str(e))
+        log_test("AI Chat Message (Auth)", False, str(e))
         return False
 
 def test_skills_current():
@@ -278,14 +283,15 @@ def test_jobs_matching():
         return False
 
 def test_job_tracker():
-    """Test 19: Job tracker endpoint"""
+    """Test 19: Job tracker endpoint (requires auth)"""
     try:
         response = requests.get(f"{BASE_URL}/api/v1/job-tracker", timeout=10)
-        passed = response.status_code in [200, 401, 404]
-        log_test("Job Tracker", passed, f"Status: {response.status_code}")
+        # 403 expected without auth token
+        passed = response.status_code in [200, 401, 403, 404]
+        log_test("Job Tracker (Auth)", passed, f"Status: {response.status_code}")
         return passed
     except Exception as e:
-        log_test("Job Tracker", False, str(e))
+        log_test("Job Tracker (Auth)", False, str(e))
         return False
 
 def test_analytics_velocity():
@@ -300,84 +306,91 @@ def test_analytics_velocity():
         return False
 
 def test_user_profile():
-    """Test 21: User profile endpoint"""
+    """Test 21: User profile endpoint (requires auth)"""
     try:
         response = requests.get(f"{BASE_URL}/api/v1/users/profile", timeout=10)
-        passed = response.status_code in [200, 401]
-        log_test("User Profile", passed, f"Status: {response.status_code}")
+        # 403 expected without auth token
+        passed = response.status_code in [200, 401, 403]
+        log_test("User Profile (Auth)", passed, f"Status: {response.status_code}")
         return passed
     except Exception as e:
-        log_test("User Profile", False, str(e))
+        log_test("User Profile (Auth)", False, str(e))
         return False
 
 def test_notification_preferences():
-    """Test 22: Notification preferences endpoint"""
+    """Test 22: Notification preferences endpoint (requires auth)"""
     try:
         response = requests.get(f"{BASE_URL}/api/v1/users/notification-preferences", timeout=10)
-        passed = response.status_code in [200, 401, 404]
-        log_test("Notification Preferences", passed, f"Status: {response.status_code}")
+        # 403 expected without auth token
+        passed = response.status_code in [200, 401, 403, 404]
+        log_test("Notification Preferences (Auth)", passed, f"Status: {response.status_code}")
         return passed
     except Exception as e:
-        log_test("Notification Preferences", False, str(e))
+        log_test("Notification Preferences (Auth)", False, str(e))
         return False
 
 def test_exams_progress():
-    """Test 23: Exam progress endpoint"""
+    """Test 23: Exam progress endpoint (requires auth)"""
     try:
         response = requests.get(f"{BASE_URL}/api/v1/exams/progress/test-roadmap", timeout=10)
-        passed = response.status_code in [200, 401, 404]
-        log_test("Exam Progress", passed, f"Status: {response.status_code}")
+        # 403 expected without auth token
+        passed = response.status_code in [200, 401, 403, 404]
+        log_test("Exam Progress (Auth)", passed, f"Status: {response.status_code}")
         return passed
     except Exception as e:
-        log_test("Exam Progress", False, str(e))
+        log_test("Exam Progress (Auth)", False, str(e))
         return False
 
 def test_income_entries():
-    """Test 24: Income entries endpoint"""
+    """Test 24: Income entries endpoint (requires auth)"""
     try:
         response = requests.get(f"{BASE_URL}/api/v1/income/entries", timeout=10)
-        passed = response.status_code in [200, 401, 404]
-        log_test("Income Entries", passed, f"Status: {response.status_code}")
+        # 403 expected without auth token
+        passed = response.status_code in [200, 401, 403, 404]
+        log_test("Income Entries (Auth)", passed, f"Status: {response.status_code}")
         return passed
     except Exception as e:
-        log_test("Income Entries", False, str(e))
+        log_test("Income Entries (Auth)", False, str(e))
         return False
 
 def test_gamification_benchmarks():
-    """Test 25: Gamification benchmarks endpoint"""
+    """Test 25: Gamification benchmarks endpoint (requires auth)"""
     try:
         response = requests.get(f"{BASE_URL}/api/v1/gamification/benchmarks", timeout=10)
-        passed = response.status_code in [200, 401]
-        log_test("Gamification Benchmarks", passed, f"Status: {response.status_code}")
+        # 403 expected without auth token
+        passed = response.status_code in [200, 401, 403]
+        log_test("Gamification Benchmarks (Auth)", passed, f"Status: {response.status_code}")
         return passed
     except Exception as e:
-        log_test("Gamification Benchmarks", False, str(e))
+        log_test("Gamification Benchmarks (Auth)", False, str(e))
         return False
 
 def test_gamification_notifications():
-    """Test 26: Gamification notifications endpoint"""
+    """Test 26: Gamification notifications endpoint (requires auth)"""
     try:
         response = requests.get(f"{BASE_URL}/api/v1/gamification/notifications", timeout=10)
-        passed = response.status_code in [200, 401]
-        log_test("Gamification Notifications", passed, f"Status: {response.status_code}")
+        # 403 expected without auth token
+        passed = response.status_code in [200, 401, 403]
+        log_test("Gamification Notifications (Auth)", passed, f"Status: {response.status_code}")
         return passed
     except Exception as e:
-        log_test("Gamification Notifications", False, str(e))
+        log_test("Gamification Notifications (Auth)", False, str(e))
         return False
 
 def test_daily_checkin():
-    """Test 27: Daily check-in endpoint"""
+    """Test 27: Daily check-in endpoint (requires auth)"""
     try:
         response = requests.post(
             f"{BASE_URL}/api/v1/gamification/checkin",
             json={"mood": "productive", "goals": ["Learn React"]},
             timeout=10
         )
-        passed = response.status_code in [200, 401, 422]
-        log_test("Daily Check-in", passed, f"Status: {response.status_code}")
+        # 403 expected without auth token
+        passed = response.status_code in [200, 401, 403, 422]
+        log_test("Daily Check-in (Auth)", passed, f"Status: {response.status_code}")
         return passed
     except Exception as e:
-        log_test("Daily Check-in", False, str(e))
+        log_test("Daily Check-in (Auth)", False, str(e))
         return False
 
 def test_success_stories():

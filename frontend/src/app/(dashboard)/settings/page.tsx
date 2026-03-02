@@ -215,7 +215,8 @@ export default function SettingsPage() {
                     <label className="label">Full Name</label>
                     <input
                       type="text"
-                      defaultValue={session?.user?.name || ""}
+                      value={profileData.name}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
                       className="input"
                     />
                   </div>
@@ -223,17 +224,30 @@ export default function SettingsPage() {
                     <label className="label">Email</label>
                     <input
                       type="email"
-                      defaultValue={session?.user?.email || ""}
-                      className="input"
+                      value={profileData.email}
+                      className="input bg-neutral-100 dark:bg-neutral-800 cursor-not-allowed"
                       disabled
                     />
                   </div>
                 </div>
 
                 <div>
+                  <label className="label">Location</label>
+                  <input
+                    type="text"
+                    value={profileData.location}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, location: e.target.value }))}
+                    placeholder="e.g., San Francisco, CA"
+                    className="input"
+                  />
+                </div>
+
+                <div>
                   <label className="label">Target Role</label>
                   <input
                     type="text"
+                    value={profileData.targetRole}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, targetRole: e.target.value }))}
                     placeholder="e.g., Senior Backend Engineer"
                     className="input"
                   />
@@ -243,19 +257,39 @@ export default function SettingsPage() {
                   <label className="label">Bio</label>
                   <textarea
                     rows={3}
+                    value={profileData.bio}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
                     placeholder="Tell us about yourself..."
                     className="input resize-none"
                   />
                 </div>
 
-                <button onClick={handleSave} className="btn-primary">
-                  {saved ? (
+                {errors.general && (
+                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
+                    {errors.general}
+                  </div>
+                )}
+
+                <button 
+                  onClick={handleSave} 
+                  className="btn-primary"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : saved ? (
                     <>
                       <Check className="w-5 h-5" />
-                      Saved
+                      Saved!
                     </>
                   ) : (
-                    "Save Changes"
+                    <>
+                      <Save className="w-5 h-5" />
+                      Save Changes
+                    </>
                   )}
                 </button>
               </div>
@@ -301,14 +335,20 @@ export default function SettingsPage() {
                   ))}
                 </div>
 
-                <button onClick={handleSave} className="btn-primary">
+                <button 
+                  onClick={saveNotificationSettings} 
+                  className="btn-primary"
+                >
                   {saved ? (
                     <>
                       <Check className="w-5 h-5" />
-                      Saved
+                      Saved!
                     </>
                   ) : (
-                    "Save Preferences"
+                    <>
+                      <Save className="w-5 h-5" />
+                      Save Preferences
+                    </>
                   )}
                 </button>
               </div>

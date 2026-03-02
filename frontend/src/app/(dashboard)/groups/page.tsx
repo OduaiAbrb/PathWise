@@ -233,6 +233,13 @@ export default function GroupsPage() {
         return;
       }
 
+      // Only make backend call if we have an access token
+      if (!accessToken) {
+        showSuccess("Joined group locally!");
+        setJoiningGroupId(null);
+        return;
+      }
+
       const response = await fetch(getApiUrl(`/api/v1/social/groups/join`), {
         method: "POST",
         headers: {
@@ -245,21 +252,28 @@ export default function GroupsPage() {
       });
 
       if (!response.ok) {
-        // Revert on failure
-        const joinedGroupIds = getJoinedGroupIds();
-        joinedGroupIds.delete(groupId);
-        saveJoinedGroupIds(joinedGroupIds);
-        
-        setGroups((prev: StudyGroup[]) =>
-          prev.map((g: StudyGroup) =>
-            g.id === groupId ? { ...g, joined: false, members: g.members - 1 } : g
-          )
-        );
+        // Don't revert for auth errors - just keep local state
+        if (response.status === 401 || response.status === 403) {
+          console.warn("Auth error joining group - keeping local state");
+          showSuccess("Joined group!");
+        } else {
+          // Revert on other failures
+          const joinedGroupIds = getJoinedGroupIds();
+          joinedGroupIds.delete(groupId);
+          saveJoinedGroupIds(joinedGroupIds);
+          
+          setGroups((prev: StudyGroup[]) =>
+            prev.map((g: StudyGroup) =>
+              g.id === groupId ? { ...g, joined: false, members: g.members - 1 } : g
+            )
+          );
+        }
       } else {
         showSuccess("Successfully joined the group!");
       }
     } catch (error) {
-      // Keep optimistic update and localStorage
+      // Keep optimistic update and localStorage on any error
+      console.error("Error joining group:", error);
       showSuccess("Joined group!");
     } finally {
       setJoiningGroupId(null);
@@ -296,6 +310,13 @@ export default function GroupsPage() {
         return;
       }
 
+      // Only make backend call if we have an access token
+      if (!accessToken) {
+        showSuccess("Left group locally!");
+        setLeavingGroupId(null);
+        return;
+      }
+
       const response = await fetch(getApiUrl(`/api/v1/social/groups/leave`), {
         method: "POST",
         headers: {
@@ -308,20 +329,28 @@ export default function GroupsPage() {
       });
       
       if (!response.ok) {
-        // Revert on failure
-        const joinedGroupIds = getJoinedGroupIds();
-        joinedGroupIds.add(groupId);
-        saveJoinedGroupIds(joinedGroupIds);
-        
-        setGroups((prev: StudyGroup[]) =>
-          prev.map((g: StudyGroup) =>
-            g.id === groupId ? { ...g, joined: true, members: g.members + 1 } : g
-          )
-        );
+        // Don't revert for auth errors - just keep local state
+        if (response.status === 401 || response.status === 403) {
+          console.warn("Auth error leaving group - keeping local state");
+          showSuccess("Left group!");
+        } else {
+          // Revert on other failures
+          const joinedGroupIds = getJoinedGroupIds();
+          joinedGroupIds.add(groupId);
+          saveJoinedGroupIds(joinedGroupIds);
+          
+          setGroups((prev: StudyGroup[]) =>
+            prev.map((g: StudyGroup) =>
+              g.id === groupId ? { ...g, joined: true, members: g.members + 1 } : g
+            )
+          );
+        }
       } else {
         showSuccess("Left the group");
       }
     } catch (error) {
+      // Keep optimistic update and localStorage on any error
+      console.error("Error leaving group:", error);
       // Keep optimistic update and localStorage
       showSuccess("Left group!");
     } finally {

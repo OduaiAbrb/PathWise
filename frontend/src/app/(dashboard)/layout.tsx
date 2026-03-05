@@ -136,11 +136,7 @@ export default function DashboardLayout({
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
             <Link href="/dashboard" className="flex items-center gap-2">
-              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 35 C8 35 12 28 16 22 C20 16 16 12 20 8 L24 4 L28 8 L24 12" stroke="#0f172a" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M4 38 L18 38 C22 38 24 34 22 30 C20 26 24 22 22 18" stroke="#0f172a" strokeWidth="3" fill="none" strokeLinecap="round" />
-                <circle cx="10" cy="32" r="3" fill="#0f172a" />
-              </svg>
+              <img src="/logo.png" alt="PathWise" width={32} height={32} className="rounded-lg" />
               <span className="text-lg font-bold text-slate-900 hidden sm:block">PathWise</span>
             </Link>
           </div>

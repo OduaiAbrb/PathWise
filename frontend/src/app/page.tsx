@@ -16,11 +16,7 @@ export default function LandingPage() {
       <nav className="absolute top-0 left-0 right-0 z-10 p-6 border-b border-white/10">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 35 C8 35 12 28 16 22 C20 16 16 12 20 8 L24 4 L28 8 L24 12" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M4 38 L18 38 C22 38 24 34 22 30 C20 26 24 22 22 18" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round"/>
-              <circle cx="10" cy="32" r="3" fill="white"/>
-            </svg>
+            <img src="/logo.png" alt="PathWise" width={40} height={40} className="rounded-lg" />
             <span className="text-2xl font-bold text-white">PathWise</span>
           </div>
           <div className="flex items-center gap-4">
@@ -52,21 +48,21 @@ export default function LandingPage() {
               <Sparkles className="w-4 h-4" />
               From Job Description to Job Offer
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
               Your Dream Job,<br />
               <span className="underline decoration-4">Mapped Out.</span>
             </h1>
-            
+
             <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-8">
-              Stop drowning in tutorials. Paste any job description and get a personalized learning roadmap 
+              Stop drowning in tutorials. Paste any job description and get a personalized learning roadmap
               with exactly what to learn, in what order, and how long it takes.
             </p>
 
             <p className="text-lg text-white/80 max-w-2xl mx-auto mb-12 font-medium">
               No more confusion. No more overwhelm. Just clarity.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
               <Link
                 href="/login"

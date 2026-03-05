@@ -89,11 +89,7 @@ export default function LoginPage() {
         >
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 mb-8">
-            <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 35 C8 35 12 28 16 22 C20 16 16 12 20 8 L24 4 L28 8 L24 12" stroke="#171717" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M4 38 L18 38 C22 38 24 34 22 30 C20 26 24 22 22 18" stroke="#171717" strokeWidth="3" fill="none" strokeLinecap="round"/>
-              <circle cx="10" cy="32" r="3" fill="#171717"/>
-            </svg>
+            <img src="/logo.png" alt="PathWise" width={32} height={32} className="rounded-lg" />
             <span className="text-xl font-semibold text-neutral-900">PathWise</span>
           </Link>
 
@@ -220,11 +216,7 @@ export default function LoginPage() {
           className="max-w-lg text-center"
         >
           <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-8">
-            <svg width="48" height="48" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 35 C8 35 12 28 16 22 C20 16 16 12 20 8 L24 4 L28 8 L24 12" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M4 38 L18 38 C22 38 24 34 22 30 C20 26 24 22 22 18" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round"/>
-              <circle cx="10" cy="32" r="3" fill="white"/>
-            </svg>
+            <img src="/logo.png" alt="PathWise" width={48} height={48} className="rounded-lg" />
           </div>
           <h2 className="text-3xl font-bold text-white mb-4">
             Your personalized path to your dream job
